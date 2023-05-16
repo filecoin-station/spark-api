@@ -8,12 +8,16 @@
   "description": "API for SPARK",
   "scripts": {
     "start": "node index.js",
-    "test": "standard"
+    "test": "standard && mocha"
   },
   "devDependencies": {
+    "mocha": "^10.2.0",
     "standard": "^17.0.0"
   },
   "dependencies": {
     "http-responders": "^2.0.2"
+  },
+  "standard": {
+    "env": ["mocha"]
   }
 }
