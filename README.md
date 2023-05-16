@@ -21,3 +21,11 @@ Response:
   - Password: _blank_
   - Database: _same as user name_
 1. `npm start`
+
+## Deployment
+
+Using [Fly.io]:
+
+```bash
+$ fly deploy
+```
