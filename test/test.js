@@ -1,14 +1,21 @@
-import { handle } from '../index.js'
+import { createHandler } from '../index.js'
 import http from 'node:http'
 import { once } from 'node:events'
 import assert from 'node:assert'
+import pg from 'pg'
+
+const { DATABASE_URL } = process.env
 
 describe('Routes', () => {
+  let client
   let server
   let spark
 
   before(async () => {
-    server = http.createServer(handle)
+    client = new pg.Client({ connectionString: DATABASE_URL })
+    await client.connect()
+    const handler = await createHandler(client)
+    server = http.createServer(handler)
     server.listen()
     await once(server, 'listening')
     spark = `http://127.0.0.1:${server.address().port}`
@@ -16,6 +23,7 @@ describe('Routes', () => {
 
   after(() => {
     server.close()
+    client.end()
   })
 
   describe('GET /', () => {

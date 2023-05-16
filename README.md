@@ -12,3 +12,12 @@ Response:
 ```json
 {}
 ```
+
+## Development
+
+1. Set up [PostgreSQL](https://www.postgresql.org/) with default settings:
+  - Port: 5432
+  - User: _your user name_
+  - Password: _blank_
+  - Database: _same as user name_
+1. `npm start`
