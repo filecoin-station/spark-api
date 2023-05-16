@@ -7,6 +7,10 @@
   "type": "module",
   "description": "API for SPARK",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "standard"
+  },
+  "devDependencies": {
+    "standard": "^17.0.0"
   }
 }
