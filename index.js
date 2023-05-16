@@ -1,6 +1,6 @@
 import { json } from 'http-responders'
 
-export const createHandler = async (client) => {
+export const createHandler = (client) => {
   const handler = async (req, res) => {
     if (req.url === '/retrieval') {
       const r = await client.query('SELECT $1::text as hello', ['world'])

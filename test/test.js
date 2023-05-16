@@ -14,8 +14,7 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
-    const handler = await createHandler(client)
-    server = http.createServer(handler)
+    server = http.createServer(createHandler(client))
     server.listen()
     await once(server, 'listening')
     spark = `http://127.0.0.1:${server.address().port}`
