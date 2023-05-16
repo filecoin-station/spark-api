@@ -4,13 +4,15 @@ import { once } from 'node:events'
 import assert from 'node:assert'
 import pg from 'pg'
 
+const { DATABASE_URL } = process.env
+
 describe('Routes', () => {
   let client
   let server
   let spark
 
   before(async () => {
-    client = new pg.Client()
+    client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
     const handler = await createHandler(client)
     server = http.createServer(handler)
