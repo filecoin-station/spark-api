@@ -12,5 +12,8 @@
   },
   "devDependencies": {
     "standard": "^17.0.0"
+  },
+  "dependencies": {
+    "http-responders": "^2.0.2"
   }
 }

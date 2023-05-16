@@ -1,7 +1,12 @@
 import http from 'node:http'
 import { once } from 'node:events'
+import { json } from 'http-responders'
 
 const server = http.createServer((req, res) => {
+  if (req.url === '/retrieval') {
+    json(res, { message: 'Hello World!' })
+    return
+  }
   res.end('Hello World!')
 })
 
