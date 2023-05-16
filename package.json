@@ -1,0 +1,12 @@
+{
+  "name": "@filecoin-station/spark-api",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": "filecoin-station/spark-api",
+  "type": "module",
+  "description": "API for SPARK",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
