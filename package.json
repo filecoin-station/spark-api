@@ -7,7 +7,7 @@
   "type": "module",
   "description": "API for SPARK",
   "scripts": {
-    "start": "node index.js",
+    "start": "node bin/spark.js",
     "test": "standard && mocha"
   },
   "devDependencies": {
@@ -15,9 +15,12 @@
     "standard": "^17.0.0"
   },
   "dependencies": {
-    "http-responders": "^2.0.2"
+    "http-responders": "^2.0.2",
+    "pg": "^8.11.0"
   },
   "standard": {
-    "env": ["mocha"]
+    "env": [
+      "mocha"
+    ]
   }
 }
