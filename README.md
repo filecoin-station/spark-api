@@ -22,7 +22,22 @@ Response:
 
 ### `PATCH /retrieval/:id`
 
-_TODO_
+Parameters:
+- `id`: Request ID
+
+Body:
+
+```typescript
+{
+  success: Boolean
+}
+```
+
+Response:
+
+```
+OK
+```
 
 ## Development
 

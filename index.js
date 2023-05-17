@@ -1,11 +1,13 @@
 import { json } from 'http-responders'
 import { migrate } from './lib/migrate.js'
+import getRawBody from 'raw-body'
 
 export const createHandler = async (client) => {
   await migrate(client)
 
   const handler = async (req, res) => {
-    if (req.url === '/retrieval' && req.method === 'POST') {
+    const segs = req.url.split('/').filter(Boolean)
+    if (segs[0] === 'retrieval' && req.method === 'POST') {
       // TODO: Consolidate to one query
       const { rows: [retrievalTemplate] } = await client.query(`
         SELECT id, cid, provider_address, protocol
@@ -26,9 +28,23 @@ export const createHandler = async (client) => {
         providerAddress: retrievalTemplate.provider_address,
         protocol: retrievalTemplate.protocol
       })
-      return
+    } else if (segs[0] === 'retrieval' && req.method === 'PATCH') {
+      const retrievalId = Number(segs[1])
+      const body = await getRawBody(req, { limit: '100kb' })
+      const { success } = JSON.parse(body)
+      await client.query(`
+        UPDATE retrievals
+        SET finished_at = NOW(),
+            success = $1
+        WHERE id = $2
+      `, [
+        success,
+        retrievalId
+      ])
+      res.end('OK')
+    } else {
+      res.end('Hello World!')
     }
-    res.end('Hello World!')
   }
 
   return (req, res) => {

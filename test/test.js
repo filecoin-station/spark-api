@@ -62,4 +62,42 @@ describe('Routes', () => {
       throw new Error('All requests returned the same CID')
     })
   })
+  describe('PATCH /retrieval/:id', () => {
+    it('updates a retrieval', async () => {
+      const createRequest = await fetch(
+        `${spark}/retrieval`,
+        { method: 'POST' }
+      )
+      const { id: retrievalId } = await createRequest.json()
+      const { rows: [retrievalRow] } = await client.query(`
+        SELECT success
+        FROM retrievals
+        WHERE id = $1
+      `, [
+        retrievalId
+      ])
+      assert.strictEqual(retrievalRow.success, null)
+      const updateRequest = await fetch(
+        `${spark}/retrieval/${retrievalId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: true
+          })
+        }
+      )
+      assert.strictEqual(updateRequest.status, 200)
+      const { rows: [updatedRetrievalRow] } = await client.query(`
+        SELECT success
+        FROM retrievals
+        WHERE id = $1
+      `, [
+        retrievalId
+      ])
+      assert.strictEqual(updatedRetrievalRow.success, true)
+    })
+  })
 })
