@@ -99,5 +99,18 @@ describe('Routes', () => {
       ])
       assert.strictEqual(updatedRetrievalRow.success, true)
     })
+    it('handles invalid JSON', async () => {
+      const res = await fetch(
+        `${spark}/retrieval/some-id`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: '{"invalid"}'
+        }
+      )
+      assert.strictEqual(res.status, 400)
+    })
   })
 })

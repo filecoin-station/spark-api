@@ -49,6 +49,10 @@ export const createHandler = async (client) => {
 
   return (req, res) => {
     handler(req, res).catch((err) => {
+      if (err instanceof SyntaxError) {
+        res.statusCode = 400
+        return res.end('Bad Request')
+      }
       console.error(err)
       res.statusCode = 500
       res.end('Internal Server Error')
