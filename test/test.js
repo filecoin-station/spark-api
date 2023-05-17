@@ -44,18 +44,22 @@ describe('Routes', () => {
       assert.strictEqual(typeof body.protocol, 'string')
     })
     it('uses random retrieval templates', async () => {
-      let firstCid
-      for (let i = 0; i < 100; i++) {
+      const makeRequest = async () => {
         const res = await fetch(`${spark}/retrieval`, { method: 'POST' })
         assert.strictEqual(res.status, 200)
-        const body = await res.json()
-        if (!firstCid) {
-          firstCid = body.cid
-        } else if (body.cid !== firstCid) {
+        const { cid } = await res.json()
+        return cid
+      }
+
+      const firstCID = await makeRequest()
+      for (let i = 0; i < 100; i++) {
+        const nextCID = await makeRequest()
+        if (nextCID !== firstCID) {
+          // Different requests returned different CIDs - the test passed.
           return
         }
       }
-      throw new Error('All CIDs were the same')
+      throw new Error('All requests returned the same CID')
     })
   })
 })
