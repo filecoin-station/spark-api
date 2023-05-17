@@ -20,6 +20,7 @@ Response:
   - User: _your system user name_
   - Password: _blank_
   - Database: _same as user name_
+  
   Alternatively, set the environment variable `$DATABASE_URL` with
   `postgres://${USER}:${PASS}@${HOST}:${POST}/${DATABASE}`. The postgres user
   and database need to already exist, and the user needs full management
