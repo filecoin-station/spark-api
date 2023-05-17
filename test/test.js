@@ -112,5 +112,35 @@ describe('Routes', () => {
       )
       assert.strictEqual(res.status, 400)
     })
+    it('handles retrieval id not a number', async () => {
+      const res = await fetch(
+        `${spark}/retrieval/some-id`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: true
+          })
+        }
+      )
+      assert.strictEqual(res.status, 400)
+    })
+    it('handles retrieval not found', async () => {
+      const res = await fetch(
+        `${spark}/retrieval/0`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: true
+          })
+        }
+      )
+      assert.strictEqual(res.status, 404)
+    })
   })
 })
