@@ -5,9 +5,27 @@ export const createHandler = async (client) => {
   await migrate(client)
 
   const handler = async (req, res) => {
-    if (req.url === '/retrieval') {
-      const r = await client.query('SELECT $1::text as hello', ['world'])
-      json(res, { hello: r.rows[0].hello })
+    if (req.url === '/retrieval' && req.method === 'PUT') {
+      // TODO: Consolidate to one query
+      const { rows: [retrievalTemplate] } = await client.query(`
+        SELECT id, cid, provider_address, protocol
+        FROM retrieval_templates
+        OFFSET floor(random() * (SELECT COUNT(*) FROM retrieval_templates))
+        LIMIT 1
+      `)
+      const { rows: [retrieval] } = await client.query(`
+        INSERT INTO retrievals (retrieval_template_id)
+        VALUES ($1)
+        RETURNING id
+      `, [
+        retrievalTemplate.id
+      ])
+      json(res, {
+        id: retrieval.id,
+        cid: retrievalTemplate.cid,
+        providerAddress: retrievalTemplate.provider_address,
+        protocol: retrievalTemplate.protocol
+      })
       return
     }
     res.end('Hello World!')

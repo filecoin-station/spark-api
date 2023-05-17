@@ -12,7 +12,8 @@
   },
   "devDependencies": {
     "mocha": "^10.2.0",
-    "standard": "^17.0.0"
+    "standard": "^17.0.0",
+    "varint": "^6.0.0"
   },
   "dependencies": {
     "http-responders": "^2.0.2",

@@ -33,11 +33,29 @@ describe('Routes', () => {
       assert.strictEqual(await res.text(), 'Hello World!')
     })
   })
-  describe('GET /retrieval', () => {
-    it('responds', async () => {
-      const res = await fetch(`${spark}/retrieval`)
+  describe('PUT /retrieval', () => {
+    it('creates a retrieval', async () => {
+      const res = await fetch(`${spark}/retrieval`, { method: 'PUT' })
       assert.strictEqual(res.status, 200)
-      assert.deepStrictEqual(await res.json(), { hello: 'world' })
+      const body = await res.json()
+      assert.strictEqual(typeof body.id, 'number')
+      assert.strictEqual(typeof body.cid, 'string')
+      assert.strictEqual(typeof body.providerAddress, 'string')
+      assert.strictEqual(typeof body.protocol, 'string')
+    })
+    it('uses random retrieval templates', async () => {
+      let lastCid
+      for (let i = 0; i < 100; i++) {
+        const res = await fetch(`${spark}/retrieval`, { method: 'PUT' })
+        assert.strictEqual(res.status, 200)
+        const body = await res.json()
+        if (!lastCid) {
+          lastCid = body.cid
+        } else if (lastCid !== body.cid) {
+          return
+        }
+      }
+      throw new Error('All CIDs were the same')
     })
   })
 })
