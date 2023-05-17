@@ -44,14 +44,14 @@ describe('Routes', () => {
       assert.strictEqual(typeof body.protocol, 'string')
     })
     it('uses random retrieval templates', async () => {
-      let lastCid
+      let firstCid
       for (let i = 0; i < 100; i++) {
         const res = await fetch(`${spark}/retrieval`, { method: 'POST' })
         assert.strictEqual(res.status, 200)
         const body = await res.json()
-        if (!lastCid) {
-          lastCid = body.cid
-        } else if (lastCid !== body.cid) {
+        if (!firstCid) {
+          firstCid = body.cid
+        } else if (body.cid !== firstCid) {
           return
         }
       }
