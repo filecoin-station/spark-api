@@ -5,7 +5,7 @@
 
 ## Routes
 
-### `PUT /retrieval`
+### `POST /retrieval`
 
 Start a new retrieval.
 
@@ -20,7 +20,7 @@ Response:
 }
 ```
 
-### `POST /retrieval/:id`
+### `PATCH /retrieval/:id`
 
 _TODO_
 

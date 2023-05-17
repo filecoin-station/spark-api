@@ -33,9 +33,9 @@ describe('Routes', () => {
       assert.strictEqual(await res.text(), 'Hello World!')
     })
   })
-  describe('PUT /retrieval', () => {
+  describe('POST /retrieval', () => {
     it('creates a retrieval', async () => {
-      const res = await fetch(`${spark}/retrieval`, { method: 'PUT' })
+      const res = await fetch(`${spark}/retrieval`, { method: 'POST' })
       assert.strictEqual(res.status, 200)
       const body = await res.json()
       assert.strictEqual(typeof body.id, 'number')
@@ -46,7 +46,7 @@ describe('Routes', () => {
     it('uses random retrieval templates', async () => {
       let lastCid
       for (let i = 0; i < 100; i++) {
-        const res = await fetch(`${spark}/retrieval`, { method: 'PUT' })
+        const res = await fetch(`${spark}/retrieval`, { method: 'POST' })
         assert.strictEqual(res.status, 200)
         const body = await res.json()
         if (!lastCid) {
