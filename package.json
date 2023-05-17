@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "http-responders": "^2.0.2",
-    "pg": "^8.11.0"
+    "pg": "^8.11.0",
+    "postgrator": "^7.1.1"
   },
   "standard": {
     "env": [
