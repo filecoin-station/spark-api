@@ -5,7 +5,7 @@ export const createHandler = async (client) => {
   await migrate(client)
 
   const handler = async (req, res) => {
-    if (req.url === '/retrieval' && req.method === 'PUT') {
+    if (req.url === '/retrievals' && req.method === 'POST') {
       // TODO: Consolidate to one query
       const { rows: [retrievalTemplate] } = await client.query(`
         SELECT id, cid, provider_address, protocol

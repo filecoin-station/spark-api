@@ -33,9 +33,9 @@ describe('Routes', () => {
       assert.strictEqual(await res.text(), 'Hello World!')
     })
   })
-  describe('PUT /retrieval', () => {
+  describe('POST /retrievals', () => {
     it('creates a retrieval', async () => {
-      const res = await fetch(`${spark}/retrieval`, { method: 'PUT' })
+      const res = await fetch(`${spark}/retrievals`, { method: 'POST' })
       assert.strictEqual(res.status, 200)
       const body = await res.json()
       assert.strictEqual(typeof body.id, 'number')
@@ -44,18 +44,22 @@ describe('Routes', () => {
       assert.strictEqual(typeof body.protocol, 'string')
     })
     it('uses random retrieval templates', async () => {
-      let lastCid
-      for (let i = 0; i < 100; i++) {
-        const res = await fetch(`${spark}/retrieval`, { method: 'PUT' })
+      const makeRequest = async () => {
+        const res = await fetch(`${spark}/retrievals`, { method: 'POST' })
         assert.strictEqual(res.status, 200)
-        const body = await res.json()
-        if (!lastCid) {
-          lastCid = body.cid
-        } else if (lastCid !== body.cid) {
+        const { cid } = await res.json()
+        return cid
+      }
+
+      const firstCID = await makeRequest()
+      for (let i = 0; i < 100; i++) {
+        const nextCID = await makeRequest()
+        if (nextCID !== firstCID) {
+          // Different requests returned different CIDs - the test passed.
           return
         }
       }
-      throw new Error('All CIDs were the same')
+      throw new Error('All requests returned the same CID')
     })
   })
 })
