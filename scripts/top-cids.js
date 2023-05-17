@@ -33,6 +33,7 @@ for (const cid of topCids) {
       `INSERT INTO retrieval_templates (cid, provider_address, protocol) VALUES ('${cid}', '${providerAddress}', '${protocol}');`
     )
   } catch (err) {
-    console.error('Failed on cid', cid, err)
+    console.error('Failed on cid', cid)
+    throw err
   }
 }
