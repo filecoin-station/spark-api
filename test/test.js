@@ -101,7 +101,7 @@ describe('Routes', () => {
     })
     it('handles invalid JSON', async () => {
       const res = await fetch(
-        `${spark}/retrieval/some-id`,
+        `${spark}/retrieval/0`,
         {
           method: 'PATCH',
           headers: {
@@ -111,6 +111,7 @@ describe('Routes', () => {
         }
       )
       assert.strictEqual(res.status, 400)
+      assert.strictEqual(await res.text(), 'Invalid JSON Body')
     })
     it('handles retrieval id not a number', async () => {
       const res = await fetch(
@@ -126,6 +127,7 @@ describe('Routes', () => {
         }
       )
       assert.strictEqual(res.status, 400)
+      assert.strictEqual(await res.text(), 'Invalid Retrieval ID')
     })
     it('handles retrieval not found', async () => {
       const res = await fetch(
@@ -141,6 +143,7 @@ describe('Routes', () => {
         }
       )
       assert.strictEqual(res.status, 404)
+      assert.strictEqual(await res.text(), 'Retrieval Not Found')
     })
   })
 })
