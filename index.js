@@ -8,7 +8,7 @@ export const createHandler = async (client) => {
 
   const handler = async (req, res) => {
     const segs = req.url.split('/').filter(Boolean)
-    if (segs[0] === 'retrieval' && req.method === 'POST') {
+    if (segs[0] === 'retrievals' && req.method === 'POST') {
       // TODO: Consolidate to one query
       const { rows: [retrievalTemplate] } = await client.query(`
         SELECT id, cid, provider_address, protocol
@@ -29,7 +29,7 @@ export const createHandler = async (client) => {
         providerAddress: retrievalTemplate.provider_address,
         protocol: retrievalTemplate.protocol
       })
-    } else if (segs[0] === 'retrieval' && req.method === 'PATCH') {
+    } else if (segs[0] === 'retrievals' && req.method === 'PATCH') {
       const retrievalId = Number(segs[1])
       assert(!Number.isNaN(retrievalId), 400, 'Invalid Retrieval ID')
       const body = await getRawBody(req, { limit: '100kb' })

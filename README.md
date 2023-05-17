@@ -5,7 +5,7 @@
 
 ## Routes
 
-### `POST /retrieval`
+### `POST /retrievals`
 
 Start a new retrieval.
 
@@ -20,7 +20,7 @@ Response:
 }
 ```
 
-### `PATCH /retrieval/:id`
+### `PATCH /retrievals/:id`
 
 Parameters:
 - `id`: Request ID
@@ -43,9 +43,15 @@ OK
 
 1. Set up [PostgreSQL](https://www.postgresql.org/) with default settings:
   - Port: 5432
-  - User: _your user name_
+  - User: _your system user name_
   - Password: _blank_
   - Database: _same as user name_
+  
+   Alternatively, set the environment variable `$DATABASE_URL` with
+   `postgres://${USER}:${PASS}@${HOST}:${POST}/${DATABASE}`. 
+   
+   The Postgres user and database need to already exist, and the user 
+   needs full management permissions for the database.
 1. `npm start`
 
 ## Deployment

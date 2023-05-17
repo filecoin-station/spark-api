@@ -33,9 +33,9 @@ describe('Routes', () => {
       assert.strictEqual(await res.text(), 'Hello World!')
     })
   })
-  describe('POST /retrieval', () => {
+  describe('POST /retrievals', () => {
     it('creates a retrieval', async () => {
-      const res = await fetch(`${spark}/retrieval`, { method: 'POST' })
+      const res = await fetch(`${spark}/retrievals`, { method: 'POST' })
       assert.strictEqual(res.status, 200)
       const body = await res.json()
       assert.strictEqual(typeof body.id, 'number')
@@ -45,7 +45,7 @@ describe('Routes', () => {
     })
     it('uses random retrieval templates', async () => {
       const makeRequest = async () => {
-        const res = await fetch(`${spark}/retrieval`, { method: 'POST' })
+        const res = await fetch(`${spark}/retrievals`, { method: 'POST' })
         assert.strictEqual(res.status, 200)
         const { cid } = await res.json()
         return cid
@@ -62,10 +62,10 @@ describe('Routes', () => {
       throw new Error('All requests returned the same CID')
     })
   })
-  describe('PATCH /retrieval/:id', () => {
+  describe('PATCH /retrievals/:id', () => {
     it('updates a retrieval', async () => {
       const createRequest = await fetch(
-        `${spark}/retrieval`,
+        `${spark}/retrievals`,
         { method: 'POST' }
       )
       const { id: retrievalId } = await createRequest.json()
@@ -78,7 +78,7 @@ describe('Routes', () => {
       ])
       assert.strictEqual(retrievalRow.success, null)
       const updateRequest = await fetch(
-        `${spark}/retrieval/${retrievalId}`,
+        `${spark}/retrievals/${retrievalId}`,
         {
           method: 'PATCH',
           headers: {
@@ -101,7 +101,7 @@ describe('Routes', () => {
     })
     it('handles invalid JSON', async () => {
       const res = await fetch(
-        `${spark}/retrieval/0`,
+        `${spark}/retrievals/0`,
         {
           method: 'PATCH',
           headers: {
@@ -115,7 +115,7 @@ describe('Routes', () => {
     })
     it('handles retrieval id not a number', async () => {
       const res = await fetch(
-        `${spark}/retrieval/some-id`,
+        `${spark}/retrievals/some-id`,
         {
           method: 'PATCH',
           headers: {
@@ -131,7 +131,7 @@ describe('Routes', () => {
     })
     it('handles retrieval not found', async () => {
       const res = await fetch(
-        `${spark}/retrieval/0`,
+        `${spark}/retrievals/0`,
         {
           method: 'PATCH',
           headers: {
