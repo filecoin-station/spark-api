@@ -21,10 +21,11 @@ Response:
   - Password: _blank_
   - Database: _same as user name_
   
-    Alternatively, set the environment variable `$DATABASE_URL` with
-  `postgres://${USER}:${PASS}@${HOST}:${POST}/${DATABASE}`. The postgres user
-  and database need to already exist, and the user needs full management
-  permissions for the database.
+   Alternatively, set the environment variable `$DATABASE_URL` with
+   `postgres://${USER}:${PASS}@${HOST}:${POST}/${DATABASE}`. 
+   
+   The Postgres user and database need to already exist, and the user 
+   needs full management permissions for the database.
 1. `npm start`
 
 ## Deployment
