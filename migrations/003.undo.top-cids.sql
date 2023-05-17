@@ -1,2 +1,0 @@
-ALTER TABLE retrieval_templates
-ALTER COLUMN cid TYPE VARCHAR(64);

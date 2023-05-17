@@ -1,7 +1,3 @@
--- Make room for larger cids
-ALTER TABLE retrieval_templates
-ALTER COLUMN cid TYPE TEXT;
-
 -- Generated using scripts/top-cids.js
 INSERT INTO retrieval_templates (cid, provider_address, protocol) VALUES ('bafybeieijah7ifacactkvsmxebxgfl4kyvoa3al6fyppwyohedb7vvyzl4', '/ip4/211.254.148.138/tcp/8180', 'graphsync');
 INSERT INTO retrieval_templates (cid, provider_address, protocol) VALUES ('bafybeiezeds576kygarlq672cnjtimbsrspx5b3tr3gct2lhqud6abjgiu', '/dns4/elastic.dag.house/tcp/443/wss', 'bitswap');
