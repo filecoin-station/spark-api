@@ -1,6 +1,9 @@
 import { json } from 'http-responders'
+import { migrate } from './lib/migrate.js'
 
-export const createHandler = (client) => {
+export const createHandler = async (client) => {
+  await migrate(client)
+
   const handler = async (req, res) => {
     if (req.url === '/retrieval') {
       const r = await client.query('SELECT $1::text as hello', ['world'])
