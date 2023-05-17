@@ -24,7 +24,9 @@ Response:
 
 ## Deployment
 
-Using [Fly.io]:
+Pushes to `main` will be deployed automatically.
+
+Perform manual devops using [Fly.io](https://fly.io):
 
 ```bash
 $ fly deploy
