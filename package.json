@@ -15,6 +15,7 @@
     "standard": "^17.0.0"
   },
   "dependencies": {
+    "@sentry/node": "^7.52.1",
     "http-responders": "^2.0.2",
     "pg": "^8.11.0",
     "postgrator": "^7.1.1"
