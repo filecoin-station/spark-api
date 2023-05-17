@@ -5,13 +5,24 @@
 
 ## Routes
 
-### `GET /retrieval`
+### `POST /retrievals`
+
+Start a new retrieval.
 
 Response:
 
-```json
-{}
+```typescript
+{
+  id: String,
+  cid: String,
+  providerAddress: String,
+  protocol: 'graphsync'|'bitswap'
+}
 ```
+
+### `PATCH /retrievals/:id`
+
+_TODO_
 
 ## Development
 
