@@ -62,4 +62,102 @@ describe('Routes', () => {
       throw new Error('All requests returned the same CID')
     })
   })
+  describe('PATCH /retrievals/:id', () => {
+    it('updates a retrieval', async () => {
+      const createRequest = await fetch(
+        `${spark}/retrievals`,
+        { method: 'POST' }
+      )
+      const { id: retrievalId } = await createRequest.json()
+      const { rows: [retrievalRow] } = await client.query(`
+        SELECT success
+        FROM retrievals
+        WHERE id = $1
+      `, [
+        retrievalId
+      ])
+      assert.strictEqual(retrievalRow.success, null)
+      const updateRequest = await fetch(
+        `${spark}/retrievals/${retrievalId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: true
+          })
+        }
+      )
+      assert.strictEqual(updateRequest.status, 200)
+      const { rows: [updatedRetrievalRow] } = await client.query(`
+        SELECT success
+        FROM retrievals
+        WHERE id = $1
+      `, [
+        retrievalId
+      ])
+      assert.strictEqual(updatedRetrievalRow.success, true)
+    })
+    it('handles invalid JSON', async () => {
+      const res = await fetch(
+        `${spark}/retrievals/0`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: '{"invalid"}'
+        }
+      )
+      assert.strictEqual(res.status, 400)
+      assert.strictEqual(await res.text(), 'Invalid JSON Body')
+    })
+    it('handles retrieval id not a number', async () => {
+      const res = await fetch(
+        `${spark}/retrievals/some-id`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: true
+          })
+        }
+      )
+      assert.strictEqual(res.status, 400)
+      assert.strictEqual(await res.text(), 'Invalid Retrieval ID')
+    })
+    it('handles retrieval not found', async () => {
+      const res = await fetch(
+        `${spark}/retrievals/0`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: true
+          })
+        }
+      )
+      assert.strictEqual(res.status, 404)
+      assert.strictEqual(await res.text(), 'Retrieval Not Found')
+    })
+    it('handles request body too large', async () => {
+      const res = await fetch(
+        `${spark}/retrievals/0`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: Buffer.alloc(100 * 1024 + 1)
+        }
+      )
+      assert.strictEqual(res.status, 413)
+      assert.strictEqual(await res.text(), 'request entity too large')
+    })
+  })
 })
