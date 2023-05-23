@@ -145,5 +145,19 @@ describe('Routes', () => {
       assert.strictEqual(res.status, 404)
       assert.strictEqual(await res.text(), 'Retrieval Not Found')
     })
+    it('handles request body too large', async () => {
+      const res = await fetch(
+        `${spark}/retrievals/0`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: Buffer.alloc(100 * 1024 + 1)
+        }
+      )
+      assert.strictEqual(res.status, 413)
+      assert.strictEqual(await res.text(), 'request entity too large')
+    })
   })
 })
