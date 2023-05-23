@@ -23,7 +23,7 @@ Response:
 ### `PATCH /retrievals/:id`
 
 Parameters:
-- `id`: Request ID
+- `id`: Request ID (from `POST /retrievals`)
 
 Body:
 
