@@ -85,19 +85,21 @@ describe('Routes', () => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            success: true
+            success: true,
+            walletAddress: 'abc'
           })
         }
       )
       assert.strictEqual(updateRequest.status, 200)
       const { rows: [updatedRetrievalRow] } = await client.query(`
-        SELECT success
+        SELECT *
         FROM retrievals
         WHERE id = $1
       `, [
         retrievalId
       ])
       assert.strictEqual(updatedRetrievalRow.success, true)
+      assert.strictEqual(updatedRetrievalRow.wallet_address, 'abc')
     })
     it('handles invalid JSON', async () => {
       const res = await fetch(
@@ -138,7 +140,8 @@ describe('Routes', () => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            success: true
+            success: true,
+            walletAddress: 'abc'
           })
         }
       )
@@ -158,6 +161,38 @@ describe('Routes', () => {
       )
       assert.strictEqual(res.status, 413)
       assert.strictEqual(await res.text(), 'request entity too large')
+    })
+    it('validates .success', async () => {
+      const res = await fetch(
+        `${spark}/retrievals/0`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            walletAddress: 'abc'
+          })
+        }
+      )
+      assert.strictEqual(res.status, 400)
+      assert.strictEqual(await res.text(), 'boolean .success required')
+    })
+    it('validates .walletAddress', async () => {
+      const res = await fetch(
+        `${spark}/retrievals/0`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: true
+          })
+        }
+      )
+      assert.strictEqual(res.status, 400)
+      assert.strictEqual(await res.text(), 'string .walletAddress required')
     })
   })
 })
