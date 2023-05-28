@@ -5,6 +5,7 @@ import assert from 'node:assert'
 import pg from 'pg'
 
 const { DATABASE_URL } = process.env
+const walletAddress = 'f1abc'
 
 describe('Routes', () => {
   let client
@@ -81,13 +82,8 @@ describe('Routes', () => {
         `${spark}/retrievals/${retrievalId}`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            success: true,
-            walletAddress: 'abc'
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true, walletAddress })
         }
       )
       assert.strictEqual(updateRequest.status, 200)
@@ -99,16 +95,14 @@ describe('Routes', () => {
         retrievalId
       ])
       assert.strictEqual(updatedRetrievalRow.success, true)
-      assert.strictEqual(updatedRetrievalRow.wallet_address, 'abc')
+      assert.strictEqual(updatedRetrievalRow.wallet_address, walletAddress)
     })
     it('handles invalid JSON', async () => {
       const res = await fetch(
         `${spark}/retrievals/0`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: '{"invalid"}'
         }
       )
@@ -120,12 +114,8 @@ describe('Routes', () => {
         `${spark}/retrievals/some-id`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            success: true
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true })
         }
       )
       assert.strictEqual(res.status, 400)
@@ -136,13 +126,8 @@ describe('Routes', () => {
         `${spark}/retrievals/0`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            success: true,
-            walletAddress: 'abc'
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true, walletAddress })
         }
       )
       assert.strictEqual(res.status, 404)
@@ -153,9 +138,7 @@ describe('Routes', () => {
         `${spark}/retrievals/0`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: Buffer.alloc(100 * 1024 + 1)
         }
       )
@@ -167,12 +150,8 @@ describe('Routes', () => {
         `${spark}/retrievals/0`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            walletAddress: 'abc'
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ walletAddress })
         }
       )
       assert.strictEqual(res.status, 400)
@@ -183,12 +162,8 @@ describe('Routes', () => {
         `${spark}/retrievals/0`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            success: true
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true })
         }
       )
       assert.strictEqual(res.status, 400)
