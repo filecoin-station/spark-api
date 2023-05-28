@@ -169,5 +169,42 @@ describe('Routes', () => {
       assert.strictEqual(res.status, 400)
       assert.strictEqual(await res.text(), 'string .walletAddress required')
     })
+    it('ignores duplicate submissions', async () => {
+      const createRequest = await fetch(
+        `${spark}/retrievals`,
+        { method: 'POST' }
+      )
+      const { id: retrievalId } = await createRequest.json()
+      {
+        const updateRequest = await fetch(
+          `${spark}/retrievals/${retrievalId}`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ success: true, walletAddress })
+          }
+        )
+        assert.strictEqual(updateRequest.status, 200)
+      }
+      {
+        const updateRequest = await fetch(
+          `${spark}/retrievals/${retrievalId}`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ success: false, walletAddress })
+          }
+        )
+        assert.strictEqual(updateRequest.status, 404)
+      }
+      const { rows: [retrievalRow] } = await client.query(`
+        SELECT success
+        FROM retrievals
+        WHERE id = $1
+      `, [
+        retrievalId
+      ])
+      assert.strictEqual(retrievalRow.success, true)
+    })
   })
 })

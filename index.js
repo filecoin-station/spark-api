@@ -51,7 +51,7 @@ export const createHandler = async (client) => {
         SET finished_at = NOW(),
             success = $2,
             wallet_address = $3
-        WHERE id = $1
+        WHERE id = $1 AND success IS NULL
         RETURNING id
       `, [
         retrievalId,
