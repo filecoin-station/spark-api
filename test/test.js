@@ -5,6 +5,7 @@ import assert from 'node:assert'
 import pg from 'pg'
 
 const { DATABASE_URL } = process.env
+const walletAddress = 'f1abc'
 
 describe('Routes', () => {
   let client
@@ -81,32 +82,27 @@ describe('Routes', () => {
         `${spark}/retrievals/${retrievalId}`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            success: true
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true, walletAddress })
         }
       )
       assert.strictEqual(updateRequest.status, 200)
       const { rows: [updatedRetrievalRow] } = await client.query(`
-        SELECT success
+        SELECT *
         FROM retrievals
         WHERE id = $1
       `, [
         retrievalId
       ])
       assert.strictEqual(updatedRetrievalRow.success, true)
+      assert.strictEqual(updatedRetrievalRow.wallet_address, walletAddress)
     })
     it('handles invalid JSON', async () => {
       const res = await fetch(
         `${spark}/retrievals/0`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: '{"invalid"}'
         }
       )
@@ -118,12 +114,8 @@ describe('Routes', () => {
         `${spark}/retrievals/some-id`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            success: true
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true })
         }
       )
       assert.strictEqual(res.status, 400)
@@ -134,12 +126,8 @@ describe('Routes', () => {
         `${spark}/retrievals/0`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            success: true
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true, walletAddress })
         }
       )
       assert.strictEqual(res.status, 404)
@@ -150,14 +138,73 @@ describe('Routes', () => {
         `${spark}/retrievals/0`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: Buffer.alloc(100 * 1024 + 1)
         }
       )
       assert.strictEqual(res.status, 413)
       assert.strictEqual(await res.text(), 'request entity too large')
+    })
+    it('validates .success', async () => {
+      const res = await fetch(
+        `${spark}/retrievals/0`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ walletAddress })
+        }
+      )
+      assert.strictEqual(res.status, 400)
+      assert.strictEqual(await res.text(), 'boolean .success required')
+    })
+    it('validates .walletAddress', async () => {
+      const res = await fetch(
+        `${spark}/retrievals/0`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true })
+        }
+      )
+      assert.strictEqual(res.status, 400)
+      assert.strictEqual(await res.text(), 'string .walletAddress required')
+    })
+    it('ignores duplicate submissions', async () => {
+      const createRequest = await fetch(
+        `${spark}/retrievals`,
+        { method: 'POST' }
+      )
+      const { id: retrievalId } = await createRequest.json()
+      {
+        const updateRequest = await fetch(
+          `${spark}/retrievals/${retrievalId}`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ success: true, walletAddress })
+          }
+        )
+        assert.strictEqual(updateRequest.status, 200)
+      }
+      {
+        const updateRequest = await fetch(
+          `${spark}/retrievals/${retrievalId}`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ success: false, walletAddress })
+          }
+        )
+        assert.strictEqual(updateRequest.status, 404)
+      }
+      const { rows: [retrievalRow] } = await client.query(`
+        SELECT success
+        FROM retrievals
+        WHERE id = $1
+      `, [
+        retrievalId
+      ])
+      assert.strictEqual(retrievalRow.success, true)
     })
   })
 })
