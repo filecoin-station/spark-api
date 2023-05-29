@@ -29,7 +29,8 @@ Body:
 
 ```typescript
 {
-  success: Boolean
+  success: Boolean,
+  walletAddress: String
 }
 ```
 

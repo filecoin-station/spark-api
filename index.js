@@ -40,16 +40,30 @@ const createRetrieval = async (res, client) => {
 const updateRetrieval = async (req, res, client, retrievalId) => {
   assert(!Number.isNaN(retrievalId), 400, 'Invalid Retrieval ID')
   const body = await getRawBody(req, { limit: '100kb' })
-  const { success } = JSON.parse(body)
+  const { success, walletAddress } = JSON.parse(body)
+  assert.strictEqual(
+    typeof success,
+    'boolean',
+    400,
+    'boolean .success required'
+  )
+  assert.strictEqual(
+    typeof walletAddress,
+    'string',
+    400,
+    'string .walletAddress required'
+  )
   const { rows } = await client.query(`
     UPDATE retrievals
     SET finished_at = NOW(),
-        success = $1
-    WHERE id = $2
+      success = $2,
+      wallet_address = $3
+    WHERE id = $1 AND success IS NULL
     RETURNING id
   `, [
+    retrievalId,
     success,
-    retrievalId
+    walletAddress
   ])
   assert(rows.length > 0, 404, 'Retrieval Not Found')
   res.end('OK')
