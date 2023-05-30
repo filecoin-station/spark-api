@@ -195,7 +195,7 @@ describe('Routes', () => {
             body: JSON.stringify({ success: false, walletAddress })
           }
         )
-        assert.strictEqual(updateRequest.status, 404)
+        assert.strictEqual(updateRequest.status, 409)
       }
       const { rows: [retrievalRow] } = await client.query(`
         SELECT success

@@ -65,8 +65,19 @@ const updateRetrieval = async (req, res, client, retrievalId) => {
     success,
     walletAddress
   ])
-  assert(rows.length > 0, 404, 'Retrieval Not Found')
-  res.end('OK')
+  if (rows.length > 0) {
+    res.end('OK')
+  } else {
+    const { rows } = await client.query(
+      'SELECT id FROM retrievals WHERE id = $1',
+      [retrievalId]
+    )
+    if (rows.length > 0) {
+      assert.fail(409, 'Retrieval Already Finished')
+    } else {
+      assert.fail(404, 'Retrieval Not Found')
+    }
+  }
 }
 
 const errorHandler = (res, err) => {
