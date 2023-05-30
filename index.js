@@ -2,13 +2,14 @@ import { json } from 'http-responders'
 import { migrate } from './lib/migrate.js'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
+import toCamelCase from 'to-camel-case'
 
 const handler = async (req, res, client) => {
   const segs = req.url.split('/').filter(Boolean)
   if (segs[0] === 'retrievals' && req.method === 'POST') {
     await createRetrieval(res, client)
   } else if (segs[0] === 'retrievals' && req.method === 'PATCH') {
-    await updateRetrieval(req, res, client, Number(segs[1]))
+    await setRetrievalResult(req, res, client, Number(segs[1]))
   } else {
     res.end('Hello World!')
   }
@@ -37,35 +38,31 @@ const createRetrieval = async (res, client) => {
   })
 }
 
-const updateRetrieval = async (req, res, client, retrievalId) => {
+const setRetrievalResult = async (req, res, client, retrievalId) => {
   assert(!Number.isNaN(retrievalId), 400, 'Invalid Retrieval ID')
   const body = await getRawBody(req, { limit: '100kb' })
-  const { success, walletAddress } = JSON.parse(body)
-  assert.strictEqual(
-    typeof success,
-    'boolean',
-    400,
-    'boolean .success required'
-  )
-  assert.strictEqual(
-    typeof walletAddress,
-    'string',
-    400,
-    'string .walletAddress required'
-  )
-  const { rows } = await client.query(`
-    UPDATE retrievals
-    SET finished_at = NOW(),
-      success = $2,
-      wallet_address = $3
-    WHERE id = $1 AND success IS NULL
-    RETURNING id
-  `, [
-    retrievalId,
-    success,
-    walletAddress
-  ])
-  assert(rows.length > 0, 404, 'Retrieval Not Found')
+  const result = JSON.parse(body)
+  try {
+    await client.query(`
+      INSERT INTO retrieval_results
+      (retrieval_id, wallet_address, success)
+      VALUES ($1, $2, $3)
+    `, [
+      retrievalId,
+      result.walletAddress,
+      result.success
+    ])
+  } catch (err) {
+    if (err.constraint === 'retrieval_results_retrieval_id_fkey') {
+      assert.fail(404, 'Retrieval Not Found')
+    } else if (err.constraint === 'retrieval_results_retrieval_id_key') {
+      assert.fail(409, 'Retrieval Already Completed')
+    } else if (err.column) {
+      assert.fail(400, `Invalid .${toCamelCase(err.column)}`)
+    } else {
+      throw err
+    }
+  }
   res.end('OK')
 }
 
