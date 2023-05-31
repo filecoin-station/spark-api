@@ -21,7 +21,8 @@
     "http-responders": "^2.0.2",
     "pg": "^8.11.0",
     "postgrator": "^7.1.1",
-    "raw-body": "^2.5.2"
+    "raw-body": "^2.5.2",
+    "to-camel-case": "^1.0.0"
   },
   "standard": {
     "env": [
