@@ -106,17 +106,17 @@ describe('Routes', () => {
       assert.strictEqual(retrievalResultRow.success, result.success)
       assert.strictEqual(retrievalResultRow.wallet_address, walletAddress)
       assert.strictEqual(
-        retrievalResultRow.start_at.getTime(),
-        result.startAt.getTime()
+        retrievalResultRow.start_at.toJSON(),
+        result.startAt.toJSON()
       )
       assert.strictEqual(retrievalResultRow.status_code, result.statusCode)
       assert.strictEqual(
-        retrievalResultRow.first_byte_at.getTime(),
-        result.firstByteAt.getTime()
+        retrievalResultRow.first_byte_at.toJSON(),
+        result.firstByteAt.toJSON()
       )
       assert.strictEqual(
-        retrievalResultRow.end_at.getTime(),
-        result.endAt.getTime()
+        retrievalResultRow.end_at.toJSON(),
+        result.endAt.toJSON()
       )
       assert.strictEqual(retrievalResultRow.byte_length, result.byteLength)
     })
