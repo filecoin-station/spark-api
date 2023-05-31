@@ -323,4 +323,78 @@ describe('Routes', () => {
       assert.strictEqual(retrievalRow.success, true)
     })
   })
+  describe('GET /retrievals/:id', () => {
+    it('gets a fresh retrieval', async () => {
+      const createRequest = await fetch(
+        `${spark}/retrievals`,
+        { method: 'POST' }
+      )
+      const {
+        id: retrievalId,
+        cid,
+        providerAddress,
+        protocol
+      } = await createRequest.json()
+      const res = await fetch(`${spark}/retrievals/${retrievalId}`)
+      assert.strictEqual(res.status, 200)
+      const body = await res.json()
+      assert.strictEqual(body.id, retrievalId)
+      assert.strictEqual(body.cid, cid)
+      assert.strictEqual(body.providerAddress, providerAddress)
+      assert.strictEqual(body.protocol, protocol)
+      assert(body.createdAt)
+      assert.strictEqual(body.finishedAt, null)
+      assert.strictEqual(body.success, null)
+      assert.strictEqual(body.startAt, null)
+      assert.strictEqual(body.statusCode, null)
+      assert.strictEqual(body.firstByteAt, null)
+      assert.strictEqual(body.endAt, null)
+      assert.strictEqual(body.byteLength, null)
+    })
+    it('gets a completed retrieval', async () => {
+      const createRequest = await fetch(
+        `${spark}/retrievals`,
+        { method: 'POST' }
+      )
+      const {
+        id: retrievalId,
+        cid,
+        providerAddress,
+        protocol
+      } = await createRequest.json()
+      const retrieval = {
+        success: true,
+        walletAddress,
+        startAt: new Date(),
+        statusCode: 200,
+        firstByteAt: new Date(),
+        endAt: new Date(),
+        byteLength: 100
+      }
+      const updateRequest = await fetch(
+        `${spark}/retrievals/${retrievalId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(retrieval)
+        }
+      )
+      assert(updateRequest.ok)
+      const res = await fetch(`${spark}/retrievals/${retrievalId}`)
+      assert.strictEqual(res.status, 200)
+      const body = await res.json()
+      assert.strictEqual(body.id, retrievalId)
+      assert.strictEqual(body.cid, cid)
+      assert.strictEqual(body.providerAddress, providerAddress)
+      assert.strictEqual(body.protocol, protocol)
+      assert(body.createdAt)
+      assert(body.finishedAt)
+      assert.strictEqual(body.success, retrieval.success)
+      assert.strictEqual(body.startAt, retrieval.startAt.toJSON())
+      assert.strictEqual(body.statusCode, retrieval.statusCode)
+      assert.strictEqual(body.firstByteAt, retrieval.firstByteAt.toJSON())
+      assert.strictEqual(body.endAt, retrieval.endAt.toJSON())
+      assert.strictEqual(body.byteLength, retrieval.byteLength)
+    })
+  })
 })
