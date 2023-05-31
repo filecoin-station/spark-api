@@ -39,7 +39,10 @@ const createRetrieval = async (res, client) => {
   })
 }
 
-const validate = (obj, key, type) => {
+const validate = (obj, key, { type, required }) => {
+  if (!required && (!Object.keys(obj).includes(key) || obj[key] === null)) {
+    return
+  }
   if (type === 'date') {
     const date = new Date(obj[key])
     assert(!isNaN(date.getTime()), 400, `Invalid .${key}`)
@@ -52,13 +55,13 @@ const setRetrievalResult = async (req, res, client, retrievalId) => {
   assert(!Number.isNaN(retrievalId), 400, 'Invalid Retrieval ID')
   const body = await getRawBody(req, { limit: '100kb' })
   const result = JSON.parse(body)
-  validate(result, 'walletAddress', 'string')
-  validate(result, 'success', 'boolean')
-  validate(result, 'startAt', 'date')
-  validate(result, 'statusCode', 'number')
-  validate(result, 'firstByteAt', 'date')
-  validate(result, 'endAt', 'date')
-  validate(result, 'byteLength', 'number')
+  validate(result, 'walletAddress', { type: 'string', required: true })
+  validate(result, 'success', { type: 'boolean', required: true })
+  validate(result, 'startAt', { type: 'date', required: true })
+  validate(result, 'statusCode', { type: 'number', required: false })
+  validate(result, 'firstByteAt', { type: 'date', required: false })
+  validate(result, 'endAt', { type: 'date', required: false })
+  validate(result, 'byteLength', { type: 'number', required: false })
   try {
     await client.query(`
       INSERT INTO retrieval_results (

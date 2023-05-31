@@ -269,6 +269,30 @@ describe('Routes', () => {
       assert.strictEqual(res.status, 400)
       assert.strictEqual(await res.text(), 'Invalid .startAt')
     })
+    it('accepts some null values', async () => {
+      const createRequest = await fetch(
+        `${spark}/retrievals`,
+        { method: 'POST' }
+      )
+      const { id: retrievalId } = await createRequest.json()
+      const res = await fetch(
+        `${spark}/retrievals/${retrievalId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            success: true,
+            walletAddress,
+            startAt: new Date(),
+            statusCode: 200,
+            firstByteAt: null,
+            endAt: null,
+            byteLength: null
+          })
+        }
+      )
+      assert.strictEqual(res.status, 200)
+    })
     it('ignores duplicate submissions', async () => {
       const createRequest = await fetch(
         `${spark}/retrievals`,
