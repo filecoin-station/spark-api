@@ -1,6 +1,5 @@
 CREATE TABLE retrieval_results (
-  id SERIAL PRIMARY KEY,
-  retrieval_id INTEGER NOT NULL REFERENCES retrievals(id) UNIQUE,
+  retrieval_id INTEGER NOT NULL REFERENCES retrievals(id) PRIMARY KEY,
   wallet_address TEXT NOT NULL,
   finished_at TIMESTAMP NOT NULL DEFAULT NOW(),
   success BOOLEAN NOT NULL

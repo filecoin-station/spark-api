@@ -55,7 +55,7 @@ const setRetrievalResult = async (req, res, client, retrievalId) => {
   } catch (err) {
     if (err.constraint === 'retrieval_results_retrieval_id_fkey') {
       assert.fail(404, 'Retrieval Not Found')
-    } else if (err.constraint === 'retrieval_results_retrieval_id_key') {
+    } else if (err.constraint === 'retrieval_results_pkey') {
       assert.fail(409, 'Retrieval Already Completed')
     } else if (err.column) {
       assert.fail(400, `Invalid .${toCamelCase(err.column)}`)
