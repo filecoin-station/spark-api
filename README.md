@@ -30,9 +30,17 @@ Body:
 ```typescript
 {
   success: Boolean,
-  walletAddress: String
+  walletAddress: String,
+  startAt: String,       // ISO 8601
+  statusCode: Number,
+  firstByteAt: String,    // ISO 8601
+  endAt: String,         // ISO 8601
+  byteLength: Number
 }
 ```
+
+Dates should be formatted as [ISO 8601](https://tc39.es/ecma262/#sec-date-time-string-format)
+strings.
 
 Response:
 
