@@ -94,10 +94,12 @@ const setRetrievalResult = async (req, res, client, retrievalId) => {
 const getRetrieval = async (req, res, client, retrievalId) => {
   assert(!Number.isNaN(retrievalId), 400, 'Invalid Retrieval ID')
   const { rows: [retrievalRow] } = await client.query(`
-    SELECT r.id, r.created_at, r.finished_at, r.success, rt.cid,
+    SELECT r.id, r.created_at, rr.finished_at, rr.success, rr.start_at,
+    rr.status_code, rr.first_byte_at, rr.end_at, rr.byte_length, rt.cid,
     rt.provider_address, rt.protocol
     FROM retrievals r
     JOIN retrieval_templates rt ON r.retrieval_template_id = rt.id
+    LEFT JOIN retrieval_results rr ON r.id = rr.retrieval_id
     WHERE r.id = $1
   `, [
     retrievalId
@@ -110,7 +112,12 @@ const getRetrieval = async (req, res, client, retrievalId) => {
     protocol: retrievalRow.protocol,
     createdAt: retrievalRow.created_at,
     finishedAt: retrievalRow.finished_at,
-    success: retrievalRow.success
+    success: retrievalRow.success,
+    startAt: retrievalRow.start_at,
+    statusCode: retrievalRow.status_code,
+    firstByteAt: retrievalRow.first_byte_at,
+    endAt: retrievalRow.end_at,
+    byteLength: retrievalRow.byte_length
   })
 }
 
