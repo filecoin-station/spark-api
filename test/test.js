@@ -70,14 +70,14 @@ describe('Routes', () => {
         { method: 'POST' }
       )
       const { id: retrievalId } = await createRequest.json()
-      const { rows: [retrievalRow] } = await client.query(`
+      const { rows } = await client.query(`
         SELECT success
-        FROM retrievals
-        WHERE id = $1
+        FROM retrieval_results
+        WHERE retrieval_id = $1
       `, [
         retrievalId
       ])
-      assert.strictEqual(retrievalRow.success, null)
+      assert.strictEqual(rows.length, 0)
       const updateRequest = await fetch(
         `${spark}/retrievals/${retrievalId}`,
         {
@@ -89,8 +89,8 @@ describe('Routes', () => {
       assert.strictEqual(updateRequest.status, 200)
       const { rows: [updatedRetrievalRow] } = await client.query(`
         SELECT *
-        FROM retrievals
-        WHERE id = $1
+        FROM retrieval_results
+        WHERE retrieval_id = $1
       `, [
         retrievalId
       ])
@@ -155,7 +155,7 @@ describe('Routes', () => {
         }
       )
       assert.strictEqual(res.status, 400)
-      assert.strictEqual(await res.text(), 'boolean .success required')
+      assert.strictEqual(await res.text(), 'Invalid .success')
     })
     it('validates .walletAddress', async () => {
       const res = await fetch(
@@ -167,7 +167,7 @@ describe('Routes', () => {
         }
       )
       assert.strictEqual(res.status, 400)
-      assert.strictEqual(await res.text(), 'string .walletAddress required')
+      assert.strictEqual(await res.text(), 'Invalid .walletAddress')
     })
     it('ignores duplicate submissions', async () => {
       const createRequest = await fetch(
@@ -195,12 +195,12 @@ describe('Routes', () => {
             body: JSON.stringify({ success: false, walletAddress })
           }
         )
-        assert.strictEqual(updateRequest.status, 404)
+        assert.strictEqual(updateRequest.status, 409)
       }
       const { rows: [retrievalRow] } = await client.query(`
         SELECT success
-        FROM retrievals
-        WHERE id = $1
+        FROM retrieval_results
+        WHERE retrieval_id = $1
       `, [
         retrievalId
       ])
