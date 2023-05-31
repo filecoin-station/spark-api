@@ -106,16 +106,16 @@ describe('Routes', () => {
       assert.strictEqual(retrievalResultRow.success, result.success)
       assert.strictEqual(retrievalResultRow.wallet_address, walletAddress)
       assert.strictEqual(
-        Math.round(new Date(retrievalResultRow.start_at).getTime() / 1000),
+        retrievalResultRow.start_at.getTime(),
         result.startAt.getTime()
       )
       assert.strictEqual(retrievalResultRow.status_code, result.statusCode)
       assert.strictEqual(
-        Math.round(new Date(retrievalResultRow.first_byte_at).getTime() / 1000),
+        retrievalResultRow.first_byte_at.getTime(),
         result.firstByteAt.getTime()
       )
       assert.strictEqual(
-        Math.round(new Date(retrievalResultRow.end_at).getTime() / 1000),
+        retrievalResultRow.end_at.getTime(),
         result.endAt.getTime()
       )
       assert.strictEqual(retrievalResultRow.byte_length, result.byteLength)

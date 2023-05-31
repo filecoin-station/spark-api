@@ -64,17 +64,17 @@ const setRetrievalResult = async (req, res, client, retrievalId) => {
         first_byte_at, end_at, byte_length
       )
       VALUES (
-        $1, $2, $3, to_timestamp($4), $5, to_timestamp($6), to_timestamp($7),
+        $1, $2, $3, $4, $5, $6, $7,
         $8
       )
     `, [
       retrievalId,
       result.walletAddress,
       result.success,
-      new Date(result.startAt).getTime(),
+      new Date(result.startAt),
       result.statusCode,
-      new Date(result.firstByteAt).getTime(),
-      new Date(result.endAt).getTime(),
+      new Date(result.firstByteAt),
+      new Date(result.endAt),
       result.byteLength
     ])
   } catch (err) {
