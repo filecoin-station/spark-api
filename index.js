@@ -9,6 +9,8 @@ const handler = async (req, res, client) => {
     await createRetrieval(res, client)
   } else if (segs[0] === 'retrievals' && req.method === 'PATCH') {
     await setRetrievalResult(req, res, client, Number(segs[1]))
+  } else if (segs[0] === 'retrievals' && req.method === 'GET') {
+    await getRetrieval(req, res, client, Number(segs[1]))
   } else {
     res.end('Hello World!')
   }
@@ -87,6 +89,36 @@ const setRetrievalResult = async (req, res, client, retrievalId) => {
     }
   }
   res.end('OK')
+}
+
+const getRetrieval = async (req, res, client, retrievalId) => {
+  assert(!Number.isNaN(retrievalId), 400, 'Invalid Retrieval ID')
+  const { rows: [retrievalRow] } = await client.query(`
+    SELECT r.id, r.created_at, rr.finished_at, rr.success, rr.start_at,
+    rr.status_code, rr.first_byte_at, rr.end_at, rr.byte_length, rt.cid,
+    rt.provider_address, rt.protocol
+    FROM retrievals r
+    JOIN retrieval_templates rt ON r.retrieval_template_id = rt.id
+    LEFT JOIN retrieval_results rr ON r.id = rr.retrieval_id
+    WHERE r.id = $1
+  `, [
+    retrievalId
+  ])
+  assert(retrievalRow, 404, 'Retrieval Not Found')
+  json(res, {
+    id: retrievalRow.id,
+    cid: retrievalRow.cid,
+    providerAddress: retrievalRow.provider_address,
+    protocol: retrievalRow.protocol,
+    createdAt: retrievalRow.created_at,
+    finishedAt: retrievalRow.finished_at,
+    success: retrievalRow.success,
+    startAt: retrievalRow.start_at,
+    statusCode: retrievalRow.status_code,
+    firstByteAt: retrievalRow.first_byte_at,
+    endAt: retrievalRow.end_at,
+    byteLength: retrievalRow.byte_length
+  })
 }
 
 const errorHandler = (res, err) => {
