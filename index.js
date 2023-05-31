@@ -125,15 +125,14 @@ const getRetrieval = async (req, res, client, retrievalId) => {
 }
 
 const errorHandler = (res, err) => {
+  console.error(err)
   if (err instanceof SyntaxError) {
-    console.error(err)
     res.statusCode = 400
     return res.end('Invalid JSON Body')
   } else if (err.statusCode) {
     res.statusCode = err.statusCode
     res.end(err.message)
   } else {
-    console.error(err)
     res.statusCode = 500
     res.end('Internal Server Error')
   }
