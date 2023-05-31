@@ -37,17 +37,26 @@ const createRetrieval = async (res, client) => {
   })
 }
 
+const validate = (obj, key, type) => {
+  if (type === 'date') {
+    const date = new Date(obj[key])
+    assert(!isNaN(date.getTime()), 400, `Invalid .${key}`)
+  } else {
+    assert.strictEqual(typeof obj[key], type, 400, `Invalid .${key}`)
+  }
+}
+
 const setRetrievalResult = async (req, res, client, retrievalId) => {
   assert(!Number.isNaN(retrievalId), 400, 'Invalid Retrieval ID')
   const body = await getRawBody(req, { limit: '100kb' })
   const result = JSON.parse(body)
-  assert.strictEqual(typeof result.walletAddress, 'string', 400, 'Invalid .walletAddress')
-  assert.strictEqual(typeof result.success, 'boolean', 400, 'Invalid .success')
-  assert.strictEqual(typeof result.startAt, 'string', 400, 'Invalid .startAt')
-  assert.strictEqual(typeof result.statusCode, 'number', 400, 'Invalid .statusCode')
-  assert.strictEqual(typeof result.firstByteAt, 'string', 400, 'Invalid .firstByteAt')
-  assert.strictEqual(typeof result.endAt, 'string', 400, 'Invalid .endAt')
-  assert.strictEqual(typeof result.byteLength, 'number', 400, 'Invalid .byteLength')
+  validate(result, 'walletAddress', 'string')
+  validate(result, 'success', 'boolean')
+  validate(result, 'startAt', 'date')
+  validate(result, 'statusCode', 'number')
+  validate(result, 'firstByteAt', 'date')
+  validate(result, 'endAt', 'date')
+  validate(result, 'byteLength', 'number')
   try {
     await client.query(`
       INSERT INTO retrieval_results (

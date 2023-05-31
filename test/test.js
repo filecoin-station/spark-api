@@ -244,6 +244,31 @@ describe('Routes', () => {
       assert.strictEqual(res.status, 400)
       assert.strictEqual(await res.text(), 'Invalid .success')
     })
+    it('validates dates', async () => {
+      const createRequest = await fetch(
+        `${spark}/retrievals`,
+        { method: 'POST' }
+      )
+      const { id: retrievalId } = await createRequest.json()
+      const res = await fetch(
+        `${spark}/retrievals/${retrievalId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            success: true,
+            walletAddress,
+            startAt: 'not-iso',
+            statusCode: 200,
+            firstByteAt: new Date(),
+            endAt: new Date(),
+            byteLength: 100
+          })
+        }
+      )
+      assert.strictEqual(res.status, 400)
+      assert.strictEqual(await res.text(), 'Invalid .startAt')
+    })
     it('ignores duplicate submissions', async () => {
       const createRequest = await fetch(
         `${spark}/retrievals`,
