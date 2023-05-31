@@ -207,4 +207,28 @@ describe('Routes', () => {
       assert.strictEqual(retrievalRow.success, true)
     })
   })
+  describe('GET /retrievals/:id', () => {
+    it('gets a retrieval', async () => {
+      const createRequest = await fetch(
+        `${spark}/retrievals`,
+        { method: 'POST' }
+      )
+      const {
+        id: retrievalId,
+        cid,
+        providerAddress,
+        protocol
+      } = await createRequest.json()
+      const res = await fetch(`${spark}/retrievals/${retrievalId}`)
+      assert.strictEqual(res.status, 200)
+      const body = await res.json()
+      assert.strictEqual(body.id, retrievalId)
+      assert.strictEqual(body.cid, cid)
+      assert.strictEqual(body.providerAddress, providerAddress)
+      assert.strictEqual(body.protocol, protocol)
+      assert(body.createdAt)
+      assert.strictEqual(body.finishedAt, null)
+      assert.strictEqual(body.success, null)
+    })
+  })
 })
