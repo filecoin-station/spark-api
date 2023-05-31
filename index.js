@@ -138,6 +138,11 @@ const errorHandler = (res, err) => {
 export const createHandler = async (client) => {
   await migrate(client)
   return (req, res) => {
-    handler(req, res, client).catch(err => errorHandler(res, err))
+    console.log(`${req.method} ${req.url} ...`)
+    handler(req, res, client)
+      .catch(err => errorHandler(res, err))
+      .then(() => {
+        console.log(`${req.method} ${req.url} ${res.statusCode}`)
+      })
   }
 }
