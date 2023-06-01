@@ -3,6 +3,7 @@ import http from 'node:http'
 import { once } from 'node:events'
 import assert from 'node:assert'
 import pg from 'pg'
+import noopLogger from 'noop-logger'
 
 const { DATABASE_URL } = process.env
 const walletAddress = 'f1abc'
@@ -15,7 +16,7 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
-    const handler = await createHandler(client)
+    const handler = await createHandler({ client, logger: noopLogger })
     server = http.createServer(handler)
     server.listen()
     await once(server, 'listening')

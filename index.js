@@ -124,11 +124,11 @@ const getRetrieval = async (req, res, client, retrievalId) => {
   })
 }
 
-const errorHandler = (res, err) => {
-  console.error(err)
+const errorHandler = (res, err, logger) => {
+  logger.error(err)
   if (err instanceof SyntaxError) {
     res.statusCode = 400
-    return res.end('Invalid JSON Body')
+    res.end('Invalid JSON Body')
   } else if (err.statusCode) {
     res.statusCode = err.statusCode
     res.end(err.message)
@@ -138,14 +138,12 @@ const errorHandler = (res, err) => {
   }
 }
 
-export const createHandler = async (client) => {
+export const createHandler = async ({ client, logger }) => {
   await migrate(client)
   return (req, res) => {
-    console.log(`${req.method} ${req.url} ...`)
+    logger.info(`${req.method} ${req.url} ...`)
     handler(req, res, client)
-      .catch(err => errorHandler(res, err))
-      .then(() => {
-        console.log(`${req.method} ${req.url} ${res.statusCode}`)
-      })
+      .catch(err => errorHandler(res, err, logger))
+      .then(() => logger.info(`${req.method} ${req.url} ${res.statusCode}`))
   }
 }
