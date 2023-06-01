@@ -33,7 +33,7 @@ Sentry.init({
 
 const client = new pg.Pool({ connectionString: DATABASE_URL })
 await client.connect()
-const handler = await createHandler(client)
+const handler = await createHandler({ client, logger: console })
 const server = http.createServer(handler)
 server.listen(PORT)
 await once(server, 'listening')
