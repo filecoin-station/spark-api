@@ -13,6 +13,9 @@ const queryIndexProvider = async cid => {
 }
 
 const topCids = await getTopCids()
+console.log('INSERT INTO retrieval_templates (cid, provider_address, protocol)')
+console.log('VALUES')
+let isFirst = true
 for (const cid of topCids) {
   try {
     const res = await queryIndexProvider(cid)
@@ -29,11 +32,16 @@ for (const cid of topCids) {
     if (!protocol || !providerAddress) {
       continue
     }
-    console.log(
-      `INSERT INTO retrieval_templates (cid, provider_address, protocol) VALUES ('${cid}', '${providerAddress}', '${protocol}');`
-    )
+    if (isFirst) {
+      process.stdout.write('  ')
+      isFirst = false
+    } else {
+      process.stdout.write(',\n  ')
+    }
+    process.stdout.write(`('${cid}', '${providerAddress}', '${protocol}')`)
   } catch (err) {
     console.error('Failed on cid', cid)
     throw err
   }
 }
+process.stdout.write(';\n')
