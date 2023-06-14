@@ -6,7 +6,7 @@ const client = new pg.Client({ connectionString: DATABASE_URL })
 await client.connect()
 
 const notFound = (templateId) =>
-  `UPDATE retrieval_templates SET peer_id = 'not found', enabled = FALSE WHERE id = ${templateId};`
+  `UPDATE retrieval_templates SET peer_id = 'not found', deleted = TRUE WHERE id = ${templateId};`
 
 const findProviderResult = (template, body) => {
   for (const multiHashResult of body.MultihashResults) {

@@ -21,8 +21,8 @@ const createRetrieval = async (res, client) => {
   const { rows: [retrievalTemplate] } = await client.query(`
     SELECT id, cid, provider_address, peer_id, protocol
     FROM retrieval_templates
-    WHERE enabled = TRUE
-    OFFSET floor(random() * (SELECT COUNT(*) FROM retrieval_templates WHERE enabled = TRUE))
+    WHERE deleted = FALSE
+    OFFSET floor(random() * (SELECT COUNT(*) FROM retrieval_templates WHERE deleted = FALSE))
     LIMIT 1
   `)
   const { rows: [retrieval] } = await client.query(`
