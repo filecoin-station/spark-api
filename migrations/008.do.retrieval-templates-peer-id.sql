@@ -1,4 +1,3 @@
-
 ALTER TABLE retrieval_templates
   ADD COLUMN peer_id VARCHAR(64),
   ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT TRUE;
