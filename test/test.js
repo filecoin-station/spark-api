@@ -43,7 +43,6 @@ describe('Routes', () => {
       assert.strictEqual(typeof body.id, 'number')
       assert.strictEqual(typeof body.cid, 'string')
       assert.strictEqual(typeof body.providerAddress, 'string')
-      assert.strictEqual(typeof body.peerID, 'string')
       assert.strictEqual(typeof body.protocol, 'string')
     })
     it('uses random retrieval templates', async () => {
@@ -359,7 +358,6 @@ describe('Routes', () => {
         id: retrievalId,
         cid,
         providerAddress,
-        peerID,
         protocol
       } = await createRequest.json()
       const res = await fetch(`${spark}/retrievals/${retrievalId}`)
@@ -368,7 +366,6 @@ describe('Routes', () => {
       assert.strictEqual(body.id, retrievalId)
       assert.strictEqual(body.cid, cid)
       assert.strictEqual(body.providerAddress, providerAddress)
-      assert.strictEqual(body.peerID, peerID)
       assert.strictEqual(body.protocol, protocol)
       assert(body.createdAt)
       assert.strictEqual(body.finishedAt, null)
@@ -388,7 +385,6 @@ describe('Routes', () => {
         id: retrievalId,
         cid,
         providerAddress,
-        peerID,
         protocol
       } = await createRequest.json()
       const retrieval = {
@@ -415,7 +411,6 @@ describe('Routes', () => {
       assert.strictEqual(body.id, retrievalId)
       assert.strictEqual(body.cid, cid)
       assert.strictEqual(body.providerAddress, providerAddress)
-      assert.strictEqual(body.peerID, peerID)
       assert.strictEqual(body.protocol, protocol)
       assert(body.createdAt)
       assert(body.finishedAt)

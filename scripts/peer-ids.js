@@ -6,7 +6,7 @@ const client = new pg.Client({ connectionString: DATABASE_URL })
 await client.connect()
 
 const notFound = (templateId) =>
-  `UPDATE retrieval_templates SET peer_id = 'not found', deleted = TRUE WHERE id = ${templateId};`
+  `UPDATE retrieval_templates SET deleted = TRUE WHERE id = ${templateId};`
 
 const findProviderResult = (template, body) => {
   for (const multiHashResult of body.MultihashResults) {
@@ -30,7 +30,7 @@ for (const template of retrievalTemplates) {
     const providerResult = findProviderResult(template, body)
     if (providerResult) {
       console.log(
-        `UPDATE retrieval_templates SET peer_id = '${providerResult.Provider.ID}' WHERE id = ${template.id};`
+        `UPDATE retrieval_templates SET provider_address = '${template.provider_address}/p2p/${providerResult.Provider.ID}' WHERE id = ${template.id};`
       )
     } else {
       console.log(notFound(template.id))
