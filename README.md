@@ -16,6 +16,7 @@ Response:
   id: String,
   cid: String,
   providerAddress: String,
+  peerID: String,
   protocol: 'graphsync'|'bitswap'
 }
 ```

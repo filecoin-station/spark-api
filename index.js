@@ -19,9 +19,10 @@ const handler = async (req, res, client) => {
 const createRetrieval = async (res, client) => {
   // TODO: Consolidate to one query
   const { rows: [retrievalTemplate] } = await client.query(`
-    SELECT id, cid, provider_address, protocol
+    SELECT id, cid, provider_address, peer_id, protocol
     FROM retrieval_templates
-    OFFSET floor(random() * (SELECT COUNT(*) FROM retrieval_templates))
+    WHERE enabled = TRUE
+    OFFSET floor(random() * (SELECT COUNT(*) FROM retrieval_templates WHERE enabled = TRUE))
     LIMIT 1
   `)
   const { rows: [retrieval] } = await client.query(`
@@ -35,6 +36,7 @@ const createRetrieval = async (res, client) => {
     id: retrieval.id,
     cid: retrievalTemplate.cid,
     providerAddress: retrievalTemplate.provider_address,
+    peerID: retrievalTemplate.peer_id,
     protocol: retrievalTemplate.protocol
   })
 }
@@ -99,7 +101,7 @@ const getRetrieval = async (req, res, client, retrievalId) => {
   const { rows: [retrievalRow] } = await client.query(`
     SELECT r.id, r.created_at, rr.finished_at, rr.success, rr.start_at,
     rr.status_code, rr.first_byte_at, rr.end_at, rr.byte_length, rt.cid,
-    rt.provider_address, rt.protocol
+    rt.provider_address, rt.peer_id, rt.protocol
     FROM retrievals r
     JOIN retrieval_templates rt ON r.retrieval_template_id = rt.id
     LEFT JOIN retrieval_results rr ON r.id = rr.retrieval_id
@@ -112,6 +114,7 @@ const getRetrieval = async (req, res, client, retrievalId) => {
     id: retrievalRow.id,
     cid: retrievalRow.cid,
     providerAddress: retrievalRow.provider_address,
+    peerID: retrievalRow.peer_id,
     protocol: retrievalRow.protocol,
     createdAt: retrievalRow.created_at,
     finishedAt: retrievalRow.finished_at,
