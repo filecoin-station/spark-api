@@ -142,9 +142,12 @@ const errorHandler = (res, err, logger) => {
 export const createHandler = async ({ client, logger }) => {
   await migrate(client)
   return (req, res) => {
+    const start = new Date()
     logger.info(`${req.method} ${req.url} ...`)
     handler(req, res, client)
       .catch(err => errorHandler(res, err, logger))
-      .then(() => logger.info(`${req.method} ${req.url} ${res.statusCode}`))
+      .then(() => {
+        logger.info(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)
+      })
   }
 }
