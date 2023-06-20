@@ -30,6 +30,7 @@ Body:
 ```typescript
 {
   success: Boolean,
+  timeout: Boolean,
   walletAddress: String,
   startAt: String,       // ISO 8601
   statusCode: Number,

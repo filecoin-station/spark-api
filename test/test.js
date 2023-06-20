@@ -1,12 +1,22 @@
 import { createHandler } from '../index.js'
 import http from 'node:http'
 import { once } from 'node:events'
-import assert from 'node:assert'
+import assert, { AssertionError } from 'node:assert'
 import pg from 'pg'
 import noopLogger from 'noop-logger'
 
 const { DATABASE_URL } = process.env
 const walletAddress = 'f1abc'
+
+const assertResponseStatus = async (res, status) => {
+  if (res.status !== status) {
+    throw new AssertionError({
+      actual: res.status,
+      expected: status,
+      message: await res.text()
+    })
+  }
+}
 
 describe('Routes', () => {
   let client
@@ -31,14 +41,14 @@ describe('Routes', () => {
   describe('GET /', () => {
     it('responds', async () => {
       const res = await fetch(`${spark}/`)
-      assert.strictEqual(res.status, 200)
+      await assertResponseStatus(res, 200)
       assert.strictEqual(await res.text(), 'Hello World!')
     })
   })
   describe('POST /retrievals', () => {
     it('creates a retrieval', async () => {
       const res = await fetch(`${spark}/retrievals`, { method: 'POST' })
-      assert.strictEqual(res.status, 200)
+      await assertResponseStatus(res, 200)
       const body = await res.json()
       assert.strictEqual(typeof body.id, 'number')
       assert.strictEqual(typeof body.cid, 'string')
@@ -48,7 +58,7 @@ describe('Routes', () => {
     it('uses random retrieval templates', async () => {
       const makeRequest = async () => {
         const res = await fetch(`${spark}/retrievals`, { method: 'POST' })
-        assert.strictEqual(res.status, 200)
+        await assertResponseStatus(res, 200)
         const { cid } = await res.json()
         return cid
       }
@@ -96,7 +106,7 @@ describe('Routes', () => {
           body: JSON.stringify(result)
         }
       )
-      assert.strictEqual(updateRequest.status, 200)
+      await assertResponseStatus(updateRequest, 200)
       const { rows: [retrievalResultRow] } = await client.query(`
         SELECT *
         FROM retrieval_results
@@ -135,7 +145,7 @@ describe('Routes', () => {
           body: '{"invalid"}'
         }
       )
-      assert.strictEqual(res.status, 400)
+      await assertResponseStatus(res, 400)
       assert.strictEqual(await res.text(), 'Invalid JSON Body')
     })
     it('handles retrieval id not a number', async () => {
@@ -155,7 +165,7 @@ describe('Routes', () => {
           })
         }
       )
-      assert.strictEqual(res.status, 400)
+      await assertResponseStatus(res, 400)
       assert.strictEqual(await res.text(), 'Invalid Retrieval ID')
     })
     it('handles retrieval not found', async () => {
@@ -175,7 +185,7 @@ describe('Routes', () => {
           })
         }
       )
-      assert.strictEqual(res.status, 404)
+      await assertResponseStatus(res, 404)
       assert.strictEqual(await res.text(), 'Retrieval Not Found')
     })
     it('handles request body too large', async () => {
@@ -192,7 +202,7 @@ describe('Routes', () => {
           body: Buffer.alloc(100 * 1024 + 1)
         }
       )
-      assert.strictEqual(res.status, 413)
+      await assertResponseStatus(res, 413)
       assert.strictEqual(await res.text(), 'request entity too large')
     })
     it('validates missing columns', async () => {
@@ -217,7 +227,7 @@ describe('Routes', () => {
           })
         }
       )
-      assert.strictEqual(res.status, 400)
+      await assertResponseStatus(res, 400)
       assert.strictEqual(await res.text(), 'Invalid .success')
     })
     it('validates column types', async () => {
@@ -242,7 +252,7 @@ describe('Routes', () => {
           })
         }
       )
-      assert.strictEqual(res.status, 400)
+      await assertResponseStatus(res, 400)
       assert.strictEqual(await res.text(), 'Invalid .success')
     })
     it('validates dates', async () => {
@@ -267,7 +277,7 @@ describe('Routes', () => {
           })
         }
       )
-      assert.strictEqual(res.status, 400)
+      await assertResponseStatus(res, 400)
       assert.strictEqual(await res.text(), 'Invalid .startAt')
     })
     it('accepts some null values', async () => {
@@ -292,7 +302,7 @@ describe('Routes', () => {
           })
         }
       )
-      assert.strictEqual(res.status, 200)
+      await assertResponseStatus(res, 200)
     })
     it('ignores duplicate submissions', async () => {
       const createRequest = await fetch(
@@ -361,7 +371,7 @@ describe('Routes', () => {
         protocol
       } = await createRequest.json()
       const res = await fetch(`${spark}/retrievals/${retrievalId}`)
-      assert.strictEqual(res.status, 200)
+      await assertResponseStatus(res, 200)
       const body = await res.json()
       assert.strictEqual(body.id, retrievalId)
       assert.strictEqual(body.cid, cid)
@@ -406,7 +416,7 @@ describe('Routes', () => {
       )
       assert(updateRequest.ok)
       const res = await fetch(`${spark}/retrievals/${retrievalId}`)
-      assert.strictEqual(res.status, 200)
+      await assertResponseStatus(res, 200)
       const body = await res.json()
       assert.strictEqual(body.id, retrievalId)
       assert.strictEqual(body.cid, cid)
