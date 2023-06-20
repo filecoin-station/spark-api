@@ -126,7 +126,9 @@ const getRetrieval = async (req, res, client, retrievalId) => {
 }
 
 const errorHandler = (res, err, logger) => {
-  logger.error(err)
+  if (!err.statusCode) {
+    logger.error(err)
+  }
   if (err instanceof SyntaxError) {
     res.statusCode = 400
     res.end('Invalid JSON Body')
