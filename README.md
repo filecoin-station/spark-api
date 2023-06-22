@@ -9,6 +9,14 @@
 
 Start a new retrieval.
 
+Body:
+
+```typescript
+{
+  sparkVersion: String
+}
+```
+
 Response:
 
 ```typescript

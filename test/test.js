@@ -73,6 +73,29 @@ describe('Routes', () => {
       }
       throw new Error('All requests returned the same CID')
     })
+    it('handles .sparkVersion', async () => {
+      const res = await fetch(`${spark}/retrievals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sparkVersion: '1.2.3' })
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+      const { rows: [retrievalRow] } = await client.query(
+        'SELECT * FROM retrievals WHERE id = $1',
+        [body.id]
+      )
+      assert.strictEqual(retrievalRow.spark_version, '1.2.3')
+    })
+    it('validates .sparkVersion', async () => {
+      const res = await fetch(`${spark}/retrievals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sparkVersion: 0 })
+      })
+      await assertResponseStatus(res, 400)
+      assert.strictEqual(await res.text(), 'Invalid .sparkVersion')
+    })
   })
   describe('PATCH /retrievals/:id', () => {
     it('updates a retrieval', async () => {
@@ -360,10 +383,11 @@ describe('Routes', () => {
   })
   describe('GET /retrievals/:id', () => {
     it('gets a fresh retrieval', async () => {
-      const createRequest = await fetch(
-        `${spark}/retrievals`,
-        { method: 'POST' }
-      )
+      const createRequest = await fetch(`${spark}/retrievals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sparkVersion: '1.2.3' })
+      })
       const {
         id: retrievalId,
         cid,
@@ -377,6 +401,7 @@ describe('Routes', () => {
       assert.strictEqual(body.cid, cid)
       assert.strictEqual(body.providerAddress, providerAddress)
       assert.strictEqual(body.protocol, protocol)
+      assert.strictEqual(body.sparkVersion, '1.2.3')
       assert(body.createdAt)
       assert.strictEqual(body.finishedAt, null)
       assert.strictEqual(body.success, null)

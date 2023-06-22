@@ -3,43 +3,6 @@ import { migrate } from './lib/migrate.js'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
 
-const handler = async (req, res, client) => {
-  const segs = req.url.split('/').filter(Boolean)
-  if (segs[0] === 'retrievals' && req.method === 'POST') {
-    await createRetrieval(res, client)
-  } else if (segs[0] === 'retrievals' && req.method === 'PATCH') {
-    await setRetrievalResult(req, res, client, Number(segs[1]))
-  } else if (segs[0] === 'retrievals' && req.method === 'GET') {
-    await getRetrieval(req, res, client, Number(segs[1]))
-  } else {
-    res.end('Hello World!')
-  }
-}
-
-const createRetrieval = async (res, client) => {
-  // TODO: Consolidate to one query
-  const { rows: [retrievalTemplate] } = await client.query(`
-    SELECT id, cid, provider_address, protocol
-    FROM retrieval_templates
-    WHERE deleted = FALSE
-    OFFSET floor(random() * (SELECT COUNT(*) FROM retrieval_templates WHERE deleted = FALSE))
-    LIMIT 1
-  `)
-  const { rows: [retrieval] } = await client.query(`
-    INSERT INTO retrievals (retrieval_template_id)
-    VALUES ($1)
-    RETURNING id
-  `, [
-    retrievalTemplate.id
-  ])
-  json(res, {
-    id: retrieval.id,
-    cid: retrievalTemplate.cid,
-    providerAddress: retrievalTemplate.provider_address,
-    protocol: retrievalTemplate.protocol
-  })
-}
-
 const validate = (obj, key, { type, required }) => {
   if (!required && (!Object.keys(obj).includes(key) || obj[key] === null)) {
     return
@@ -50,6 +13,47 @@ const validate = (obj, key, { type, required }) => {
   } else {
     assert.strictEqual(typeof obj[key], type, 400, `Invalid .${key}`)
   }
+}
+
+const handler = async (req, res, client) => {
+  const segs = req.url.split('/').filter(Boolean)
+  if (segs[0] === 'retrievals' && req.method === 'POST') {
+    await createRetrieval(req, res, client)
+  } else if (segs[0] === 'retrievals' && req.method === 'PATCH') {
+    await setRetrievalResult(req, res, client, Number(segs[1]))
+  } else if (segs[0] === 'retrievals' && req.method === 'GET') {
+    await getRetrieval(req, res, client, Number(segs[1]))
+  } else {
+    res.end('Hello World!')
+  }
+}
+
+const createRetrieval = async (req, res, client) => {
+  const body = await getRawBody(req, { limit: '100kb' })
+  const meta = body.length > 0 ? JSON.parse(body) : {}
+  validate(meta, 'sparkVersion', { type: 'string', required: false })
+  // TODO: Consolidate to one query
+  const { rows: [retrievalTemplate] } = await client.query(`
+    SELECT id, cid, provider_address, protocol
+    FROM retrieval_templates
+    WHERE deleted = FALSE
+    OFFSET floor(random() * (SELECT COUNT(*) FROM retrieval_templates WHERE deleted = FALSE))
+    LIMIT 1
+  `)
+  const { rows: [retrieval] } = await client.query(`
+    INSERT INTO retrievals (retrieval_template_id, spark_version)
+    VALUES ($1, $2)
+    RETURNING id
+  `, [
+    retrievalTemplate.id,
+    meta.sparkVersion
+  ])
+  json(res, {
+    id: retrieval.id,
+    cid: retrievalTemplate.cid,
+    providerAddress: retrievalTemplate.provider_address,
+    protocol: retrievalTemplate.protocol
+  })
 }
 
 const setRetrievalResult = async (req, res, client, retrievalId) => {
@@ -109,6 +113,7 @@ const getRetrieval = async (req, res, client, retrievalId) => {
     SELECT
       r.id,
       r.created_at,
+      r.spark_version,
       rr.finished_at,
       rr.success,
       rr.timeout,
@@ -133,6 +138,7 @@ const getRetrieval = async (req, res, client, retrievalId) => {
     cid: retrievalRow.cid,
     providerAddress: retrievalRow.provider_address,
     protocol: retrievalRow.protocol,
+    sparkVersion: retrievalRow.spark_version,
     createdAt: retrievalRow.created_at,
     finishedAt: retrievalRow.finished_at,
     success: retrievalRow.success,
