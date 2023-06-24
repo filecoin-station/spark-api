@@ -73,29 +73,6 @@ describe('Routes', () => {
       }
       throw new Error('All requests returned the same CID')
     })
-    it('handles .sparkVersion', async () => {
-      const res = await fetch(`${spark}/retrievals`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sparkVersion: '1.2.3' })
-      })
-      await assertResponseStatus(res, 200)
-      const body = await res.json()
-      const { rows: [retrievalRow] } = await client.query(
-        'SELECT * FROM retrievals WHERE id = $1',
-        [body.id]
-      )
-      assert.strictEqual(retrievalRow.spark_version, '1.2.3')
-    })
-    it('validates .sparkVersion', async () => {
-      const res = await fetch(`${spark}/retrievals`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sparkVersion: 0 })
-      })
-      await assertResponseStatus(res, 400)
-      assert.strictEqual(await res.text(), 'Invalid .sparkVersion')
-    })
   })
   describe('PATCH /retrievals/:id', () => {
     it('updates a retrieval', async () => {
@@ -115,6 +92,7 @@ describe('Routes', () => {
       const result = {
         success: true,
         walletAddress,
+        sparkVersion: '1.2.3',
         startAt: new Date(),
         statusCode: 200,
         firstByteAt: new Date(),
@@ -139,6 +117,7 @@ describe('Routes', () => {
       ])
       assert.strictEqual(retrievalResultRow.success, result.success)
       assert.strictEqual(retrievalResultRow.wallet_address, walletAddress)
+      assert.strictEqual(retrievalResultRow.spark_version, '1.2.3')
       assert.strictEqual(
         retrievalResultRow.start_at.toJSON(),
         result.startAt.toJSON()
@@ -384,9 +363,7 @@ describe('Routes', () => {
   describe('GET /retrievals/:id', () => {
     it('gets a fresh retrieval', async () => {
       const createRequest = await fetch(`${spark}/retrievals`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sparkVersion: '1.2.3' })
+        method: 'POST'
       })
       const {
         id: retrievalId,
@@ -401,7 +378,6 @@ describe('Routes', () => {
       assert.strictEqual(body.cid, cid)
       assert.strictEqual(body.providerAddress, providerAddress)
       assert.strictEqual(body.protocol, protocol)
-      assert.strictEqual(body.sparkVersion, '1.2.3')
       assert(body.createdAt)
       assert.strictEqual(body.finishedAt, null)
       assert.strictEqual(body.success, null)
@@ -425,6 +401,7 @@ describe('Routes', () => {
       const retrieval = {
         success: true,
         walletAddress,
+        sparkVersion: '1.2.3',
         startAt: new Date(),
         statusCode: 200,
         firstByteAt: new Date(),
@@ -443,6 +420,7 @@ describe('Routes', () => {
       const res = await fetch(`${spark}/retrievals/${retrievalId}`)
       await assertResponseStatus(res, 200)
       const body = await res.json()
+      assert.strictEqual(body.sparkVersion, retrieval.sparkVersion)
       assert.strictEqual(body.id, retrievalId)
       assert.strictEqual(body.cid, cid)
       assert.strictEqual(body.providerAddress, providerAddress)

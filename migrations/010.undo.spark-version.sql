@@ -1,1 +1,1 @@
-ALTER TABLE retrievals DROP COLUMN spark_version;
+ALTER TABLE retrieval_results DROP COLUMN spark_version;

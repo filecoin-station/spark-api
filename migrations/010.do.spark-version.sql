@@ -1,1 +1,1 @@
-ALTER TABLE retrievals ADD COLUMN spark_version VARCHAR(32);
+ALTER TABLE retrieval_results ADD COLUMN spark_version VARCHAR(32);
