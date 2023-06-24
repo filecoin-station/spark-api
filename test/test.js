@@ -3,7 +3,6 @@ import http from 'node:http'
 import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
 import pg from 'pg'
-import noopLogger from 'noop-logger'
 
 const { DATABASE_URL } = process.env
 const walletAddress = 'f1abc'
@@ -26,7 +25,13 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
-    const handler = await createHandler({ client, logger: noopLogger })
+    const handler = await createHandler({
+      client,
+      logger: {
+        info () {},
+        error (...args) { console.error(...args) }
+      }
+    })
     server = http.createServer(handler)
     server.listen()
     await once(server, 'listening')
@@ -73,13 +78,44 @@ describe('Routes', () => {
       }
       throw new Error('All requests returned the same CID')
     })
+    it('handles versions', async () => {
+      const res = await fetch(`${spark}/retrievals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sparkVersion: '1.2.3',
+          zinniaVersion: '2.3.4'
+        })
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+      const { rows: [retrievalRow] } = await client.query(
+        'SELECT * FROM retrievals WHERE id = $1',
+        [body.id]
+      )
+      assert.strictEqual(retrievalRow.spark_version, '1.2.3')
+      assert.strictEqual(retrievalRow.zinnia_version, '2.3.4')
+    })
+    it('validates versions', async () => {
+      const res = await fetch(`${spark}/retrievals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sparkVersion: 0 })
+      })
+      await assertResponseStatus(res, 400)
+      assert.strictEqual(await res.text(), 'Invalid .sparkVersion')
+    })
   })
   describe('PATCH /retrievals/:id', () => {
     it('updates a retrieval', async () => {
-      const createRequest = await fetch(
-        `${spark}/retrievals`,
-        { method: 'POST' }
-      )
+      const createRequest = await fetch(`${spark}/retrievals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sparkVersion: '1.2.3',
+          zinniaVersion: '2.3.4'
+        })
+      })
       const { id: retrievalId } = await createRequest.json()
       const { rows } = await client.query(`
         SELECT success
@@ -92,8 +128,6 @@ describe('Routes', () => {
       const result = {
         success: true,
         walletAddress,
-        sparkVersion: '1.2.3',
-        zinniaVersion: '2.3.4',
         startAt: new Date(),
         statusCode: 200,
         firstByteAt: new Date(),
@@ -118,8 +152,6 @@ describe('Routes', () => {
       ])
       assert.strictEqual(retrievalResultRow.success, result.success)
       assert.strictEqual(retrievalResultRow.wallet_address, walletAddress)
-      assert.strictEqual(retrievalResultRow.spark_version, '1.2.3')
-      assert.strictEqual(retrievalResultRow.zinnia_version, '2.3.4')
       assert.strictEqual(
         retrievalResultRow.start_at.toJSON(),
         result.startAt.toJSON()
@@ -365,7 +397,12 @@ describe('Routes', () => {
   describe('GET /retrievals/:id', () => {
     it('gets a fresh retrieval', async () => {
       const createRequest = await fetch(`${spark}/retrievals`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sparkVersion: '1.2.3',
+          zinniaVersion: '2.3.4'
+        })
       })
       const {
         id: retrievalId,
@@ -380,6 +417,8 @@ describe('Routes', () => {
       assert.strictEqual(body.cid, cid)
       assert.strictEqual(body.providerAddress, providerAddress)
       assert.strictEqual(body.protocol, protocol)
+      assert.strictEqual(body.sparkVersion, '1.2.3')
+      assert.strictEqual(body.zinniaVersion, '2.3.4')
       assert(body.createdAt)
       assert.strictEqual(body.finishedAt, null)
       assert.strictEqual(body.success, null)
@@ -390,10 +429,14 @@ describe('Routes', () => {
       assert.strictEqual(body.byteLength, null)
     })
     it('gets a completed retrieval', async () => {
-      const createRequest = await fetch(
-        `${spark}/retrievals`,
-        { method: 'POST' }
-      )
+      const createRequest = await fetch(`${spark}/retrievals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sparkVersion: '1.2.3',
+          zinniaVersion: '2.3.4'
+        })
+      })
       const {
         id: retrievalId,
         cid,
@@ -403,8 +446,6 @@ describe('Routes', () => {
       const retrieval = {
         success: true,
         walletAddress,
-        sparkVersion: '1.2.3',
-        zinniaVersion: '2.3.4',
         startAt: new Date(),
         statusCode: 200,
         firstByteAt: new Date(),
@@ -423,12 +464,12 @@ describe('Routes', () => {
       const res = await fetch(`${spark}/retrievals/${retrievalId}`)
       await assertResponseStatus(res, 200)
       const body = await res.json()
-      assert.strictEqual(body.sparkVersion, retrieval.sparkVersion)
-      assert.strictEqual(body.zinniaVersion, retrieval.zinniaVersion)
       assert.strictEqual(body.id, retrievalId)
       assert.strictEqual(body.cid, cid)
       assert.strictEqual(body.providerAddress, providerAddress)
       assert.strictEqual(body.protocol, protocol)
+      assert.strictEqual(body.sparkVersion, '1.2.3')
+      assert.strictEqual(body.zinniaVersion, '2.3.4')
       assert(body.createdAt)
       assert(body.finishedAt)
       assert.strictEqual(body.success, retrieval.success)
