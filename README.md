@@ -9,14 +9,6 @@
 
 Start a new retrieval.
 
-Body:
-
-```typescript
-{
-  sparkVersion: String
-}
-```
-
 Response:
 
 ```typescript
@@ -40,6 +32,7 @@ Body:
   success: Boolean,
   timeout: Boolean,
   walletAddress: String,
+  sparkVersion: String,
   startAt: String,       // ISO 8601
   statusCode: Number,
   firstByteAt: String,   // ISO 8601
