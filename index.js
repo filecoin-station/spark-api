@@ -6,7 +6,7 @@ import assert from 'http-assert'
 const handler = async (req, res, client) => {
   const segs = req.url.split('/').filter(Boolean)
   if (segs[0] === 'retrievals' && req.method === 'POST') {
-    await createRetrieval(req, res, client)
+    await createRetrieval(res, client)
   } else if (segs[0] === 'retrievals' && req.method === 'PATCH') {
     await setRetrievalResult(req, res, client, Number(segs[1]))
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
@@ -16,7 +16,7 @@ const handler = async (req, res, client) => {
   }
 }
 
-const createRetrieval = async (req, res, client) => {
+const createRetrieval = async (res, client) => {
   // TODO: Consolidate to one query
   const { rows: [retrievalTemplate] } = await client.query(`
     SELECT id, cid, provider_address, protocol
