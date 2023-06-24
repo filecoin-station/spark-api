@@ -93,6 +93,7 @@ describe('Routes', () => {
         success: true,
         walletAddress,
         sparkVersion: '1.2.3',
+        zinniaVersion: '2.3.4',
         startAt: new Date(),
         statusCode: 200,
         firstByteAt: new Date(),
@@ -118,6 +119,7 @@ describe('Routes', () => {
       assert.strictEqual(retrievalResultRow.success, result.success)
       assert.strictEqual(retrievalResultRow.wallet_address, walletAddress)
       assert.strictEqual(retrievalResultRow.spark_version, '1.2.3')
+      assert.strictEqual(retrievalResultRow.zinnia_version, '2.3.4')
       assert.strictEqual(
         retrievalResultRow.start_at.toJSON(),
         result.startAt.toJSON()
@@ -402,6 +404,7 @@ describe('Routes', () => {
         success: true,
         walletAddress,
         sparkVersion: '1.2.3',
+        zinniaVersion: '2.3.4',
         startAt: new Date(),
         statusCode: 200,
         firstByteAt: new Date(),
@@ -421,6 +424,7 @@ describe('Routes', () => {
       await assertResponseStatus(res, 200)
       const body = await res.json()
       assert.strictEqual(body.sparkVersion, retrieval.sparkVersion)
+      assert.strictEqual(body.zinniaVersion, retrieval.zinniaVersion)
       assert.strictEqual(body.id, retrievalId)
       assert.strictEqual(body.cid, cid)
       assert.strictEqual(body.providerAddress, providerAddress)
