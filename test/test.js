@@ -103,7 +103,10 @@ describe('Routes', () => {
         body: JSON.stringify({ sparkVersion: 0 })
       })
       await assertResponseStatus(res, 400)
-      assert.strictEqual(await res.text(), 'Invalid .sparkVersion')
+      assert.strictEqual(
+        await res.text(),
+        'Invalid .sparkVersion - should be a string'
+      )
     })
   })
   describe('PATCH /retrievals/:id', () => {
@@ -264,7 +267,10 @@ describe('Routes', () => {
         }
       )
       await assertResponseStatus(res, 400)
-      assert.strictEqual(await res.text(), 'Invalid .success')
+      assert.strictEqual(
+        await res.text(),
+        'Invalid .success - should be a boolean'
+      )
     })
     it('validates column types', async () => {
       const createRequest = await fetch(
@@ -289,7 +295,10 @@ describe('Routes', () => {
         }
       )
       await assertResponseStatus(res, 400)
-      assert.strictEqual(await res.text(), 'Invalid .success')
+      assert.strictEqual(
+        await res.text(),
+        'Invalid .success - should be a boolean'
+      )
     })
     it('validates dates', async () => {
       const createRequest = await fetch(
@@ -314,7 +323,10 @@ describe('Routes', () => {
         }
       )
       await assertResponseStatus(res, 400)
-      assert.strictEqual(await res.text(), 'Invalid .startAt')
+      assert.strictEqual(
+        await res.text(),
+        'Invalid .startAt - should be a date'
+      )
     })
     it('accepts some null values', async () => {
       const createRequest = await fetch(
