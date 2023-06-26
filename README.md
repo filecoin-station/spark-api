@@ -9,6 +9,14 @@
 
 Start a new retrieval.
 
+Body:
+
+```typescript
+{
+  sparkVersion: String,
+  zinniaVersion: String
+}
+
 Response:
 
 ```typescript
@@ -29,9 +37,9 @@ Body:
 
 ```typescript
 {
+  walletAddress: String,
   success: Boolean,
   timeout: Boolean,
-  walletAddress: String,
   startAt: String,       // ISO 8601
   statusCode: Number,
   firstByteAt: String,   // ISO 8601
