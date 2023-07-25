@@ -33,6 +33,12 @@ Sentry.init({
 
 const client = new pg.Pool({ connectionString: DATABASE_URL })
 await client.connect()
+client.on('error', err => {
+  // Prevent crashing the process on idle client errors, the pool will recover
+  // itself. If all connections are lost, the process will still crash.
+  // https://github.com/brianc/node-postgres/issues/1324#issuecomment-308778405
+  console.error('An idle client has experienced an error', err.stack)
+})
 const handler = await createHandler({ client, logger: console })
 const server = http.createServer(handler)
 server.listen(PORT)
