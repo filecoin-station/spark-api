@@ -6,6 +6,7 @@ import Sentry from '@sentry/node'
 import fs from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { runCommitmentLoop } from '../lib/commitment.js'
 
 const {
   PORT = 8080,
@@ -44,3 +45,4 @@ const server = http.createServer(handler)
 server.listen(PORT)
 await once(server, 'listening')
 console.log(`http://localhost:${PORT}`)
+await runCommitmentLoop(client)
