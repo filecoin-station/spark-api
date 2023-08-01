@@ -44,7 +44,8 @@ Body:
   statusCode: Number,
   firstByteAt: String,   // ISO 8601
   endAt: String,         // ISO 8601
-  byteLength: Number
+  byteLength: Number,
+  attestation: String
 }
 ```
 

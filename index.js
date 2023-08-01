@@ -63,6 +63,7 @@ const setRetrievalResult = async (req, res, client, retrievalId) => {
   validate(result, 'firstByteAt', { type: 'date', required: false })
   validate(result, 'endAt', { type: 'date', required: false })
   validate(result, 'byteLength', { type: 'number', required: false })
+  validate(result, 'attestation', { type: 'string', required: false })
   try {
     await client.query(`
       INSERT INTO retrieval_results (
@@ -74,10 +75,11 @@ const setRetrievalResult = async (req, res, client, retrievalId) => {
         status_code,
         first_byte_at,
         end_at,
-        byte_length
+        byte_length,
+        attestation
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
       )
     `, [
       retrievalId,
@@ -88,7 +90,8 @@ const setRetrievalResult = async (req, res, client, retrievalId) => {
       result.statusCode,
       new Date(result.firstByteAt),
       new Date(result.endAt),
-      result.byteLength
+      result.byteLength,
+      result.attestation
     ])
   } catch (err) {
     if (err.constraint === 'retrieval_results_retrieval_id_fkey') {
@@ -118,6 +121,7 @@ const getRetrieval = async (req, res, client, retrievalId) => {
       rr.first_byte_at,
       rr.end_at,
       rr.byte_length,
+      rr.attestation,
       rt.cid,
       rt.provider_address,
       rt.protocol
@@ -144,7 +148,8 @@ const getRetrieval = async (req, res, client, retrievalId) => {
     statusCode: retrievalRow.status_code,
     firstByteAt: retrievalRow.first_byte_at,
     endAt: retrievalRow.end_at,
-    byteLength: retrievalRow.byte_length
+    byteLength: retrievalRow.byte_length,
+    attestation: retrievalRow.attestation
   })
 }
 
