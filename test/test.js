@@ -135,7 +135,8 @@ describe('Routes', () => {
         statusCode: 200,
         firstByteAt: new Date(),
         endAt: new Date(),
-        byteLength: 100
+        byteLength: 100,
+        attestation: 'json.sig'
       }
       const updateRequest = await fetch(
         `${spark}/retrievals/${retrievalId}`,
@@ -169,6 +170,7 @@ describe('Routes', () => {
         result.endAt.toJSON()
       )
       assert.strictEqual(retrievalResultRow.byte_length, result.byteLength)
+      assert.strictEqual(retrievalResultRow.attestation, result.attestation)
     })
     it('handles invalid JSON', async () => {
       const createRequest = await fetch(
@@ -346,7 +348,8 @@ describe('Routes', () => {
             statusCode: 200,
             firstByteAt: null,
             endAt: null,
-            byteLength: null
+            byteLength: null,
+            attestation: null
           })
         }
       )
@@ -439,6 +442,7 @@ describe('Routes', () => {
       assert.strictEqual(body.firstByteAt, null)
       assert.strictEqual(body.endAt, null)
       assert.strictEqual(body.byteLength, null)
+      assert.strictEqual(body.attestation, null)
     })
     it('gets a completed retrieval', async () => {
       const createRequest = await fetch(`${spark}/retrievals`, {
@@ -462,7 +466,8 @@ describe('Routes', () => {
         statusCode: 200,
         firstByteAt: new Date(),
         endAt: new Date(),
-        byteLength: 100
+        byteLength: 100,
+        attestation: 'json.sig'
       }
       const updateRequest = await fetch(
         `${spark}/retrievals/${retrievalId}`,
@@ -490,6 +495,7 @@ describe('Routes', () => {
       assert.strictEqual(body.firstByteAt, retrieval.firstByteAt.toJSON())
       assert.strictEqual(body.endAt, retrieval.endAt.toJSON())
       assert.strictEqual(body.byteLength, retrieval.byteLength)
+      assert.strictEqual(body.attestation, retrieval.attestation)
     })
   })
 })
