@@ -22,6 +22,8 @@ const createRetrieval = async (req, res, client) => {
   const meta = body.length > 0 ? JSON.parse(body) : {}
   validate(meta, 'sparkVersion', { type: 'string', required: false })
   validate(meta, 'zinniaVersion', { type: 'string', required: false })
+  assert(meta.sparkVersion, 400, 'OUTDATED CLIENT')
+
   // TODO: Consolidate to one query
   const { rows: [retrievalTemplate] } = await client.query(`
     SELECT id, cid, provider_address, protocol
