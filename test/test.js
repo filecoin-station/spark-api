@@ -6,6 +6,7 @@ import pg from 'pg'
 
 const { DATABASE_URL } = process.env
 const walletAddress = 'f1abc'
+const sparkVersion = '0.12.0' // This must be in sync with the minimum supported client version
 
 const assertResponseStatus = async (res, status) => {
   if (res.status !== status) {
@@ -52,7 +53,7 @@ describe('Routes', () => {
   })
   describe('POST /retrievals', () => {
     it('creates a retrieval', async () => {
-      const res = await fetch(`${spark}/retrievals`, { method: 'POST' })
+      const res = await fetch(`${spark}/retrievals`, { method: 'POST', body: JSON.stringify({ sparkVersion }) })
       await assertResponseStatus(res, 200)
       const body = await res.json()
       assert.strictEqual(typeof body.id, 'number')
@@ -62,7 +63,7 @@ describe('Routes', () => {
     })
     it('uses random retrieval templates', async () => {
       const makeRequest = async () => {
-        const res = await fetch(`${spark}/retrievals`, { method: 'POST' })
+        const res = await fetch(`${spark}/retrievals`, { method: 'POST', body: JSON.stringify({ sparkVersion }) })
         await assertResponseStatus(res, 200)
         const { cid } = await res.json()
         return cid
@@ -107,6 +108,12 @@ describe('Routes', () => {
         await res.text(),
         'Invalid .sparkVersion - should be a string'
       )
+    })
+    it('rejects outdated clients', async () => {
+      const res = await fetch(`${spark}/retrievals`, { method: 'POST' /* no versions */ })
+      await assertResponseStatus(res, 400)
+      const body = await res.text()
+      assert.strictEqual(body, 'OUTDATED CLIENT')
     })
   })
   describe('PATCH /retrievals/:id', () => {
@@ -173,11 +180,7 @@ describe('Routes', () => {
       assert.strictEqual(retrievalResultRow.attestation, result.attestation)
     })
     it('handles invalid JSON', async () => {
-      const createRequest = await fetch(
-        `${spark}/retrievals`,
-        { method: 'POST' }
-      )
-      const { id: retrievalId } = await createRequest.json()
+      const { id: retrievalId } = await givenRetrieval()
       const res = await fetch(
         `${spark}/retrievals/${retrievalId}`,
         {
@@ -230,11 +233,7 @@ describe('Routes', () => {
       assert.strictEqual(await res.text(), 'Retrieval Not Found')
     })
     it('handles request body too large', async () => {
-      const createRequest = await fetch(
-        `${spark}/retrievals`,
-        { method: 'POST' }
-      )
-      const { id: retrievalId } = await createRequest.json()
+      const { id: retrievalId } = await givenRetrieval()
       const res = await fetch(
         `${spark}/retrievals/${retrievalId}`,
         {
@@ -249,7 +248,7 @@ describe('Routes', () => {
     it('validates missing columns', async () => {
       const createRequest = await fetch(
         `${spark}/retrievals`,
-        { method: 'POST' }
+        { method: 'POST', body: JSON.stringify({ sparkVersion }) }
       )
       const { id: retrievalId } = await createRequest.json()
       const res = await fetch(
@@ -275,11 +274,7 @@ describe('Routes', () => {
       )
     })
     it('validates column types', async () => {
-      const createRequest = await fetch(
-        `${spark}/retrievals`,
-        { method: 'POST' }
-      )
-      const { id: retrievalId } = await createRequest.json()
+      const { id: retrievalId } = await givenRetrieval()
       const res = await fetch(
         `${spark}/retrievals/${retrievalId}`,
         {
@@ -303,11 +298,7 @@ describe('Routes', () => {
       )
     })
     it('validates dates', async () => {
-      const createRequest = await fetch(
-        `${spark}/retrievals`,
-        { method: 'POST' }
-      )
-      const { id: retrievalId } = await createRequest.json()
+      const { id: retrievalId } = await givenRetrieval()
       const res = await fetch(
         `${spark}/retrievals/${retrievalId}`,
         {
@@ -331,11 +322,7 @@ describe('Routes', () => {
       )
     })
     it('accepts some null values', async () => {
-      const createRequest = await fetch(
-        `${spark}/retrievals`,
-        { method: 'POST' }
-      )
-      const { id: retrievalId } = await createRequest.json()
+      const { id: retrievalId } = await givenRetrieval()
       const res = await fetch(
         `${spark}/retrievals/${retrievalId}`,
         {
@@ -356,11 +343,7 @@ describe('Routes', () => {
       await assertResponseStatus(res, 200)
     })
     it('ignores duplicate submissions', async () => {
-      const createRequest = await fetch(
-        `${spark}/retrievals`,
-        { method: 'POST' }
-      )
-      const { id: retrievalId } = await createRequest.json()
+      const { id: retrievalId } = await givenRetrieval()
       {
         const updateRequest = await fetch(
           `${spark}/retrievals/${retrievalId}`,
@@ -498,4 +481,16 @@ describe('Routes', () => {
       assert.strictEqual(body.attestation, retrieval.attestation)
     })
   })
+
+  async function givenRetrieval (props = {}) {
+    const createRequest = await fetch(
+    `${spark}/retrievals`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ sparkVersion, ...props })
+    }
+    )
+    const retrieval = await createRequest.json()
+    return retrieval
+  }
 })
