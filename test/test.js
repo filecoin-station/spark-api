@@ -484,11 +484,11 @@ describe('Routes', () => {
 
   async function givenRetrieval (props = {}) {
     const createRequest = await fetch(
-    `${spark}/retrievals`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ sparkVersion, ...props })
-    }
+      `${spark}/retrievals`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ sparkVersion, ...props })
+      }
     )
     const retrieval = await createRequest.json()
     return retrieval
