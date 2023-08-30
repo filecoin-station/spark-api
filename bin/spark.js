@@ -6,7 +6,7 @@ import Sentry from '@sentry/node'
 import fs from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { runCommitmentLoop } from '../lib/commitment.js'
+import { runPublishLoop } from '../lib/publish.js'
 
 const {
   PORT = 8080,
