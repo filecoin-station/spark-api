@@ -31,6 +31,10 @@ describe('Routes', () => {
       logger: {
         info () {},
         error (...args) { console.error(...args) }
+      },
+      async getCurrentRound () {
+        // TBD
+        return 42
       }
     })
     server = http.createServer(handler)
