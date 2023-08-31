@@ -31,6 +31,12 @@ describe('Routes', () => {
       logger: {
         info () {},
         error (...args) { console.error(...args) }
+      },
+      async getCurrentRound () {
+        // TBD
+        // We return a string because 64bit integers JavaScript `number` cannot
+        // represent all 64bit values
+        return '42'
       }
     })
     server = http.createServer(handler)
