@@ -39,9 +39,10 @@ describe('Routes', () => {
     spark = `http://127.0.0.1:${server.address().port}`
   })
 
-  after(() => {
+  after(async () => {
+    server.closeAllConnections()
     server.close()
-    client.end()
+    await client.end()
   })
 
   describe('GET /', () => {
