@@ -48,7 +48,7 @@ const createRetrieval = async (req, res, client, getCurrentRound) => {
     meta.sparkVersion,
     meta.zinniaVersion,
     round,
-    req.connection.remoteAddress
+    getClientAddress(req)
   ])
   json(res, {
     id: retrieval.id,
@@ -103,7 +103,7 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
       result.byteLength,
       result.attestation,
       round,
-      req.connection.remoteAddress
+      getClientAddress(req)
     ])
   } catch (err) {
     if (err.constraint === 'retrieval_results_retrieval_id_fkey') {
@@ -178,6 +178,8 @@ const errorHandler = (res, err, logger) => {
     res.end('Internal Server Error')
   }
 }
+
+const getClientAddress = (req) => req.headers['fly-client-ip'] ?? req.connection.remoteAddress
 
 export const createHandler = async ({ client, logger, getCurrentRound }) => {
   await migrate(client)

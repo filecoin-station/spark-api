@@ -40,7 +40,9 @@ describe('Routes', () => {
       }
     })
     server = http.createServer(handler)
-    server.listen()
+    // We must listen on IPv4 address only, otherwise we will be receiving IPv6 addresses
+    // E.g. `::ffff:127.0.0.1`
+    server.listen(0, '127.0.0.1')
     await once(server, 'listening')
     spark = `http://127.0.0.1:${server.address().port}`
   })
@@ -127,6 +129,24 @@ describe('Routes', () => {
       await assertResponseStatus(res, 400)
       const body = await res.text()
       assert.strictEqual(body, 'OUTDATED CLIENT')
+    })
+    it('handles Fly-Client-IP header', async () => {
+      // See https://fly.io/docs/reference/runtime-environment/#x-forwarded-for
+      // > Client IP Address: The IP address Fly accepted a connection from.
+      // > This will be the client making the initial request and as such,
+      // > will also appear at the start of the X-Forwarded-For addresses.
+      const res = await fetch(`${spark}/retrievals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Fly-Client-IP': '10.20.30.40' },
+        body: JSON.stringify({ sparkVersion })
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+      const { rows: [retrievalRow] } = await client.query(
+        'SELECT * FROM retrievals WHERE id = $1',
+        [body.id]
+      )
+      assert.strictEqual(retrievalRow.created_from_address, '10.20.30.40')
     })
   })
   describe('PATCH /retrievals/:id', () => {
