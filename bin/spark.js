@@ -31,6 +31,11 @@ Sentry.init({
   tracesSampleRate: 0.1
 })
 
+const getCurrentRound = async () => {
+  // TBD
+  return 0
+}
+
 const client = new pg.Pool({ connectionString: DATABASE_URL })
 await client.connect()
 client.on('error', err => {
@@ -39,7 +44,7 @@ client.on('error', err => {
   // https://github.com/brianc/node-postgres/issues/1324#issuecomment-308778405
   console.error('An idle client has experienced an error', err.stack)
 })
-const handler = await createHandler({ client, logger: console })
+const handler = await createHandler({ client, logger: console, getCurrentRound })
 const server = http.createServer(handler)
 server.listen(PORT)
 await once(server, 'listening')
