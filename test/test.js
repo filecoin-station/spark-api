@@ -60,6 +60,13 @@ describe('Routes', () => {
       assert.strictEqual(typeof body.cid, 'string')
       assert.strictEqual(typeof body.providerAddress, 'string')
       assert.strictEqual(typeof body.protocol, 'string')
+
+      const { rows: [retrievalRow] } = await client.query(
+        'SELECT * FROM retrievals WHERE id = $1',
+        [body.id]
+      )
+      assert.strictEqual(retrievalRow.created_at_round, '42')
+      assert.strictEqual(retrievalRow.created_from_address, '127.0.0.1')
     })
     it('uses random retrieval templates', async () => {
       const makeRequest = async () => {
@@ -178,6 +185,8 @@ describe('Routes', () => {
       )
       assert.strictEqual(retrievalResultRow.byte_length, result.byteLength)
       assert.strictEqual(retrievalResultRow.attestation, result.attestation)
+      assert.strictEqual(retrievalResultRow.completed_at_round, '42')
+      assert.strictEqual(retrievalResultRow.completed_from_address, '127.0.0.1')
     })
     it('handles invalid JSON', async () => {
       const { id: retrievalId } = await givenRetrieval()

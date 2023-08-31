@@ -36,14 +36,18 @@ const createRetrieval = async (req, res, client) => {
     INSERT INTO retrievals (
       retrieval_template_id,
       spark_version,
-      zinnia_version
+      zinnia_version,
+      created_at_round,
+      created_from_address
     )
-    VALUES ($1, $2, $3)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING id
   `, [
     retrievalTemplate.id,
     meta.sparkVersion,
-    meta.zinniaVersion
+    meta.zinniaVersion,
+    round,
+    req.connection.remoteAddress
   ])
   json(res, {
     id: retrieval.id,
@@ -78,10 +82,12 @@ const setRetrievalResult = async (req, res, client, retrievalId) => {
         first_byte_at,
         end_at,
         byte_length,
-        attestation
+        attestation,
+        completed_at_round,
+        completed_from_address
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
       )
     `, [
       retrievalId,
@@ -93,7 +99,9 @@ const setRetrievalResult = async (req, res, client, retrievalId) => {
       new Date(result.firstByteAt),
       new Date(result.endAt),
       result.byteLength,
-      result.attestation
+      result.attestation,
+      round,
+      req.connection.remoteAddress
     ])
   } catch (err) {
     if (err.constraint === 'retrieval_results_retrieval_id_fkey') {
