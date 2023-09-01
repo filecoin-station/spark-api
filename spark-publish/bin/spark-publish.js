@@ -11,10 +11,10 @@ import { newDelegatedEthAddress } from '@glif/filecoin-address'
 
 const {
   DATABASE_URL,
-  SENTRY_ENVIRONMMENT = 'development',
   IE_CONTRACT_ADDRESS = '0x816830a1e536784ecb37cf97dfd7a98a82c86643',
-  WALLET_SEED,
   RPC_URL = 'https://api.calibration.node.glif.io/rpc/v0',
+  SENTRY_ENVIRONMMENT = 'development',
+  WALLET_SEED,
   WEB3_STORAGE_API_TOKEN
 } = process.env
 
