@@ -2,7 +2,7 @@
   "type": "module",
   "scripts": {
     "start": "node bin/spark-publish.js",
-    "test": "standard"
+    "test": "standard && mocha"
   },
   "dependencies": {
     "@glif/filecoin-address": "^2.0.43",
@@ -13,6 +13,12 @@
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.4.8",
+    "mocha": "^10.2.0",
     "standard": "^17.1.0"
+  },
+  "standard": {
+    "env": [
+      "mocha"
+    ]
   }
 }

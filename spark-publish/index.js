@@ -2,7 +2,7 @@
 
 import timers from 'node:timers/promises'
 
-const publish = async ({ client, web3Storage, ieContract }) => {
+export const publish = async ({ client, web3Storage, ieContract }) => {
   // Fetch measurements
   const { rows: measurements } = await client.query(`
     SELECT
