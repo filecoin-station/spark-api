@@ -1,0 +1,18 @@
+{
+  "type": "module",
+  "scripts": {
+    "start": "node bin/spark-publish.js",
+    "test": "standard"
+  },
+  "dependencies": {
+    "@glif/filecoin-address": "^2.0.43",
+    "@sentry/node": "^7.66.0",
+    "ethers": "^5.7.2",
+    "pg": "^8.11.3",
+    "web3.storage": "^4.5.5"
+  },
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.4.8",
+    "standard": "^17.1.0"
+  }
+}
