@@ -48,9 +48,14 @@ const publish = async ({ client, web3Storage, ieContract }) => {
   console.log('Measurements added to round', roundIndex.toString())
 
   // Mark measurements as shared
-  for (const m of measurements) {
-    m.cid = cid
-  }
+  await client.query(`
+    UPDATE retrievals
+    SET published_as = $1
+    WHERE id = ANY($2::int[])
+  `, [
+    cid,
+    measurements.map(m => m.id)
+  ])
 
   console.log('Done!')
 }
