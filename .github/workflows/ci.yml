@@ -28,6 +28,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 20
+      - run: npm ci
       - run: cd ${{ matrix.project }} && npm ci
       - run: cd ${{ matrix.project }} && npm test
   deploy:
