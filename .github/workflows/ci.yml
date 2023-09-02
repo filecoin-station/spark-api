@@ -53,16 +53,23 @@ jobs:
       - run: npm run migrate
       - run: cd spark-publish && npm ci
       - run: cd spark-publish && npm test
-  deploy:
+  deploy-api:
     if: github.ref == 'refs/heads/main'
     needs: [build-api, build-publish]
-    strategy:
-      matrix:
-        project: ['.', 'spark-publish']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: cd ${{ matrix.project }} && flyctl deploy --remote-only
+      - run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  deploy-publish:
+    if: github.ref == 'refs/heads/main'
+    needs: [build-api, build-publish]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: cd spark-publish && flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PUBLISH }}
