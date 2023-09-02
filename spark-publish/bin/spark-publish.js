@@ -14,7 +14,8 @@ const {
   RPC_URL = 'https://api.calibration.node.glif.io/rpc/v0',
   SENTRY_ENVIRONMMENT = 'development',
   WALLET_SEED,
-  WEB3_STORAGE_API_TOKEN
+  WEB3_STORAGE_API_TOKEN,
+  MIN_ROUND_LENGTH_SECONDS = 30
 } = process.env
 
 Sentry.init({
@@ -50,5 +51,6 @@ console.log(
 await startPublishLoop({
   client,
   web3Storage,
-  ieContract
+  ieContract,
+  minRoundLength: MIN_ROUND_LENGTH_SECONDS * 1000
 })

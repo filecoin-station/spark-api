@@ -60,8 +60,12 @@ export const publish = async ({ client, web3Storage, ieContract }) => {
   console.log('Done!')
 }
 
-const minRoundLength = 30_000
-export const startPublishLoop = async ({ client, web3Storage, ieContract }) => {
+export const startPublishLoop = async ({
+  client,
+  web3Storage,
+  ieContract,
+  minRoundLength = 30_000
+}) => {
   while (true) {
     const lastStart = new Date()
     await publish({ client, web3Storage, ieContract })
