@@ -77,7 +77,7 @@ describe('integration', () => {
     const cid = 'bafybeicmyzlxgqeg5lgjgnzducj37s7bxhxk6vywqtuym2vhqzxjtymqvm'
 
     // We're not sure if we're going to stick with web3.storage, or switch to
-    // helia or another tool. Thereore, we're going to use a mock here.
+    // helia or another tool. Therefore, we're going to use a mock here.
     const web3Storage = {
       async put (files) {
         assert.strictEqual(files.length, 1)
