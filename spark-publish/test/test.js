@@ -4,15 +4,14 @@ import { CID } from 'multiformats/cid'
 
 describe('publish', () => {
   it('publishes', async () => {
+    const cid = 'bafybeicmyzlxgqeg5lgjgnzducj37s7bxhxk6vywqtuym2vhqzxjtymqvm'
+
     const client = {
       async query (_, params) {
         assert.strictEqual(params[0], 1)
 
         client.query = (_, params) => {
-          assert.strictEqual(
-            params[0].toString(),
-            'bafybeicmyzlxgqeg5lgjgnzducj37s7bxhxk6vywqtuym2vhqzxjtymqvm'
-          )
+          assert.strictEqual(params[0].toString(), cid)
           assert.deepStrictEqual(params[1], [])
         }
 
@@ -23,18 +22,13 @@ describe('publish', () => {
     const web3Storage = {
       async put (files) {
         assert.strictEqual(files.length, 1)
-        return CID.parse(
-          'bafybeicmyzlxgqeg5lgjgnzducj37s7bxhxk6vywqtuym2vhqzxjtymqvm'
-        )
+        return CID.parse(cid)
       }
     }
 
     const ieContract = {
-      async addMeasurements (cid) {
-        assert.strictEqual(
-          cid,
-          'bafybeicmyzlxgqeg5lgjgnzducj37s7bxhxk6vywqtuym2vhqzxjtymqvm'
-        )
+      async addMeasurements (_cid) {
+        assert.strictEqual(_cid, cid)
         return {
           async wait () {
             return {
