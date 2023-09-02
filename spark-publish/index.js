@@ -61,7 +61,7 @@ export const publish = async ({
     SET published_as = $1
     WHERE id = ANY($2::int[])
   `, [
-    cid,
+    cid.toString(),
     measurements.map(m => m.id)
   ])
 
