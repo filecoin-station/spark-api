@@ -2,7 +2,12 @@
 
 import timers from 'node:timers/promises'
 
-export const publish = async ({ client, web3Storage, ieContract }) => {
+export const publish = async ({
+  client,
+  web3Storage,
+  ieContract,
+  maxMeasurements = 1000
+}) => {
   // Fetch measurements
   const { rows: measurements } = await client.query(`
     SELECT
@@ -26,8 +31,10 @@ export const publish = async ({ client, web3Storage, ieContract }) => {
     JOIN retrieval_templates rt ON r.retrieval_template_id = rt.id
     LEFT JOIN retrieval_results rr ON r.id = rr.retrieval_id
     WHERE r.published_as IS NULL
-    LIMIT 1000
-  `)
+    LIMIT $1
+  `, [
+    maxMeasurements
+  ])
   console.log(`Publishing ${measurements.length} measurements`)
 
   // Share measurements
@@ -64,11 +71,17 @@ export const startPublishLoop = async ({
   client,
   web3Storage,
   ieContract,
-  minRoundLength = 30_000
+  minRoundLength = 30_000,
+  maxMeasurementsPerRound = 1000
 }) => {
   while (true) {
     const lastStart = new Date()
-    await publish({ client, web3Storage, ieContract })
+    await publish({
+      client,
+      web3Storage,
+      ieContract,
+      maxMeasurements: maxMeasurementsPerRound
+    })
     const dt = new Date() - lastStart
     if (dt < minRoundLength) await timers.setTimeout(minRoundLength - dt)
   }

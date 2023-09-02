@@ -15,7 +15,8 @@ const {
   SENTRY_ENVIRONMMENT = 'development',
   WALLET_SEED,
   WEB3_STORAGE_API_TOKEN,
-  MIN_ROUND_LENGTH_SECONDS = 30
+  MIN_ROUND_LENGTH_SECONDS = 30,
+  MAX_MEASUREMENTS_PER_ROUND = 1000
 } = process.env
 
 Sentry.init({
@@ -52,5 +53,6 @@ await startPublishLoop({
   client,
   web3Storage,
   ieContract,
-  minRoundLength: MIN_ROUND_LENGTH_SECONDS * 1000
+  minRoundLength: MIN_ROUND_LENGTH_SECONDS * 1000,
+  maxMeasurementsPerRound: MAX_MEASUREMENTS_PER_ROUND
 })
