@@ -50,6 +50,7 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: node bin/migrate.js
       - run: cd spark-publish && npm ci
       - run: cd spark-publish && npm test
   deploy:

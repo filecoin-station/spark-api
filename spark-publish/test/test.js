@@ -2,7 +2,6 @@ import { publish } from '../index.js'
 import assert from 'node:assert'
 import { CID } from 'multiformats/cid'
 import pg from 'pg'
-import { migrate } from '../../lib/migrate.js'
 
 const { DATABASE_URL } = process.env
 
@@ -68,7 +67,6 @@ describe('integration', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
-    await migrate(client)
   })
 
   after(async () => {
