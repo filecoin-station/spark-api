@@ -6,7 +6,8 @@ export const publish = async ({
   client,
   web3Storage,
   ieContract,
-  maxMeasurements = 1000
+  maxMeasurements = 1000,
+  logger = console
 }) => {
   // Fetch measurements
   const { rows: measurements } = await client.query(`
@@ -35,7 +36,7 @@ export const publish = async ({
   `, [
     maxMeasurements
   ])
-  console.log(`Publishing ${measurements.length} measurements`)
+  logger.log(`Publishing ${measurements.length} measurements`)
 
   // Share measurements
   const file = new File(
@@ -44,15 +45,15 @@ export const publish = async ({
     { type: 'application/json' }
   )
   const cid = await web3Storage.put([file])
-  console.log(`Measurements packaged in ${cid}`)
+  logger.log(`Measurements packaged in ${cid}`)
 
   // Call contract with CID
-  console.log('ie.addMeasurements()...')
+  logger.log('ie.addMeasurements()...')
   const tx = await ieContract.addMeasurements(cid.toString())
   const receipt = await tx.wait()
   const event = receipt.events.find(e => e.event === 'MeasurementsAdded')
   const { roundIndex } = event.args
-  console.log('Measurements added to round', roundIndex.toString())
+  logger.log('Measurements added to round', roundIndex.toString())
 
   // Mark measurements as shared
   await client.query(`
@@ -64,7 +65,7 @@ export const publish = async ({
     measurements.map(m => m.id)
   ])
 
-  console.log('Done!')
+  logger.log('Done!')
 }
 
 export const startPublishLoop = async ({

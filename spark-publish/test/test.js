@@ -46,11 +46,14 @@ describe('publish', () => {
       }
     }
 
+    const logger = { log () {} }
+
     await publish({
       client,
       web3Storage,
       ieContract,
-      maxMeasurements: 1
+      maxMeasurements: 1,
+      logger
     })
   })
 })
