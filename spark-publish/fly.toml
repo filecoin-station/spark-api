@@ -1,0 +1,6 @@
+app = "spark-publish"
+primary_region = "cdg"
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
