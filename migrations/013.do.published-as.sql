@@ -1,1 +1,1 @@
-ALTER TABLE retrievals ADD COLUMN published_as VARCHAR(64);
+ALTER TABLE retrievals ADD COLUMN published_as TEXT;
