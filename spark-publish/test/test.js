@@ -128,6 +128,8 @@ describe('integration', () => {
       logger
     })
 
+    // TODO: Check data has been committed to the contract
+
     assert.strictEqual(web3StoragePutFiles.length, 1)
     assert.strictEqual(web3StoragePutFiles[0].length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
