@@ -9,29 +9,26 @@ describe('unit', () => {
   it('publishes', async () => {
     const cid = 'bafybeicmyzlxgqeg5lgjgnzducj37s7bxhxk6vywqtuym2vhqzxjtymqvm'
 
+    const clientQueryParams = []
     const client = {
       async query (_, params) {
-        assert.strictEqual(params[0], 1)
-
-        client.query = (_, params) => {
-          assert.strictEqual(params[0], cid)
-          assert.deepStrictEqual(params[1], [])
-        }
-
+        clientQueryParams.push(params)
         return { rows: [] }
       }
     }
 
+    const web3StoragePutFiles = []
     const web3Storage = {
       async put (files) {
-        assert.strictEqual(files.length, 1)
+        web3StoragePutFiles.push(files)
         return CID.parse(cid)
       }
     }
 
+    const ieContractMeasurementCIDs = []
     const ieContract = {
       async addMeasurements (_cid) {
-        assert.strictEqual(_cid, cid)
+        ieContractMeasurementCIDs.push(_cid)
         return {
           async wait () {
             return {
@@ -58,6 +55,14 @@ describe('unit', () => {
       maxMeasurements: 1,
       logger
     })
+
+    assert.deepStrictEqual(clientQueryParams, [
+      [1],
+      [cid, []]
+    ])
+    assert.strictEqual(web3StoragePutFiles.length, 1)
+    assert.strictEqual(web3StoragePutFiles[0].length, 1)
+    assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
   })
 })
 
@@ -78,17 +83,19 @@ describe('integration', () => {
 
     // We're not sure if we're going to stick with web3.storage, or switch to
     // helia or another tool. Therefore, we're going to use a mock here.
+    const web3StoragePutFiles = []
     const web3Storage = {
       async put (files) {
-        assert.strictEqual(files.length, 1)
+        web3StoragePutFiles.push(files)
         return CID.parse(cid)
       }
     }
 
     // TODO: Figure out how to use anvil here
+    const ieContractMeasurementCIDs = []
     const ieContract = {
       async addMeasurements (_cid) {
-        assert.strictEqual(_cid, cid)
+        ieContractMeasurementCIDs.push(_cid)
         return {
           async wait () {
             return {
@@ -120,5 +127,9 @@ describe('integration', () => {
       maxMeasurements: 1,
       logger
     })
+
+    assert.strictEqual(web3StoragePutFiles.length, 1)
+    assert.strictEqual(web3StoragePutFiles[0].length, 1)
+    assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
   })
 })
