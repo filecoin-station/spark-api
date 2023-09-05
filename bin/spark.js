@@ -7,6 +7,7 @@ import fs from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRoundGetter } from '../lib/round-tracker.js'
+import assert from 'node:assert'
 
 const {
   PORT = 8080,
@@ -42,6 +43,11 @@ client.on('error', err => {
 })
 
 const getCurrentRound = await createRoundGetter(client)
+
+const round = await getCurrentRound()
+assert(!!round, 'cannot obtain the current Spark round number')
+console.log('SPARK round number at service startup:', round)
+
 const handler = await createHandler({ client, logger: console, getCurrentRound })
 const server = http.createServer(handler)
 server.listen(PORT)
