@@ -9,3 +9,8 @@ CREATE TABLE meridian_rounds (
   -- The last SPARK round governed by this smart contract
   last_spark_round BIGINT NOT NULL
 );
+
+CREATE TABLE spark_rounds (
+  id BIGINT NOT NULL PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL
+);

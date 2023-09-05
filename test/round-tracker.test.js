@@ -20,23 +20,30 @@ describe('Round Tracker', () => {
 
   beforeEach(async () => {
     await pgClient.query('DELETE FROM meridian_rounds')
+    await pgClient.query('DELETE FROM spark_rounds')
   })
 
   describe('mapCurrentMeridianRoundToSparkRound', () => {
     it('handles meridian rounds from the same contract', async () => {
-      let sparkRound = await mapCurrentMeridianRoundToSparkRound({
+      let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
         meridianRound: 120n,
         pgClient
       })
-      assert.strictEqual(sparkRound, 1n)
+      assert.strictEqual(sparkRoundNumber, 1n)
+      let sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
+      assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
+      assertApproximately(sparkRounds[0].created_at, new Date(), 30_000)
 
-      sparkRound = await mapCurrentMeridianRoundToSparkRound({
+      sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
         meridianRound: 121n,
         pgClient
       })
-      assert.strictEqual(sparkRound, 2n)
+      assert.strictEqual(sparkRoundNumber, 2n)
+      sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
+      assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1', '2'])
+      assertApproximately(sparkRounds[1].created_at, new Date(), 30_000)
     })
 
     it('handles deployment of a new smart contract', async () => {
@@ -65,5 +72,33 @@ describe('Round Tracker', () => {
       })
       assert.strictEqual(sparkRound, 3n)
     })
+
+    it('handles duplicate RoundStarted event', async () => {
+      const now = new Date()
+      let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+        meridianContractAddress: '0x1a',
+        meridianRound: 120n,
+        pgClient
+      })
+      assert.strictEqual(sparkRoundNumber, 1n)
+      let sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
+      assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
+      assertApproximately(sparkRounds[0].created_at, now, 30_000)
+
+      sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+        meridianContractAddress: '0x1a',
+        meridianRound: 120n,
+        pgClient
+      })
+      assert.strictEqual(sparkRoundNumber, 1n)
+      sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
+      assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
+      assertApproximately(sparkRounds[0].created_at, now, 30_000)
+    })
   })
 })
+
+function assertApproximately (actual, expected, delta) {
+  assert(Math.abs(actual - expected) < delta,
+    `Expected ${actual} to be approximately ${expected} (+/- ${delta})`)
+}
