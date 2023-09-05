@@ -27,7 +27,7 @@ describe('Round Tracker', () => {
     it('handles meridian rounds from the same contract', async () => {
       let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
-        meridianRound: 120n,
+        meridianRoundIndex: 120n,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
@@ -37,7 +37,7 @@ describe('Round Tracker', () => {
 
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
-        meridianRound: 121n,
+        meridianRoundIndex: 121n,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 2n)
@@ -48,39 +48,39 @@ describe('Round Tracker', () => {
 
     it('handles deployment of a new smart contract', async () => {
       // First contract version `0x1a`
-      let sparkRound = await mapCurrentMeridianRoundToSparkRound({
+      let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
-        meridianRound: 120n,
+        meridianRoundIndex: 120n,
         pgClient
       })
-      assert.strictEqual(sparkRound, 1n)
+      assert.strictEqual(sparkRoundNumber, 1n)
 
       // New contract version `0x1b`
-      sparkRound = await mapCurrentMeridianRoundToSparkRound({
+      sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1b',
-        meridianRound: 10n,
+        meridianRoundIndex: 10n,
         pgClient
       })
-      assert.strictEqual(sparkRound, 2n)
+      assert.strictEqual(sparkRoundNumber, 2n)
 
       // Double check that the next meridian round will map correctly
       // New contract version `0x1b`
-      sparkRound = await mapCurrentMeridianRoundToSparkRound({
+      sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1b',
-        meridianRound: 11n,
+        meridianRoundIndex: 11n,
         pgClient
       })
-      assert.strictEqual(sparkRound, 3n)
+      assert.strictEqual(sparkRoundNumber, 3n)
     })
 
     it('handles duplicate RoundStarted event', async () => {
       const now = new Date()
-      const meridianRound = 1n
+      const meridianRoundIndex = 1n
       const meridianContractAddress = '0x1a'
 
       let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress,
-        meridianRound,
+        meridianRoundIndex,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
@@ -90,7 +90,7 @@ describe('Round Tracker', () => {
 
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress,
-        meridianRound,
+        meridianRoundIndex,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
