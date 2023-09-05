@@ -7,7 +7,7 @@ CREATE TABLE meridian_contract_versions (
   -- The offset is usually negative for the first row and positive for other rows
   spark_round_offset BIGINT NOT NULL,
   -- The last SPARK round governed by this smart contract
-  last_spark_round BIGINT NOT NULL
+  last_spark_round_number BIGINT NOT NULL
 );
 
 CREATE TABLE spark_rounds (
