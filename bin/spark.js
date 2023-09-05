@@ -44,7 +44,7 @@ client.on('error', err => {
 
 const getCurrentRound = await createRoundGetter(client)
 
-const round = await getCurrentRound();
+const round = await getCurrentRound()
 assert(!!round, 'cannot obtain the current Spark round number')
 console.log('SPARK round number at service startup:', round)
 
