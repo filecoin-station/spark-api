@@ -1,4 +1,4 @@
-CREATE TABLE meridian_rounds (
+CREATE TABLE meridian_contract_versions (
   -- 0x of f4 address of the MERidian smart contract emitting "round started" events
   -- We are using TEXT instead of BYTEA for simplicity
   contract_address TEXT NOT NULL PRIMARY KEY,
@@ -11,6 +11,7 @@ CREATE TABLE meridian_rounds (
 );
 
 CREATE TABLE spark_rounds (
+  -- SPARK round number
   id BIGINT NOT NULL PRIMARY KEY,
   created_at TIMESTAMPTZ NOT NULL
 );

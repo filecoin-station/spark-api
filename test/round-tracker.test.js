@@ -19,7 +19,7 @@ describe('Round Tracker', () => {
   })
 
   beforeEach(async () => {
-    await pgClient.query('DELETE FROM meridian_rounds')
+    await pgClient.query('DELETE FROM meridian_contract_versions')
     await pgClient.query('DELETE FROM spark_rounds')
   })
 
