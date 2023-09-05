@@ -75,9 +75,12 @@ describe('Round Tracker', () => {
 
     it('handles duplicate RoundStarted event', async () => {
       const now = new Date()
+      const meridianRound = 1n
+      const meridianContractAddress = '0x1a'
+
       let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
-        meridianContractAddress: '0x1a',
-        meridianRound: 120n,
+        meridianContractAddress,
+        meridianRound,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
@@ -86,8 +89,8 @@ describe('Round Tracker', () => {
       assertApproximately(sparkRounds[0].created_at, now, 30_000)
 
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
-        meridianContractAddress: '0x1a',
-        meridianRound: 120n,
+        meridianContractAddress,
+        meridianRound,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
