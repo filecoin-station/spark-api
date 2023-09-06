@@ -1,7 +1,6 @@
-import fs from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
 import pg from 'pg'
 import { startPublishLoop } from '../index.js'
+import { IE_CONTRACT_ABI, IE_CONTRACT_ADDRESS, RPC_URL } from '../ie-contract-config.js'
 import Sentry from '@sentry/node'
 import assert from 'node:assert'
 import { Web3Storage } from 'web3.storage'
@@ -10,8 +9,6 @@ import { newDelegatedEthAddress } from '@glif/filecoin-address'
 
 const {
   DATABASE_URL,
-  IE_CONTRACT_ADDRESS = '0x816830a1e536784ecb37cf97dfd7a98a82c86643',
-  RPC_URL = 'https://api.calibration.node.glif.io/rpc/v0',
   SENTRY_ENVIRONMMENT = 'development',
   WALLET_SEED,
   WEB3_STORAGE_API_TOKEN,
@@ -34,12 +31,7 @@ const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
 const signer = ethers.Wallet.fromMnemonic(WALLET_SEED).connect(provider)
 const ieContract = new ethers.Contract(
   IE_CONTRACT_ADDRESS,
-  JSON.parse(
-    await fs.readFile(
-      fileURLToPath(new URL('../abi.json', import.meta.url)),
-      'utf8'
-    )
-  ),
+  IE_CONTRACT_ABI,
   provider
 ).connect(signer)
 
