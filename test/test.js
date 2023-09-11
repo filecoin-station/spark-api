@@ -54,8 +54,8 @@ describe('Routes', () => {
   describe('GET /', () => {
     it('responds', async () => {
       const res = await fetch(`${spark}/`)
-      await assertResponseStatus(res, 200)
-      assert.strictEqual(await res.text(), 'Hello World!')
+      await assertResponseStatus(res, 404)
+      assert.strictEqual(await res.text(), 'Not Found')
     })
   })
   describe('POST /retrievals', () => {

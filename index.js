@@ -13,7 +13,8 @@ const handler = async (req, res, client, getCurrentRound) => {
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
     await getRetrieval(req, res, client, Number(segs[1]))
   } else {
-    res.end('Hello World!')
+    res.statusCode = 404
+    res.end('Not Found')
   }
 }
 
