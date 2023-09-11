@@ -60,18 +60,43 @@ OK
 
 ## Development
 
-1. Set up [PostgreSQL](https://www.postgresql.org/) with default settings:
-  - Port: 5432
-  - User: _your system user name_
-  - Password: _blank_
-  - Database: _same as user name_
-  
-   Alternatively, set the environment variable `$DATABASE_URL` with
-   `postgres://${USER}:${PASS}@${HOST}:${POST}/${DATABASE}`. 
-   
-   The Postgres user and database need to already exist, and the user 
-   needs full management permissions for the database.
-1. `npm start`
+### Database
+
+Set up [PostgreSQL](https://www.postgresql.org/) with default settings:
+ - Port: 5432
+ - User: _your system user name_
+ - Password: _blank_
+ - Database: _same as user name_
+
+Alternatively, set the environment variable `$DATABASE_URL` with `postgres://${USER}:${PASS}@${HOST}:${POST}/${DATABASE}`.
+
+The Postgres user and database need to already exist, and the user
+needs full management permissions for the database.
+
+You can also the following command to set up the PostgreSQL server via Docker:
+
+```bash
+docker run -d --name spark-db \
+  -e POSTGRES_HOST_AUTH_METHOD=trust \
+  -e POSTGRES_USER=$USER \
+  -e POSTGRES_DB=$USER \
+  -p 5432:5432 \
+  postgres
+```
+
+### `spark-api`
+
+Start the API service:
+
+```bash
+npm start
+```
+
+Run tests and linters:
+
+```bash
+npm test
+```
 
 ## Deployment
 
