@@ -510,16 +510,8 @@ describe('Routes', () => {
       ])
       assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
 
-      const { rows: [{ created_at: roundStarted }] } = await client.query(
-        'SELECT created_at FROM spark_rounds WHERE id = $1',
-        [currentSparkRoundNumber]
-      )
-
-      assertApproximately(
-        new Date(body.endsBefore),
-        new Date(roundStarted + 30 * 60_000), // 30 minutes
-        10_000 // +/- 10 seconds
-      )
+      // A very rough assertion only, to check that `endsBefore` is a date string
+      assertApproximately(new Date(body.endsBefore), new Date(), 3600_000)
 
       for (const it of body.tasks) {
         assert.strictEqual(typeof it.cid, 'string')

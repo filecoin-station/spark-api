@@ -5,7 +5,7 @@ import assert from 'http-assert'
 import { validate } from './lib/validate.js'
 
 // Approximate length of each SPARK/Meridian round in milliseconds
-const ROUND_LENGTH_IN_MS = 30_000 /* ms */
+const ROUND_LENGTH_IN_MS = 30 * 60_000 /* ms */
 
 const handler = async (req, res, client, getCurrentRound) => {
   const segs = req.url.split('/').filter(Boolean)
@@ -182,7 +182,7 @@ const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) =>
 
   json(res, {
     roundId: roundNumber.toString(),
-    endsBefore: round.created_at + ROUND_LENGTH_IN_MS,
+    endsBefore: new Date(round.created_at.getTime() + ROUND_LENGTH_IN_MS),
     tasks: tasks.map(it => ({
       cid: it.cid,
       providerAddress: it.provider_address,
