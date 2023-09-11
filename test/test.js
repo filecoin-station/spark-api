@@ -3,10 +3,13 @@ import http from 'node:http'
 import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
 import pg from 'pg'
+import { maybeCreateSparkRound } from '../lib/round-tracker.js'
+import { assertApproximately } from './test-helpers.js'
 
 const { DATABASE_URL } = process.env
 const walletAddress = 'f1abc'
 const sparkVersion = '0.12.0' // This must be in sync with the minimum supported client version
+const currentSparkRoundNumber = 42n
 
 const assertResponseStatus = async (res, status) => {
   if (res.status !== status) {
@@ -26,6 +29,7 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
+    await maybeCreateSparkRound(client, currentSparkRoundNumber)
     const handler = await createHandler({
       client,
       logger: {
@@ -33,10 +37,7 @@ describe('Routes', () => {
         error (...args) { console.error(...args) }
       },
       async getCurrentRound () {
-        // TBD
-        // We return a string because 64bit integers JavaScript `number` cannot
-        // represent all 64bit values
-        return '42'
+        return currentSparkRoundNumber
       }
     })
     server = http.createServer(handler)
@@ -493,6 +494,58 @@ describe('Routes', () => {
       assert.strictEqual(body.endAt, retrieval.endAt.toJSON())
       assert.strictEqual(body.byteLength, retrieval.byteLength)
       assert.strictEqual(body.attestation, retrieval.attestation)
+    })
+  })
+
+  describe('GET /rounds/current', () => {
+    it('returns all properties of the current round', async () => {
+      const res = await fetch(`${spark}/rounds/current`)
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(Object.keys(body), [
+        'roundId',
+        'endsBefore',
+        'tasks'
+      ])
+      assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
+
+      const { rows: [{ created_at: roundStarted }] } = await client.query(
+        'SELECT created_at FROM spark_rounds WHERE id = $1',
+        [currentSparkRoundNumber]
+      )
+
+      assertApproximately(
+        new Date(body.endsBefore),
+        new Date(roundStarted + 30 * 60_000), // 30 minutes
+        10_000 // +/- 10 seconds
+      )
+
+      for (const it of body.tasks) {
+        assert.strictEqual(typeof it.cid, 'string')
+        assert.strictEqual(typeof it.providerAddress, 'string')
+        assert.strictEqual(typeof it.protocol, 'string')
+      }
+    })
+  })
+
+  describe('GET /rounds/:id', () => {
+    it('returns 404 when the round does not exist', async () => {
+      const res = await fetch(`${spark}/rounds/${currentSparkRoundNumber * 2n}`)
+      await assertResponseStatus(res, 404)
+    })
+
+    it('returns all properties of the specified round', async () => {
+      const res = await fetch(`${spark}/rounds/${currentSparkRoundNumber}`)
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(Object.keys(body), [
+        'roundId',
+        'endsBefore',
+        'tasks'
+      ])
+      assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
     })
   })
 

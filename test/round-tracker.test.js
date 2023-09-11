@@ -2,6 +2,7 @@ import assert from 'node:assert'
 import pg from 'pg'
 import { TASKS_PER_ROUND, mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
 import { migrate } from '../lib/migrate.js'
+import { assertApproximately } from './test-helpers.js'
 
 const { DATABASE_URL } = process.env
 
@@ -140,8 +141,3 @@ describe('Round Tracker', () => {
     })
   })
 })
-
-function assertApproximately (actual, expected, delta) {
-  assert(Math.abs(actual - expected) < delta,
-    `Expected ${actual} to be approximately ${expected} (+/- ${delta})`)
-}

@@ -4,6 +4,9 @@ import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'
 
+// Approximate length of each SPARK/Meridian round in milliseconds
+const ROUND_LENGTH_IN_MS = 30_000 /* ms */
+
 const handler = async (req, res, client, getCurrentRound) => {
   const segs = req.url.split('/').filter(Boolean)
   if (segs[0] === 'retrievals' && req.method === 'POST') {
@@ -12,9 +15,10 @@ const handler = async (req, res, client, getCurrentRound) => {
     await setRetrievalResult(req, res, client, Number(segs[1]), getCurrentRound)
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
     await getRetrieval(req, res, client, Number(segs[1]))
+  } else if (segs[0] === 'rounds' && req.method === 'GET') {
+    await getRoundDetails(req, res, client, getCurrentRound, segs[1])
   } else {
-    res.statusCode = 404
-    res.end('Not Found')
+    notFound(res)
   }
 }
 
@@ -162,6 +166,47 @@ const getRetrieval = async (req, res, client, retrievalId) => {
   })
 }
 
+const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) => {
+  const roundNumber = await parseRoundNumberOrCurrent(getCurrentRound, roundParam)
+
+  if (roundParam === 'current') {
+    res.setHeader('cache-control', 'no-store')
+  }
+
+  const { rows: [round] } = await client.query('SELECT * FROM spark_rounds WHERE id = $1', [roundNumber])
+  if (!round) {
+    return notFound(res)
+  }
+
+  const { rows: tasks } = await client.query('SELECT * FROM tasks WHERE round_id = $1', [roundNumber])
+
+  json(res, {
+    roundId: roundNumber.toString(),
+    endsBefore: round.created_at + ROUND_LENGTH_IN_MS,
+    tasks: tasks.map(it => ({
+      cid: it.cid,
+      providerAddress: it.provider_address,
+      protocol: it.protocol
+    }))
+  })
+}
+
+const parseRoundNumberOrCurrent = async (getCurrentRound, roundParam) => {
+  if (roundParam === 'current') {
+    return await getCurrentRound()
+  }
+  try {
+    return BigInt(roundParam)
+  } catch (err) {
+    if (err.name === 'SyntaxError') {
+      assert.fail(400,
+        `Round number must be a valid integer. Actual value: ${JSON.stringify(roundParam)}`
+      )
+    }
+    throw err
+  }
+}
+
 const errorHandler = (res, err, logger) => {
   if (err instanceof SyntaxError) {
     res.statusCode = 400
@@ -174,6 +219,11 @@ const errorHandler = (res, err, logger) => {
     res.statusCode = 500
     res.end('Internal Server Error')
   }
+}
+
+const notFound = (res) => {
+  res.statusCode = 404
+  res.end('Not Found')
 }
 
 export const createHandler = async ({ client, logger, getCurrentRound }) => {
