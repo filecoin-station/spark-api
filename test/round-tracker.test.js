@@ -1,6 +1,6 @@
 import assert from 'node:assert'
 import pg from 'pg'
-import { mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
+import { TASKS_PER_ROUND, mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
 import { migrate } from '../lib/migrate.js'
 
 const { DATABASE_URL } = process.env
@@ -20,6 +20,7 @@ describe('Round Tracker', () => {
 
   beforeEach(async () => {
     await pgClient.query('DELETE FROM meridian_contract_versions')
+    await pgClient.query('DELETE FROM tasks')
     await pgClient.query('DELETE FROM spark_rounds')
   })
 
@@ -97,6 +98,45 @@ describe('Round Tracker', () => {
       sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
       assertApproximately(sparkRounds[0].created_at, now, 30_000)
+    })
+
+    it('creates tasks when a new round starts', async () => {
+      const sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+        meridianContractAddress: '0x1a',
+        meridianRoundIndex: 1n,
+        pgClient
+      })
+
+      const { rows: tasks } = await pgClient.query('SELECT * FROM tasks ORDER BY id')
+      assert.strictEqual(tasks.length, TASKS_PER_ROUND)
+      for (const [ix, it] of tasks.entries()) {
+        assert.strictEqual(BigInt(it.round_id), sparkRoundNumber)
+        assert.strictEqual(typeof it.cid, 'string', `task#${ix} cid`)
+        assert.strictEqual(typeof it.provider_address, 'string', `task#${ix} providerAddress`)
+        assert.strictEqual(typeof it.protocol, 'string', `task#${ix} protocol`)
+      }
+    })
+
+    it('creates tasks only once per round', async () => {
+      const meridianRoundIndex = 1n
+      const meridianContractAddress = '0x1a'
+      const firstRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+        meridianContractAddress,
+        meridianRoundIndex,
+        pgClient
+      })
+      const secondRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+        meridianContractAddress,
+        meridianRoundIndex,
+        pgClient
+      })
+      assert.strictEqual(firstRoundNumber, secondRoundNumber)
+
+      const { rows: tasks } = await pgClient.query('SELECT * FROM tasks ORDER BY id')
+      assert.strictEqual(tasks.length, TASKS_PER_ROUND)
+      for (const it of tasks) {
+        assert.strictEqual(BigInt(it.round_id), firstRoundNumber)
+      }
     })
   })
 })
