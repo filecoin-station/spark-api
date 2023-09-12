@@ -4,7 +4,6 @@ import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
 import pg from 'pg'
 import { maybeCreateSparkRound } from '../lib/round-tracker.js'
-import { assertApproximately } from './test-helpers.js'
 
 const { DATABASE_URL } = process.env
 const walletAddress = 'f1abc'
@@ -29,10 +28,7 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
-    await maybeCreateSparkRound(client, {
-      sparkRoundNumber: currentSparkRoundNumber,
-      roundDeadline: new Date(Date.now() + 30 * 60_000)
-    })
+    await maybeCreateSparkRound(client, currentSparkRoundNumber)
     const handler = await createHandler({
       client,
       logger: {
@@ -508,13 +504,9 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(Object.keys(body), [
         'roundId',
-        'deadline',
         'retrievalTasks'
       ])
       assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
-
-      // A very rough assertion only, to check that `deadline` is a date string
-      assertApproximately(new Date(body.deadline), new Date(), 3600_000)
 
       for (const t of body.retrievalTasks) {
         assert.strictEqual(typeof t.cid, 'string')
@@ -537,7 +529,6 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(Object.keys(body), [
         'roundId',
-        'deadline',
         'retrievalTasks'
       ])
       assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())

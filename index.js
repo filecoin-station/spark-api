@@ -179,7 +179,6 @@ const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) =>
 
   json(res, {
     roundId: roundNumber.toString(),
-    deadline: round.deadline,
     retrievalTasks: tasks.map(t => ({
       cid: t.cid,
       providerAddress: t.provider_address,
