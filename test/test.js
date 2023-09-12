@@ -522,6 +522,11 @@ describe('Routes', () => {
       await assertResponseStatus(res, 404)
     })
 
+    it('returns 400 when the round is not a number', async () => {
+      const res = await fetch(`${spark}/rounds/not-a-number`)
+      await assertResponseStatus(res, 400)
+    })
+
     it('returns all properties of the specified round', async () => {
       const res = await fetch(`${spark}/rounds/${currentSparkRoundNumber}`)
       await assertResponseStatus(res, 200)
