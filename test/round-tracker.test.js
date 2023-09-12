@@ -121,11 +121,11 @@ describe('Round Tracker', () => {
 
       const { rows: tasks } = await pgClient.query('SELECT * FROM retrieval_tasks ORDER BY id')
       assert.strictEqual(tasks.length, TASKS_PER_ROUND)
-      for (const [ix, it] of tasks.entries()) {
-        assert.strictEqual(BigInt(it.round_id), sparkRoundNumber)
-        assert.strictEqual(typeof it.cid, 'string', `task#${ix} cid`)
-        assert.strictEqual(typeof it.provider_address, 'string', `task#${ix} providerAddress`)
-        assert.strictEqual(typeof it.protocol, 'string', `task#${ix} protocol`)
+      for (const [ix, t] of tasks.entries()) {
+        assert.strictEqual(BigInt(t.round_id), sparkRoundNumber)
+        assert.strictEqual(typeof t.cid, 'string', `task#${ix} cid`)
+        assert.strictEqual(typeof t.provider_address, 'string', `task#${ix} providerAddress`)
+        assert.strictEqual(typeof t.protocol, 'string', `task#${ix} protocol`)
       }
     })
 
@@ -149,8 +149,8 @@ describe('Round Tracker', () => {
 
       const { rows: tasks } = await pgClient.query('SELECT * FROM retrieval_tasks ORDER BY id')
       assert.strictEqual(tasks.length, TASKS_PER_ROUND)
-      for (const it of tasks) {
-        assert.strictEqual(BigInt(it.round_id), firstRoundNumber)
+      for (const t of tasks) {
+        assert.strictEqual(BigInt(t.round_id), firstRoundNumber)
       }
     })
   })

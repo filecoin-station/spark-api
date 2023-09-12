@@ -516,10 +516,10 @@ describe('Routes', () => {
       // A very rough assertion only, to check that `deadline` is a date string
       assertApproximately(new Date(body.deadline), new Date(), 3600_000)
 
-      for (const it of body.retrievalTasks) {
-        assert.strictEqual(typeof it.cid, 'string')
-        assert.strictEqual(typeof it.providerAddress, 'string')
-        assert.strictEqual(typeof it.protocol, 'string')
+      for (const t of body.retrievalTasks) {
+        assert.strictEqual(typeof t.cid, 'string')
+        assert.strictEqual(typeof t.providerAddress, 'string')
+        assert.strictEqual(typeof t.protocol, 'string')
       }
     })
   })
