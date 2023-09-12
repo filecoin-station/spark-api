@@ -1,7 +1,8 @@
 import assert from 'node:assert'
 import pg from 'pg'
-import { mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
+import { TASKS_PER_ROUND, mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
 import { migrate } from '../lib/migrate.js'
+import { assertApproximately } from './test-helpers.js'
 
 const { DATABASE_URL } = process.env
 
@@ -20,6 +21,7 @@ describe('Round Tracker', () => {
 
   beforeEach(async () => {
     await pgClient.query('DELETE FROM meridian_contract_versions')
+    await pgClient.query('DELETE FROM retrieval_tasks')
     await pgClient.query('DELETE FROM spark_rounds')
   })
 
@@ -98,10 +100,44 @@ describe('Round Tracker', () => {
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
       assertApproximately(sparkRounds[0].created_at, now, 30_000)
     })
+
+    it('creates tasks when a new round starts', async () => {
+      const sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+        meridianContractAddress: '0x1a',
+        meridianRoundIndex: 1n,
+        pgClient
+      })
+
+      const { rows: tasks } = await pgClient.query('SELECT * FROM retrieval_tasks ORDER BY id')
+      assert.strictEqual(tasks.length, TASKS_PER_ROUND)
+      for (const [ix, t] of tasks.entries()) {
+        assert.strictEqual(BigInt(t.round_id), sparkRoundNumber)
+        assert.strictEqual(typeof t.cid, 'string', `task#${ix} cid`)
+        assert.strictEqual(typeof t.provider_address, 'string', `task#${ix} providerAddress`)
+        assert.strictEqual(typeof t.protocol, 'string', `task#${ix} protocol`)
+      }
+    })
+
+    it('creates tasks only once per round', async () => {
+      const meridianRoundIndex = 1n
+      const meridianContractAddress = '0x1a'
+      const firstRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+        meridianContractAddress,
+        meridianRoundIndex,
+        pgClient
+      })
+      const secondRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+        meridianContractAddress,
+        meridianRoundIndex,
+        pgClient
+      })
+      assert.strictEqual(firstRoundNumber, secondRoundNumber)
+
+      const { rows: tasks } = await pgClient.query('SELECT * FROM retrieval_tasks ORDER BY id')
+      assert.strictEqual(tasks.length, TASKS_PER_ROUND)
+      for (const t of tasks) {
+        assert.strictEqual(BigInt(t.round_id), firstRoundNumber)
+      }
+    })
   })
 })
-
-function assertApproximately (actual, expected, delta) {
-  assert(Math.abs(actual - expected) < delta,
-    `Expected ${actual} to be approximately ${expected} (+/- ${delta})`)
-}

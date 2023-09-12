@@ -3,10 +3,12 @@ import http from 'node:http'
 import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
 import pg from 'pg'
+import { maybeCreateSparkRound } from '../lib/round-tracker.js'
 
 const { DATABASE_URL } = process.env
 const walletAddress = 'f1abc'
 const sparkVersion = '0.12.0' // This must be in sync with the minimum supported client version
+const currentSparkRoundNumber = 42n
 
 const assertResponseStatus = async (res, status) => {
   if (res.status !== status) {
@@ -26,6 +28,7 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
+    await maybeCreateSparkRound(client, currentSparkRoundNumber)
     const handler = await createHandler({
       client,
       logger: {
@@ -33,10 +36,7 @@ describe('Routes', () => {
         error (...args) { console.error(...args) }
       },
       async getCurrentRound () {
-        // TBD
-        // We return a string because 64bit integers JavaScript `number` cannot
-        // represent all 64bit values
-        return '42'
+        return currentSparkRoundNumber
       }
     })
     server = http.createServer(handler)
@@ -54,8 +54,8 @@ describe('Routes', () => {
   describe('GET /', () => {
     it('responds', async () => {
       const res = await fetch(`${spark}/`)
-      await assertResponseStatus(res, 200)
-      assert.strictEqual(await res.text(), 'Hello World!')
+      await assertResponseStatus(res, 404)
+      assert.strictEqual(await res.text(), 'Not Found')
     })
   })
   describe('POST /retrievals', () => {
@@ -493,6 +493,50 @@ describe('Routes', () => {
       assert.strictEqual(body.endAt, retrieval.endAt.toJSON())
       assert.strictEqual(body.byteLength, retrieval.byteLength)
       assert.strictEqual(body.attestation, retrieval.attestation)
+    })
+  })
+
+  describe('GET /rounds/current', () => {
+    it('returns all properties of the current round', async () => {
+      const res = await fetch(`${spark}/rounds/current`)
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(Object.keys(body), [
+        'roundId',
+        'retrievalTasks'
+      ])
+      assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
+
+      for (const t of body.retrievalTasks) {
+        assert.strictEqual(typeof t.cid, 'string')
+        assert.strictEqual(typeof t.providerAddress, 'string')
+        assert.strictEqual(typeof t.protocol, 'string')
+      }
+    })
+  })
+
+  describe('GET /rounds/:id', () => {
+    it('returns 404 when the round does not exist', async () => {
+      const res = await fetch(`${spark}/rounds/${currentSparkRoundNumber * 2n}`)
+      await assertResponseStatus(res, 404)
+    })
+
+    it('returns 400 when the round is not a number', async () => {
+      const res = await fetch(`${spark}/rounds/not-a-number`)
+      await assertResponseStatus(res, 400)
+    })
+
+    it('returns all properties of the specified round', async () => {
+      const res = await fetch(`${spark}/rounds/${currentSparkRoundNumber}`)
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(Object.keys(body), [
+        'roundId',
+        'retrievalTasks'
+      ])
+      assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
     })
   })
 
