@@ -11,7 +11,9 @@ const handler = async (req, res, client, getCurrentRound) => {
   } else if (segs[0] === 'retrievals' && req.method === 'PATCH') {
     await setRetrievalResult(req, res, client, Number(segs[1]), getCurrentRound)
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
-    await getRetrieval(req, res, client, Number(segs[1]))
+    assert.fail(501, 'This API endpoint is no longer supported.')
+  } else if (segs[0] === 'retrieval-results' && req.method === 'GET') {
+    await getRetrievalResult(req, res, client, Number(segs[1]))
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
     await getRoundDetails(req, res, client, getCurrentRound, segs[1])
   } else {
@@ -72,10 +74,14 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
   validate(result, 'endAt', { type: 'date', required: false })
   validate(result, 'byteLength', { type: 'number', required: false })
   validate(result, 'attestation', { type: 'string', required: false })
-  try {
-    await client.query(`
+
+  const { rows } = await client.query(`
       INSERT INTO retrieval_results (
-        retrieval_id,
+        spark_version,
+        zinnia_version,
+        cid,
+        provider_address,
+        protocol,
         wallet_address,
         success,
         timeout,
@@ -87,79 +93,78 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
         attestation,
         completed_at_round
       )
-      VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
-      )
+      SELECT
+        retrievals.spark_version,
+        retrievals.zinnia_version,
+        retrieval_templates.cid,
+        retrieval_templates.provider_address,
+        retrieval_templates.protocol,
+        $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+      FROM retrievals LEFT JOIN retrieval_templates
+        ON retrievals.retrieval_template_id = retrieval_templates.id
+      WHERE retrievals.id = $1
+      RETURNING id
     `, [
-      retrievalId,
-      result.walletAddress,
-      result.success,
-      result.timeout || false,
-      new Date(result.startAt),
-      result.statusCode,
-      new Date(result.firstByteAt),
-      new Date(result.endAt),
-      result.byteLength,
-      result.attestation,
-      round
-    ])
-  } catch (err) {
-    if (err.constraint === 'retrieval_results_retrieval_id_fkey') {
-      assert.fail(404, 'Retrieval Not Found')
-    } else if (err.constraint === 'retrieval_results_pkey') {
-      assert.fail(409, 'Retrieval Already Completed')
-    } else {
-      throw err
-    }
+    retrievalId,
+    result.walletAddress,
+    result.success,
+    result.timeout || false,
+    new Date(result.startAt),
+    result.statusCode,
+    new Date(result.firstByteAt),
+    new Date(result.endAt),
+    result.byteLength,
+    result.attestation,
+    round
+  ])
+  if (!rows.length) {
+    assert.fail(404, 'Retrieval Not Found')
   }
-  res.end('OK')
+  json(res, { retrievalResultId: rows[0].id })
 }
 
-const getRetrieval = async (req, res, client, retrievalId) => {
-  assert(!Number.isNaN(retrievalId), 400, 'Invalid Retrieval ID')
-  const { rows: [retrievalRow] } = await client.query(`
+const getRetrievalResult = async (req, res, client, retrievalResultId) => {
+  assert(!Number.isNaN(retrievalResultId), 400, 'Invalid RetrievalResult ID')
+  const { rows: [resultRow] } = await client.query(`
     SELECT
-      r.id,
-      r.created_at,
-      r.spark_version,
-      r.zinnia_version,
-      rr.finished_at,
-      rr.success,
-      rr.timeout,
-      rr.start_at,
-      rr.status_code,
-      rr.first_byte_at,
-      rr.end_at,
-      rr.byte_length,
-      rr.attestation,
-      rt.cid,
-      rt.provider_address,
-      rt.protocol
-    FROM retrievals r
-    JOIN retrieval_templates rt ON r.retrieval_template_id = rt.id
-    LEFT JOIN retrieval_results rr ON r.id = rr.retrieval_id
-    WHERE r.id = $1
+      id,
+      spark_version,
+      zinnia_version,
+      finished_at,
+      success,
+      timeout,
+      start_at,
+      status_code,
+      first_byte_at,
+      end_at,
+      byte_length,
+      attestation,
+      cid,
+      provider_address,
+      protocol
+    FROM retrieval_results
+    WHERE id = $1
   `, [
-    retrievalId
+    retrievalResultId
   ])
-  assert(retrievalRow, 404, 'Retrieval Not Found')
+  assert(resultRow, 404, 'RetrievalResult Not Found')
   json(res, {
-    id: retrievalRow.id,
-    cid: retrievalRow.cid,
-    providerAddress: retrievalRow.provider_address,
-    protocol: retrievalRow.protocol,
-    sparkVersion: retrievalRow.spark_version,
-    zinniaVersion: retrievalRow.zinnia_version,
-    createdAt: retrievalRow.created_at,
-    finishedAt: retrievalRow.finished_at,
-    success: retrievalRow.success,
-    timeout: retrievalRow.timeout,
-    startAt: retrievalRow.start_at,
-    statusCode: retrievalRow.status_code,
-    firstByteAt: retrievalRow.first_byte_at,
-    endAt: retrievalRow.end_at,
-    byteLength: retrievalRow.byte_length,
-    attestation: retrievalRow.attestation
+    id: resultRow.id,
+    cid: resultRow.cid,
+    providerAddress: resultRow.provider_address,
+    protocol: resultRow.protocol,
+    sparkVersion: resultRow.spark_version,
+    zinniaVersion: resultRow.zinnia_version,
+    createdAt: resultRow.created_at,
+    finishedAt: resultRow.finished_at,
+    success: resultRow.success,
+    timeout: resultRow.timeout,
+    startAt: resultRow.start_at,
+    statusCode: resultRow.status_code,
+    firstByteAt: resultRow.first_byte_at,
+    endAt: resultRow.end_at,
+    byteLength: resultRow.byte_length,
+    attestation: resultRow.attestation
   })
 }
 
