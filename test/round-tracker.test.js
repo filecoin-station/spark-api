@@ -30,7 +30,6 @@ describe('Round Tracker', () => {
       let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 120n,
-        meridianNextRoundLength: 20,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
@@ -41,7 +40,6 @@ describe('Round Tracker', () => {
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 121n,
-        meridianNextRoundLength: 60,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 2n)
@@ -55,7 +53,6 @@ describe('Round Tracker', () => {
       let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 120n,
-        meridianNextRoundLength: 60,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
@@ -64,7 +61,6 @@ describe('Round Tracker', () => {
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1b',
         meridianRoundIndex: 10n,
-        meridianNextRoundLength: 60,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 2n)
@@ -74,7 +70,6 @@ describe('Round Tracker', () => {
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1b',
         meridianRoundIndex: 11n,
-        meridianNextRoundLength: 60,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 3n)
@@ -84,12 +79,10 @@ describe('Round Tracker', () => {
       const now = new Date()
       const meridianRoundIndex = 1n
       const meridianContractAddress = '0x1a'
-      const meridianNextRoundLength = 60
 
       let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress,
         meridianRoundIndex,
-        meridianNextRoundLength,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
@@ -100,7 +93,6 @@ describe('Round Tracker', () => {
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress,
         meridianRoundIndex,
-        meridianNextRoundLength,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
@@ -113,7 +105,6 @@ describe('Round Tracker', () => {
       const sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 1n,
-        meridianNextRoundLength: 60,
         pgClient
       })
 
@@ -130,17 +121,14 @@ describe('Round Tracker', () => {
     it('creates tasks only once per round', async () => {
       const meridianRoundIndex = 1n
       const meridianContractAddress = '0x1a'
-      const meridianNextRoundLength = 60
       const firstRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress,
         meridianRoundIndex,
-        meridianNextRoundLength,
         pgClient
       })
       const secondRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress,
         meridianRoundIndex,
-        meridianNextRoundLength,
         pgClient
       })
       assert.strictEqual(firstRoundNumber, secondRoundNumber)
