@@ -506,14 +506,14 @@ describe('Routes', () => {
       assert.deepStrictEqual(Object.keys(body), [
         'roundId',
         'endsBefore',
-        'tasks'
+        'retrievalTasks'
       ])
       assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
 
       // A very rough assertion only, to check that `endsBefore` is a date string
       assertApproximately(new Date(body.endsBefore), new Date(), 3600_000)
 
-      for (const it of body.tasks) {
+      for (const it of body.retrievalTasks) {
         assert.strictEqual(typeof it.cid, 'string')
         assert.strictEqual(typeof it.providerAddress, 'string')
         assert.strictEqual(typeof it.protocol, 'string')
@@ -535,7 +535,7 @@ describe('Routes', () => {
       assert.deepStrictEqual(Object.keys(body), [
         'roundId',
         'endsBefore',
-        'tasks'
+        'retrievalTasks'
       ])
       assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
     })

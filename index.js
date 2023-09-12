@@ -178,12 +178,12 @@ const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) =>
     return notFound(res)
   }
 
-  const { rows: tasks } = await client.query('SELECT * FROM tasks WHERE round_id = $1', [roundNumber])
+  const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [roundNumber])
 
   json(res, {
     roundId: roundNumber.toString(),
     endsBefore: new Date(round.created_at.getTime() + ROUND_LENGTH_IN_MS),
-    tasks: tasks.map(it => ({
+    retrievalTasks: tasks.map(it => ({
       cid: it.cid,
       providerAddress: it.provider_address,
       protocol: it.protocol

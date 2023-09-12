@@ -21,7 +21,7 @@ describe('Round Tracker', () => {
 
   beforeEach(async () => {
     await pgClient.query('DELETE FROM meridian_contract_versions')
-    await pgClient.query('DELETE FROM tasks')
+    await pgClient.query('DELETE FROM retrieval_tasks')
     await pgClient.query('DELETE FROM spark_rounds')
   })
 
@@ -108,7 +108,7 @@ describe('Round Tracker', () => {
         pgClient
       })
 
-      const { rows: tasks } = await pgClient.query('SELECT * FROM tasks ORDER BY id')
+      const { rows: tasks } = await pgClient.query('SELECT * FROM retrieval_tasks ORDER BY id')
       assert.strictEqual(tasks.length, TASKS_PER_ROUND)
       for (const [ix, it] of tasks.entries()) {
         assert.strictEqual(BigInt(it.round_id), sparkRoundNumber)
@@ -133,7 +133,7 @@ describe('Round Tracker', () => {
       })
       assert.strictEqual(firstRoundNumber, secondRoundNumber)
 
-      const { rows: tasks } = await pgClient.query('SELECT * FROM tasks ORDER BY id')
+      const { rows: tasks } = await pgClient.query('SELECT * FROM retrieval_tasks ORDER BY id')
       assert.strictEqual(tasks.length, TASKS_PER_ROUND)
       for (const it of tasks) {
         assert.strictEqual(BigInt(it.round_id), firstRoundNumber)

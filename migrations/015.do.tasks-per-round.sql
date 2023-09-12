@@ -1,4 +1,4 @@
-CREATE TABLE tasks (
+CREATE TABLE retrieval_tasks (
   id SERIAL NOT NULL PRIMARY KEY,
   round_id BIGINT NOT NULL REFERENCES spark_rounds(id),
   cid TEXT NOT NULL,
