@@ -4,9 +4,6 @@ import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'
 
-// Approximate length of each SPARK/Meridian round in milliseconds
-const ROUND_LENGTH_IN_MS = 30 * 60_000 /* ms */
-
 const handler = async (req, res, client, getCurrentRound) => {
   const segs = req.url.split('/').filter(Boolean)
   if (segs[0] === 'retrievals' && req.method === 'POST') {
@@ -182,7 +179,7 @@ const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) =>
 
   json(res, {
     roundId: roundNumber.toString(),
-    deadline: new Date(round.created_at.getTime() + ROUND_LENGTH_IN_MS),
+    deadline: round.deadline,
     retrievalTasks: tasks.map(it => ({
       cid: it.cid,
       providerAddress: it.provider_address,

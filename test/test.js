@@ -29,7 +29,10 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
-    await maybeCreateSparkRound(client, currentSparkRoundNumber)
+    await maybeCreateSparkRound(client, {
+      sparkRoundNumber: currentSparkRoundNumber,
+      roundDeadline: new Date(Date.now() + 30 * 60_000)
+    })
     const handler = await createHandler({
       client,
       logger: {

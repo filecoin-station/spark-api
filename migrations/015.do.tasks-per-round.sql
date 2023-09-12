@@ -8,3 +8,5 @@ CREATE TABLE retrieval_tasks (
   -- contain duplicate data.
   -- UNIQUE(round_id, cid, provider_address, protocol)
 );
+
+ALTER TABLE spark_rounds ADD COLUMN deadline TIMESTAMPTZ;
