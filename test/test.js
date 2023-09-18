@@ -390,7 +390,7 @@ describe('Routes', () => {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              success: false,
+              success: true,
               walletAddress,
               startAt: new Date(),
               statusCode: 200,
