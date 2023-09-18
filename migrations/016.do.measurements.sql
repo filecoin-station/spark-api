@@ -3,6 +3,7 @@ ALTER TABLE retrieval_results ADD COLUMN zinnia_version TEXT;
 ALTER TABLE retrieval_results ADD COLUMN cid TEXT;
 ALTER TABLE retrieval_results ADD COLUMN provider_address TEXT;
 ALTER TABLE retrieval_results ADD COLUMN protocol protocol;
+ALTER TABLE retrieval_results ADD COLUMN published_as TEXT;
 
 UPDATE retrieval_results
 SET
@@ -10,7 +11,8 @@ SET
   zinnia_version = retrievals.zinnia_version,
   cid = retrieval_templates.cid,
   provider_address = retrieval_templates.provider_address,
-  protocol = retrieval_templates.protocol
+  protocol = retrieval_templates.protocol,
+  published_as = retrievals.published_as
 FROM
   retrievals LEFT JOIN retrieval_templates
     ON retrievals.retrieval_template_id = retrieval_templates.id
@@ -31,4 +33,6 @@ ALTER TABLE retrieval_results
 -- Adjust the sequence to match the current maximum value
 SELECT setval(pg_get_serial_sequence('retrieval_results', 'id'), max(id))
 FROM retrieval_results;
+
+ALTER TABLE retrieval_results RENAME TO measurements;
 

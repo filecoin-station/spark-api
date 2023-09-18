@@ -131,7 +131,7 @@ describe('Routes', () => {
   })
   describe('PATCH /retrievals/:id', () => {
     it('updates a retrieval', async () => {
-      await client.query('DELETE FROM retrieval_results')
+      await client.query('DELETE FROM measurements')
 
       const createRequest = await fetch(`${spark}/retrievals`, {
         method: 'POST',
@@ -142,7 +142,7 @@ describe('Routes', () => {
         })
       })
       const { id: retrievalId, ...retrieval } = await createRequest.json()
-      const { rows } = await client.query('SELECT success FROM retrieval_results')
+      const { rows } = await client.query('SELECT success FROM measurements')
       assert.strictEqual(rows.length, 0)
       const result = {
         success: true,
@@ -163,13 +163,13 @@ describe('Routes', () => {
         }
       )
       await assertResponseStatus(updateRequest, 200)
-      const { retrievalResultId } = await updateRequest.json()
+      const { measurementId } = await updateRequest.json()
       const { rows: [retrievalResultRow] } = await client.query(`
         SELECT *
-        FROM retrieval_results
+        FROM measurements
         WHERE id = $1
       `, [
-        retrievalResultId
+        measurementId
       ])
       assert.strictEqual(retrievalResultRow.success, result.success)
       assert.strictEqual(retrievalResultRow.wallet_address, walletAddress)
@@ -194,6 +194,7 @@ describe('Routes', () => {
       assert.strictEqual(retrievalResultRow.protocol, retrieval.protocol)
       assert.strictEqual(retrievalResultRow.spark_version, '1.2.3')
       assert.strictEqual(retrievalResultRow.zinnia_version, '2.3.4')
+      assert.strictEqual(retrievalResultRow.published_as, null)
     })
     it('handles invalid JSON', async () => {
       const { id: retrievalId } = await givenRetrieval()
@@ -361,7 +362,7 @@ describe('Routes', () => {
 
     // Duplicate submissions are ok, because we filter out duplicates in the fraud detection step
     it('allows duplicate submissions', async () => {
-      await client.query('DELETE FROM retrieval_results')
+      await client.query('DELETE FROM measurements')
       const { id: retrievalId } = await givenRetrieval()
       {
         const updateRequest = await fetch(
@@ -403,7 +404,7 @@ describe('Routes', () => {
       }
       const { rows } = await client.query(`
         SELECT byte_length
-        FROM retrieval_results
+        FROM measurements
         WHERE wallet_address = $1
       `, [
         walletAddress
@@ -417,7 +418,7 @@ describe('Routes', () => {
       await assertResponseStatus(res, 501 /* Not Implemented */)
     })
   })
-  describe('GET /retrieval-results/:id', () => {
+  describe('GET /measurements/:id', () => {
     it('gets a completed retrieval', async () => {
       const createRequest = await fetch(`${spark}/retrievals`, {
         method: 'POST',
@@ -452,11 +453,11 @@ describe('Routes', () => {
         }
       )
       assert(updateRequest.ok)
-      const { retrievalResultId } = await updateRequest.json()
-      const res = await fetch(`${spark}/retrieval-results/${retrievalResultId}`)
+      const { measurementId } = await updateRequest.json()
+      const res = await fetch(`${spark}/measurements/${measurementId}`)
       await assertResponseStatus(res, 200)
       const body = await res.json()
-      assert.strictEqual(body.id, retrievalResultId)
+      assert.strictEqual(body.id, measurementId)
       assert.strictEqual(body.cid, cid)
       assert.strictEqual(body.providerAddress, providerAddress)
       assert.strictEqual(body.protocol, protocol)
@@ -470,6 +471,7 @@ describe('Routes', () => {
       assert.strictEqual(body.endAt, retrieval.endAt.toJSON())
       assert.strictEqual(body.byteLength, retrieval.byteLength)
       assert.strictEqual(body.attestation, retrieval.attestation)
+      assert.strictEqual(body.publishedAs, null)
     })
   })
 

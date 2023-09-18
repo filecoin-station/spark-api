@@ -12,8 +12,8 @@ const handler = async (req, res, client, getCurrentRound) => {
     await setRetrievalResult(req, res, client, Number(segs[1]), getCurrentRound)
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
     assert.fail(501, 'This API endpoint is no longer supported.')
-  } else if (segs[0] === 'retrieval-results' && req.method === 'GET') {
-    await getRetrievalResult(req, res, client, Number(segs[1]))
+  } else if (segs[0] === 'measurements' && req.method === 'GET') {
+    await getMeasurement(req, res, client, Number(segs[1]))
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
     await getRoundDetails(req, res, client, getCurrentRound, segs[1])
   } else {
@@ -76,7 +76,7 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
   validate(result, 'attestation', { type: 'string', required: false })
 
   const { rows } = await client.query(`
-      INSERT INTO retrieval_results (
+      INSERT INTO measurements (
         spark_version,
         zinnia_version,
         cid,
@@ -120,11 +120,11 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
   if (!rows.length) {
     assert.fail(404, 'Retrieval Not Found')
   }
-  json(res, { retrievalResultId: rows[0].id })
+  json(res, { measurementId: rows[0].id })
 }
 
-const getRetrievalResult = async (req, res, client, retrievalResultId) => {
-  assert(!Number.isNaN(retrievalResultId), 400, 'Invalid RetrievalResult ID')
+const getMeasurement = async (req, res, client, measurementId) => {
+  assert(!Number.isNaN(measurementId), 400, 'Invalid RetrievalResult ID')
   const { rows: [resultRow] } = await client.query(`
     SELECT
       id,
@@ -141,13 +141,14 @@ const getRetrievalResult = async (req, res, client, retrievalResultId) => {
       attestation,
       cid,
       provider_address,
-      protocol
-    FROM retrieval_results
+      protocol,
+      published_as
+    FROM measurements
     WHERE id = $1
   `, [
-    retrievalResultId
+    measurementId
   ])
-  assert(resultRow, 404, 'RetrievalResult Not Found')
+  assert(resultRow, 404, 'Measurement Not Found')
   json(res, {
     id: resultRow.id,
     cid: resultRow.cid,
@@ -164,7 +165,8 @@ const getRetrievalResult = async (req, res, client, retrievalResultId) => {
     firstByteAt: resultRow.first_byte_at,
     endAt: resultRow.end_at,
     byteLength: resultRow.byte_length,
-    attestation: resultRow.attestation
+    attestation: resultRow.attestation,
+    publishedAs: resultRow.published_as
   })
 }
 
