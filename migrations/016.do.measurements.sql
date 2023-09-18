@@ -21,6 +21,7 @@ WHERE retrieval_id = retrievals.id;
 ALTER TABLE retrieval_results ALTER COLUMN cid SET NOT NULL;
 ALTER TABLE retrieval_results ALTER COLUMN provider_address SET NOT NULL;
 ALTER TABLE retrieval_results ALTER COLUMN protocol SET NOT NULL;
+ALTER TABLE retrievals DROP COLUMN published_as;
 
 -- Remove the foreign key constraint to decouple `retrieval_results` from `retrievals`
 ALTER TABLE retrieval_results DROP CONSTRAINT retrieval_results_retrieval_id_fkey;

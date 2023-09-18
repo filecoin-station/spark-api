@@ -54,7 +54,7 @@ export const publish = async ({
 
   // Mark measurements as shared
   await client.query(`
-    UPDATE retrievals
+    UPDATE measurements
     SET published_as = $1
     WHERE id = ANY($2::int[])
   `, [
