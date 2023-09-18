@@ -9,6 +9,7 @@ const handler = async (req, res, client, getCurrentRound) => {
   if (segs[0] === 'retrievals' && req.method === 'POST') {
     await createRetrieval(req, res, client, getCurrentRound)
   } else if (segs[0] === 'retrievals' && req.method === 'PATCH') {
+    // TODO: Deprecate once clients have been updated
     await setRetrievalResult(req, res, client, Number(segs[1]), getCurrentRound)
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
     assert.fail(501, 'This API endpoint is no longer supported.')
