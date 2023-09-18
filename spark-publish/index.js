@@ -12,26 +12,23 @@ export const publish = async ({
   // Fetch measurements
   const { rows: measurements } = await client.query(`
     SELECT
-      r.id,
-      r.created_at,
-      r.spark_version,
-      r.zinnia_version,
-      rr.finished_at,
-      rr.success,
-      rr.timeout,
-      rr.start_at,
-      rr.status_code,
-      rr.first_byte_at,
-      rr.end_at,
-      rr.byte_length,
-      rr.attestation,
-      rt.cid,
-      rt.provider_address,
-      rt.protocol
-    FROM retrievals r
-    JOIN retrieval_templates rt ON r.retrieval_template_id = rt.id
-    LEFT JOIN retrieval_results rr ON r.id = rr.retrieval_id
-    WHERE r.published_as IS NULL
+      id,
+      spark_version,
+      zinnia_version,
+      finished_at,
+      success,
+      timeout,
+      start_at,
+      status_code,
+      first_byte_at,
+      end_at,
+      byte_length,
+      attestation,
+      cid,
+      provider_address,
+      protocol
+    FROM measurements
+    WHERE published_as IS NULL
     LIMIT $1
   `, [
     maxMeasurements
@@ -57,7 +54,7 @@ export const publish = async ({
 
   // Mark measurements as shared
   await client.query(`
-    UPDATE retrievals
+    UPDATE measurements
     SET published_as = $1
     WHERE id = ANY($2::int[])
   `, [
