@@ -11,6 +11,7 @@ import assert from 'node:assert'
 
 const {
   PORT = 8080,
+  HOST = '127.0.0.1',
   DATABASE_URL,
   SENTRY_ENVIRONMMENT = 'development'
 } = process.env
@@ -50,6 +51,7 @@ console.log('SPARK round number at service startup:', round)
 
 const handler = await createHandler({ client, logger: console, getCurrentRound })
 const server = http.createServer(handler)
-server.listen(PORT)
+console.log('Starting the http server on host %j port %s', HOST, PORT)
+server.listen(PORT, HOST)
 await once(server, 'listening')
-console.log(`http://localhost:${PORT}`)
+console.log(`http://${HOST}:${PORT}`)
