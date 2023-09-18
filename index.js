@@ -191,23 +191,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
 const getMeasurement = async (req, res, client, measurementId) => {
   assert(!Number.isNaN(measurementId), 400, 'Invalid RetrievalResult ID')
   const { rows: [resultRow] } = await client.query(`
-    SELECT
-      id,
-      spark_version,
-      zinnia_version,
-      finished_at,
-      success,
-      timeout,
-      start_at,
-      status_code,
-      first_byte_at,
-      end_at,
-      byte_length,
-      attestation,
-      cid,
-      provider_address,
-      protocol,
-      published_as
+    SELECT *
     FROM measurements
     WHERE id = $1
   `, [
