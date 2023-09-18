@@ -418,6 +418,68 @@ describe('Routes', () => {
       await assertResponseStatus(res, 501 /* Not Implemented */)
     })
   })
+  describe('POST /measurements', () => {
+    it('records a new measurement', async () => {
+      await client.query('DELETE FROM measurements')
+
+      const measurement = {
+        cid: 'bafytest',
+        providerAddress: '/dns4/localhost/tcp/8080',
+        protocol: 'graphsync',
+        sparkVersion: '1.2.3',
+        zinniaVersion: '2.3.4',
+        success: true,
+        walletAddress,
+        startAt: new Date(),
+        statusCode: 200,
+        firstByteAt: new Date(),
+        endAt: new Date(),
+        byteLength: 100,
+        attestation: 'json.sig'
+      }
+
+      const createRequest = await fetch(`${spark}/measurements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(measurement)
+      })
+      await assertResponseStatus(createRequest, 200)
+      const { id } = await createRequest.json()
+
+      const { rows: [measurementRow] } = await client.query(`
+          SELECT *
+          FROM measurements
+          WHERE id = $1
+        `, [
+        id
+      ])
+      assert.strictEqual(measurementRow.success, measurement.success)
+      assert.strictEqual(measurementRow.wallet_address, walletAddress)
+      assert.strictEqual(
+        measurementRow.start_at.toJSON(),
+        measurement.startAt.toJSON()
+      )
+      assert.strictEqual(measurementRow.status_code, measurement.statusCode)
+      assert.strictEqual(
+        measurementRow.first_byte_at.toJSON(),
+        measurement.firstByteAt.toJSON()
+      )
+      assert.strictEqual(
+        measurementRow.end_at.toJSON(),
+        measurement.endAt.toJSON()
+      )
+      assert.strictEqual(measurementRow.byte_length, measurement.byteLength)
+      assert.strictEqual(measurementRow.attestation, measurement.attestation)
+      assert.strictEqual(measurementRow.cid, measurement.cid)
+      assert.strictEqual(measurementRow.provider_address, measurement.providerAddress)
+      assert.strictEqual(measurementRow.protocol, measurement.protocol)
+      assert.strictEqual(measurementRow.spark_version, '1.2.3')
+      assert.strictEqual(measurementRow.zinnia_version, '2.3.4')
+      assert.strictEqual(measurementRow.completed_at_round, currentSparkRoundNumber.toString())
+      assert.strictEqual(measurementRow.published_as, null)
+    })
+  })
+
   describe('GET /measurements/:id', () => {
     it('gets a completed retrieval', async () => {
       const createRequest = await fetch(`${spark}/retrievals`, {

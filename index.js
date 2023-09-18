@@ -12,6 +12,8 @@ const handler = async (req, res, client, getCurrentRound) => {
     await setRetrievalResult(req, res, client, Number(segs[1]), getCurrentRound)
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
     assert.fail(501, 'This API endpoint is no longer supported.')
+  } else if (segs[0] === 'measurements' && req.method === 'POST') {
+    await createMeasurement(req, res, client, getCurrentRound)
   } else if (segs[0] === 'measurements' && req.method === 'GET') {
     await getMeasurement(req, res, client, Number(segs[1]))
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
@@ -121,6 +123,69 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
     assert.fail(404, 'Retrieval Not Found')
   }
   json(res, { measurementId: rows[0].id })
+}
+
+const createMeasurement = async (req, res, client, getCurrentRound) => {
+  const round = await getCurrentRound()
+  const body = await getRawBody(req, { limit: '100kb' })
+  const measurement = JSON.parse(body)
+  validate(measurement, 'sparkVersion', { type: 'string', required: false })
+  validate(measurement, 'zinniaVersion', { type: 'string', required: false })
+  assert(measurement.sparkVersion, 400, 'OUTDATED CLIENT')
+
+  validate(measurement, 'cid', { type: 'string', required: true })
+  validate(measurement, 'providerAddress', { type: 'string', required: true })
+  validate(measurement, 'protocol', { type: 'string', required: true })
+  validate(measurement, 'walletAddress', { type: 'string', required: true })
+  validate(measurement, 'success', { type: 'boolean', required: true })
+  validate(measurement, 'timeout', { type: 'boolean', required: false })
+  validate(measurement, 'startAt', { type: 'date', required: true })
+  validate(measurement, 'statusCode', { type: 'number', required: false })
+  validate(measurement, 'firstByteAt', { type: 'date', required: false })
+  validate(measurement, 'endAt', { type: 'date', required: false })
+  validate(measurement, 'byteLength', { type: 'number', required: false })
+  validate(measurement, 'attestation', { type: 'string', required: false })
+
+  const { rows } = await client.query(`
+      INSERT INTO measurements (
+        spark_version,
+        zinnia_version,
+        cid,
+        provider_address,
+        protocol,
+        wallet_address,
+        success,
+        timeout,
+        start_at,
+        status_code,
+        first_byte_at,
+        end_at,
+        byte_length,
+        attestation,
+        completed_at_round
+      )
+      VALUES (
+       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+      )
+      RETURNING id
+    `, [
+    measurement.sparkVersion,
+    measurement.zinniaVersion,
+    measurement.cid,
+    measurement.providerAddress,
+    measurement.protocol,
+    measurement.walletAddress,
+    measurement.success,
+    measurement.timeout || false,
+    new Date(measurement.startAt),
+    measurement.statusCode,
+    new Date(measurement.firstByteAt),
+    new Date(measurement.endAt),
+    measurement.byteLength,
+    measurement.attestation,
+    round
+  ])
+  json(res, { id: rows[0].id })
 }
 
 const getMeasurement = async (req, res, client, measurementId) => {
