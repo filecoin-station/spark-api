@@ -15,6 +15,7 @@ export const publish = async ({
       id,
       spark_version,
       zinnia_version,
+      wallet_address,
       finished_at,
       success,
       timeout,

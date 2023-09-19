@@ -7,6 +7,7 @@ processes = []
 
 [env]
   PORT = "8080"
+  HOST = "0.0.0.0"
   SENTRY_ENVIRONMENT = "production"
 
 [experimental]
@@ -33,7 +34,8 @@ processes = []
     port = 443
 
   [[services.tcp_checks]]
-    grace_period = "1s"
+    path = "/rounds/current"
+    grace_period = "10s"
     interval = "15s"
     restart_limit = 0
     timeout = "2s"

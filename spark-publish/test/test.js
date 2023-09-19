@@ -79,6 +79,65 @@ describe('integration', () => {
   })
 
   it('publishes', async () => {
+    await client.query('DELETE FROM measurements')
+
+    const measurementRecorded = {
+      sparkVersion: '1.2.3',
+      zinniaVersion: '0.5.6',
+      cid: 'bafytest',
+      providerAddress: '/dns4/localhost/tcp/8080',
+      protocol: 'graphsync',
+      walletAddress: 't1foobar',
+      success: true,
+      timeout: false,
+      startAt: new Date('2023-09-18T13:33:51.239Z'),
+      statusCode: 200,
+      firstByteAt: new Date('2023-09-18T13:33:51.239Z'),
+      endAt: new Date('2023-09-18T13:33:51.239Z'),
+      byteLength: 100,
+      attestation: 'json.sig',
+      round: 42
+    }
+
+    await client.query(`
+      INSERT INTO measurements (
+        spark_version,
+        zinnia_version,
+        cid,
+        provider_address,
+        protocol,
+        wallet_address,
+        success,
+        timeout,
+        start_at,
+        status_code,
+        first_byte_at,
+        end_at,
+        byte_length,
+        attestation,
+        completed_at_round
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+      )
+    `, [
+      measurementRecorded.sparkVersion,
+      measurementRecorded.zinniaVersion,
+      measurementRecorded.cid,
+      measurementRecorded.providerAddress,
+      measurementRecorded.protocol,
+      measurementRecorded.walletAddress,
+      measurementRecorded.success,
+      measurementRecorded.timeout,
+      measurementRecorded.startAt,
+      measurementRecorded.statusCode,
+      measurementRecorded.firstByteAt,
+      measurementRecorded.endAt,
+      measurementRecorded.byteLength,
+      measurementRecorded.attestation,
+      measurementRecorded.round
+    ])
+
     const cid = 'bafybeicmyzlxgqeg5lgjgnzducj37s7bxhxk6vywqtuym2vhqzxjtymqvm'
 
     // We're not sure if we're going to stick with web3.storage, or switch to
@@ -133,5 +192,15 @@ describe('integration', () => {
     assert.strictEqual(web3StoragePutFiles.length, 1)
     assert.strictEqual(web3StoragePutFiles[0].length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
+
+    const payload = JSON.parse(await web3StoragePutFiles[0][0].text())
+    assert.strictEqual(payload.length, 1)
+    const published = payload[0]
+    assert.strictEqual(published.spark_version, measurementRecorded.sparkVersion)
+    assert.strictEqual(published.cid, measurementRecorded.cid)
+    // TODO: test other fields
+
+    // We are publishing records with invalid wallet addresses too
+    assert.strictEqual(published.wallet_address, 't1foobar')
   })
 })
