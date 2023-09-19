@@ -1,4 +1,4 @@
-import { convertWalletAddressToEth, publish } from '../index.js'
+import { publish } from '../index.js'
 import assert from 'node:assert'
 import { CID } from 'multiformats/cid'
 import pg from 'pg'
@@ -64,16 +64,6 @@ describe('unit', () => {
     assert.strictEqual(web3StoragePutFiles[0].length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
   })
-
-  it('converts mainnet wallet address to ETH address', () => {
-    const converted = convertWalletAddressToEth('f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i')
-    assert.strictEqual(converted, '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E')
-  })
-
-  it('converts testnet wallet address to ETH address', () => {
-    const converted = convertWalletAddressToEth('t410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i')
-    assert.strictEqual(converted, '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E')
-  })
 })
 
 describe('integration', () => {
@@ -97,8 +87,7 @@ describe('integration', () => {
       cid: 'bafytest',
       providerAddress: '/dns4/localhost/tcp/8080',
       protocol: 'graphsync',
-      // We are recording wallet address in Filecoin format (f4...)
-      walletAddress: 'f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i',
+      walletAddress: 't1foobar',
       success: true,
       timeout: false,
       startAt: new Date('2023-09-18T13:33:51.239Z'),
@@ -211,7 +200,7 @@ describe('integration', () => {
     assert.strictEqual(published.cid, measurementRecorded.cid)
     // TODO: test other fields
 
-    // We are publishing the wallet address in ETH format
-    assert.strictEqual(published.wallet_address, '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E')
+    // We are publishing records with invalid wallet addresses too
+    assert.strictEqual(published.wallet_address, 't1foobar')
   })
 })

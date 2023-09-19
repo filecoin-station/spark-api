@@ -1,7 +1,6 @@
 /* global File */
 
 import timers from 'node:timers/promises'
-import { ethAddressFromDelegated } from '@glif/filecoin-address'
 
 export const publish = async ({
   client,
@@ -36,12 +35,6 @@ export const publish = async ({
     maxMeasurements
   ])
   logger.log(`Publishing ${measurements.length} measurements`)
-
-  for (const m of measurements) {
-    // Stations are submitting a Filecoin address `f4...`
-    // Smart contracts require an ETH address `0x...`
-    m.wallet_address = convertWalletAddressToEth(m.wallet_address)
-  }
 
   // Share measurements
   const file = new File(
@@ -96,5 +89,3 @@ export const startPublishLoop = async ({
     if (dt < minRoundLength) await timers.setTimeout(minRoundLength - dt)
   }
 }
-
-export const convertWalletAddressToEth = (filAddress) => ethAddressFromDelegated(filAddress)
