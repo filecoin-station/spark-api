@@ -40,7 +40,7 @@ export const publish = async ({
   for (const m of measurements) {
     // Stations are submitting a Filecoin address `f4...`
     // Smart contracts require an ETH address `0x...`
-    m.wallet_address = ethAddressFromDelegated(m.wallet_address)
+    m.wallet_address = convertWalletAddressToEth(m.wallet_address)
   }
 
   // Share measurements
@@ -96,3 +96,5 @@ export const startPublishLoop = async ({
     if (dt < minRoundLength) await timers.setTimeout(minRoundLength - dt)
   }
 }
+
+export const convertWalletAddressToEth = (filAddress) => ethAddressFromDelegated(filAddress)

@@ -1,4 +1,4 @@
-import { publish } from '../index.js'
+import { convertWalletAddressToEth, publish } from '../index.js'
 import assert from 'node:assert'
 import { CID } from 'multiformats/cid'
 import pg from 'pg'
@@ -63,6 +63,16 @@ describe('unit', () => {
     assert.strictEqual(web3StoragePutFiles.length, 1)
     assert.strictEqual(web3StoragePutFiles[0].length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
+  })
+
+  it('converts mainnet wallet address to ETH address', () => {
+    const converted = convertWalletAddressToEth('f410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i')
+    assert.strictEqual(converted, '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E')
+  })
+
+  it('converts testnet wallet address to ETH address', () => {
+    const converted = convertWalletAddressToEth('t410ftgmzttyqi3ti4nxbvixa4byql3o5d4eo3jtc43i')
+    assert.strictEqual(converted, '0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E')
   })
 })
 
