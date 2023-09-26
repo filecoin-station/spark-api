@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@glif/filecoin-address": "^2.0.43",
+    "@influxdata/influxdb-client": "^1.33.2",
     "@sentry/node": "^7.66.0",
     "ethers": "^5.7.2",
     "pg": "^8.11.3",
