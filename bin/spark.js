@@ -34,7 +34,16 @@ Sentry.init({
   tracesSampleRate: 0.1
 })
 
-const client = new pg.Pool({ connectionString: DATABASE_URL })
+const client = new pg.Pool({
+  connectionString: DATABASE_URL,
+  // allow the pool to close all connections and become empty
+  min: 0,
+  // close connections that haven't been used for one second
+  idleTimeoutMillis: 1000,
+  // automatically close connections older than 60 seconds
+  maxLifetimeSeconds: 60
+})
+
 await client.connect()
 client.on('error', err => {
   // Prevent crashing the process on idle client errors, the pool will recover
