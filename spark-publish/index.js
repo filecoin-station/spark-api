@@ -1,6 +1,7 @@
 /* global File */
 
 import timers from 'node:timers/promises'
+import { record } from './lib/telemetry.js'
 
 export const publish = async ({
   client,
@@ -37,20 +38,24 @@ export const publish = async ({
   logger.log(`Publishing ${measurements.length} measurements`)
 
   // Share measurements
+  let start = new Date()
   const file = new File(
     [JSON.stringify(measurements)],
     'measurements.json',
     { type: 'application/json' }
   )
   const cid = await web3Storage.put([file])
+  const uploadMeasurementsDuration = new Date() - start
   logger.log(`Measurements packaged in ${cid}`)
 
   // Call contract with CID
   logger.log('ie.addMeasurements()...')
+  start = new Date()
   const tx = await ieContract.addMeasurements(cid.toString())
   const receipt = await tx.wait()
   const event = receipt.events.find(e => e.event === 'MeasurementsAdded')
   const { roundIndex } = event.args
+  const ieAddMeasurementsDuration = new Date() - start
   logger.log('Measurements added to round', roundIndex.toString())
 
   // Mark measurements as shared
@@ -68,6 +73,16 @@ export const publish = async ({
   // helia or another tool. Therefore, add this later.
 
   logger.log('Done!')
+
+  record('publish', point => {
+    point.intField('round_index', roundIndex)
+    point.intField('measurements', measurements.length)
+    point.intField(
+      'upload_measurements_duration_ms',
+      uploadMeasurementsDuration
+    )
+    point.intField('add_measurements_duration_ms', ieAddMeasurementsDuration)
+  })
 }
 
 export const startPublishLoop = async ({
