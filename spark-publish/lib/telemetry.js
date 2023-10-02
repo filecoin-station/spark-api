@@ -20,3 +20,5 @@ export const record = (name, fn) => {
   fn(point)
   writeClient.writePoint(point)
 }
+
+export const close = () => writeClient.close()

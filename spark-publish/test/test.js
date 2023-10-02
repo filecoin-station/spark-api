@@ -2,8 +2,11 @@ import { publish } from '../index.js'
 import assert from 'node:assert'
 import { CID } from 'multiformats/cid'
 import pg from 'pg'
+import * as telemetry from '../lib/telemetry.js'
 
 const { DATABASE_URL } = process.env
+
+after(telemetry.close)
 
 describe('unit', () => {
   it('publishes', async () => {
