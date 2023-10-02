@@ -201,6 +201,6 @@ describe('integration', () => {
     // TODO: test other fields
 
     // We are publishing records with invalid wallet addresses too
-    assert.strictEqual(published.wallet_address, 't1foobar')
+    assert.strictEqual(published.participant_address, 't1foobar')
   })
 })
