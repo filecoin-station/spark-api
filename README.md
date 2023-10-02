@@ -37,7 +37,7 @@ Body:
 
 ```typescript
 {
-  walletAddress: String,
+  participantAddress: String,
   success: Boolean,
   timeout: Boolean,
   startAt: String,       // ISO 8601
