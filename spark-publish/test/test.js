@@ -90,7 +90,7 @@ describe('integration', () => {
       cid: 'bafytest',
       providerAddress: '/dns4/localhost/tcp/8080',
       protocol: 'graphsync',
-      walletAddress: 't1foobar',
+      participantAddress: 't1foobar',
       success: true,
       timeout: false,
       startAt: new Date('2023-09-18T13:33:51.239Z'),
@@ -109,7 +109,7 @@ describe('integration', () => {
         cid,
         provider_address,
         protocol,
-        wallet_address,
+        participant_address,
         success,
         timeout,
         start_at,
@@ -129,7 +129,7 @@ describe('integration', () => {
       measurementRecorded.cid,
       measurementRecorded.providerAddress,
       measurementRecorded.protocol,
-      measurementRecorded.walletAddress,
+      measurementRecorded.participantAddress,
       measurementRecorded.success,
       measurementRecorded.timeout,
       measurementRecorded.startAt,
@@ -204,6 +204,6 @@ describe('integration', () => {
     // TODO: test other fields
 
     // We are publishing records with invalid wallet addresses too
-    assert.strictEqual(published.wallet_address, 't1foobar')
+    assert.strictEqual(published.participant_address, 't1foobar')
   })
 })

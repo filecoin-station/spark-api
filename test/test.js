@@ -6,7 +6,7 @@ import pg from 'pg'
 import { maybeCreateSparkRound } from '../lib/round-tracker.js'
 
 const { DATABASE_URL } = process.env
-const walletAddress = 'f1abc'
+const participantAddress = 'f1abc'
 const sparkVersion = '0.12.0' // This must be in sync with the minimum supported client version
 const currentSparkRoundNumber = 42n
 
@@ -130,6 +130,8 @@ describe('Routes', () => {
     })
   })
   describe('PATCH /retrievals/:id', () => {
+    // This API endpoint is used by old clients which always send walletAddress
+    const walletAddress = participantAddress
     it('updates a retrieval', async () => {
       await client.query('DELETE FROM measurements')
 
@@ -172,7 +174,7 @@ describe('Routes', () => {
         measurementId
       ])
       assert.strictEqual(retrievalResultRow.success, result.success)
-      assert.strictEqual(retrievalResultRow.wallet_address, walletAddress)
+      assert.strictEqual(retrievalResultRow.participant_address, participantAddress)
       assert.strictEqual(
         retrievalResultRow.start_at.toJSON(),
         result.startAt.toJSON()
@@ -405,9 +407,9 @@ describe('Routes', () => {
       const { rows } = await client.query(`
         SELECT byte_length
         FROM measurements
-        WHERE wallet_address = $1
+        WHERE participant_address = $1
       `, [
-        walletAddress
+        participantAddress
       ])
       assert.deepStrictEqual(rows.map(r => r.byte_length), [100, 200])
     })
@@ -429,7 +431,7 @@ describe('Routes', () => {
         sparkVersion: '1.2.3',
         zinniaVersion: '2.3.4',
         success: true,
-        walletAddress,
+        participantAddress,
         startAt: new Date(),
         statusCode: 200,
         firstByteAt: new Date(),
@@ -454,7 +456,7 @@ describe('Routes', () => {
         id
       ])
       assert.strictEqual(measurementRow.success, measurement.success)
-      assert.strictEqual(measurementRow.wallet_address, walletAddress)
+      assert.strictEqual(measurementRow.participant_address, participantAddress)
       assert.strictEqual(
         measurementRow.start_at.toJSON(),
         measurement.startAt.toJSON()
@@ -478,6 +480,45 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.completed_at_round, currentSparkRoundNumber.toString())
       assert.strictEqual(measurementRow.published_as, null)
     })
+
+    it('allows older format with walletAddress', async () => {
+      await client.query('DELETE FROM measurements')
+
+      const measurement = {
+        // THIS IS IMPORTANT
+        walletAddress: participantAddress,
+        // Everything else does not matter
+        cid: 'bafytest',
+        providerAddress: '/dns4/localhost/tcp/8080',
+        protocol: 'graphsync',
+        sparkVersion: '1.2.3',
+        zinniaVersion: '2.3.4',
+        success: true,
+        startAt: new Date(),
+        statusCode: 200,
+        firstByteAt: new Date(),
+        endAt: new Date(),
+        byteLength: 100,
+        attestation: 'json.sig'
+      }
+
+      const createRequest = await fetch(`${spark}/measurements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(measurement)
+      })
+      await assertResponseStatus(createRequest, 200)
+      const { id } = await createRequest.json()
+
+      const { rows: [measurementRow] } = await client.query(`
+          SELECT *
+          FROM measurements
+          WHERE id = $1
+        `, [
+        id
+      ])
+      assert.strictEqual(measurementRow.participant_address, participantAddress)
+    })
   })
 
   describe('GET /measurements/:id', () => {
@@ -498,7 +539,7 @@ describe('Routes', () => {
       } = await createRequest.json()
       const retrieval = {
         success: true,
-        walletAddress,
+        participantAddress,
         startAt: new Date(),
         statusCode: 200,
         firstByteAt: new Date(),

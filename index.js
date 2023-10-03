@@ -68,7 +68,16 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
   assert(!Number.isNaN(retrievalId), 400, 'Invalid Retrieval ID')
   const body = await getRawBody(req, { limit: '100kb' })
   const result = JSON.parse(body)
-  validate(result, 'walletAddress', { type: 'string', required: true })
+
+  // Backwards-compatibility with older clients sending walletAddress instead of participantAddress
+  // We can remove this after enough SPARK clients are running the new version (mid-October 2023)
+  if (!('participantAddress' in result) && ('walletAddress' in result)) {
+    validate(result, 'walletAddress', { type: 'string', required: true })
+    result.participantAddress = result.walletAddress
+    delete result.walletAddress
+  }
+
+  validate(result, 'participantAddress', { type: 'string', required: true })
   validate(result, 'success', { type: 'boolean', required: true })
   validate(result, 'timeout', { type: 'boolean', required: false })
   validate(result, 'startAt', { type: 'date', required: true })
@@ -85,7 +94,7 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
         cid,
         provider_address,
         protocol,
-        wallet_address,
+        participant_address,
         success,
         timeout,
         start_at,
@@ -109,7 +118,7 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
       RETURNING id
     `, [
     retrievalId,
-    result.walletAddress,
+    result.participantAddress,
     result.success,
     result.timeout || false,
     new Date(result.startAt),
@@ -134,10 +143,18 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'zinniaVersion', { type: 'string', required: false })
   assert(measurement.sparkVersion, 400, 'OUTDATED CLIENT')
 
+  // Backwards-compatibility with older clients sending walletAddress instead of participantAddress
+  // We can remove this after enough SPARK clients are running the new version (mid-October 2023)
+  if (!('participantAddress' in measurement) && ('walletAddress' in measurement)) {
+    validate(measurement, 'walletAddress', { type: 'string', required: true })
+    measurement.participantAddress = measurement.walletAddress
+    delete measurement.walletAddress
+  }
+
   validate(measurement, 'cid', { type: 'string', required: true })
   validate(measurement, 'providerAddress', { type: 'string', required: true })
   validate(measurement, 'protocol', { type: 'string', required: true })
-  validate(measurement, 'walletAddress', { type: 'string', required: true })
+  validate(measurement, 'participantAddress', { type: 'string', required: true })
   validate(measurement, 'success', { type: 'boolean', required: true })
   validate(measurement, 'timeout', { type: 'boolean', required: false })
   validate(measurement, 'startAt', { type: 'date', required: true })
@@ -154,7 +171,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         cid,
         provider_address,
         protocol,
-        wallet_address,
+        participant_address,
         success,
         timeout,
         start_at,
@@ -175,7 +192,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.cid,
     measurement.providerAddress,
     measurement.protocol,
-    measurement.walletAddress,
+    measurement.participantAddress,
     measurement.success,
     measurement.timeout || false,
     new Date(measurement.startAt),
