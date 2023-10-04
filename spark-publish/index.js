@@ -18,7 +18,6 @@ export const publish = async ({
       zinnia_version,
       participant_address,
       finished_at,
-      success,
       timeout,
       start_at,
       status_code,
