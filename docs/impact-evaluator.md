@@ -10,6 +10,8 @@ await ieContractWithSigner.setRoundReward(1000000000000000000 /* 1 FIL */)
 await ieContractWithSigner.setNextRoundLength(60)
 ```
 
+Fund contract using https://faucet.calibration.fildev.network/funds.html.
+
 ## Telemetry
 
 - Replace `t4` and `0x` contract addresses https://github.com/filecoin-station/telegraf/blob/main/telegraf.conf
