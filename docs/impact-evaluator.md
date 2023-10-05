@@ -3,6 +3,13 @@
 After deploying a new version of the impact evaluator framework, update the
 services mentioned in this document.
 
+## contract
+
+```js
+await ieContractWithSigner.setRoundReward(1000000000000000000 /* 1 FIL */)
+await ieContractWithSigner.setNextRoundLength(60)
+```
+
 ## Telemetry
 
 - Replace `t4` and `0x` contract addresses https://github.com/filecoin-station/telegraf/blob/main/telegraf.conf
