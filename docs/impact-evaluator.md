@@ -7,7 +7,8 @@ services mentioned in this document.
 
 - Replace `t4` and `0x` contract addresses https://github.com/filecoin-station/telegraf/blob/main/telegraf.conf
 - If the ABI changed, replace method IDs https://github.com/filecoin-station/telegraf/blob/main/telegraf.conf
-- Run `fly deploy`
+- Test your changes with `telegraf --config telegraf.conf --test`
+- Commit, push and run `fly deploy`
 
 ## `spark-api`
 
