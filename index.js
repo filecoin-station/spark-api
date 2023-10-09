@@ -78,7 +78,6 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
   }
 
   validate(result, 'participantAddress', { type: 'string', required: true })
-  validate(result, 'success', { type: 'boolean', required: true })
   validate(result, 'timeout', { type: 'boolean', required: false })
   validate(result, 'startAt', { type: 'date', required: true })
   validate(result, 'statusCode', { type: 'number', required: false })
@@ -95,7 +94,6 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
         provider_address,
         protocol,
         participant_address,
-        success,
         timeout,
         start_at,
         status_code,
@@ -111,7 +109,7 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
         retrieval_templates.cid,
         retrieval_templates.provider_address,
         retrieval_templates.protocol,
-        $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+        $2, $3, $4, $5, $6, $7, $8, $9, $10
       FROM retrievals LEFT JOIN retrieval_templates
         ON retrievals.retrieval_template_id = retrieval_templates.id
       WHERE retrievals.id = $1
@@ -119,7 +117,6 @@ const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound
     `, [
     retrievalId,
     result.participantAddress,
-    result.success,
     result.timeout || false,
     new Date(result.startAt),
     result.statusCode,
@@ -155,7 +152,6 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'providerAddress', { type: 'string', required: true })
   validate(measurement, 'protocol', { type: 'string', required: true })
   validate(measurement, 'participantAddress', { type: 'string', required: true })
-  validate(measurement, 'success', { type: 'boolean', required: true })
   validate(measurement, 'timeout', { type: 'boolean', required: false })
   validate(measurement, 'startAt', { type: 'date', required: true })
   validate(measurement, 'statusCode', { type: 'number', required: false })
@@ -172,7 +168,6 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         provider_address,
         protocol,
         participant_address,
-        success,
         timeout,
         start_at,
         status_code,
@@ -183,7 +178,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         completed_at_round
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
       )
       RETURNING id
     `, [
@@ -193,7 +188,6 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.providerAddress,
     measurement.protocol,
     measurement.participantAddress,
-    measurement.success,
     measurement.timeout || false,
     new Date(measurement.startAt),
     measurement.statusCode,
@@ -225,7 +219,6 @@ const getMeasurement = async (req, res, client, measurementId) => {
     zinniaVersion: resultRow.zinnia_version,
     createdAt: resultRow.created_at,
     finishedAt: resultRow.finished_at,
-    success: resultRow.success,
     timeout: resultRow.timeout,
     startAt: resultRow.start_at,
     statusCode: resultRow.status_code,

@@ -38,7 +38,6 @@ Body:
 ```typescript
 {
   participantAddress: String,
-  success: Boolean,
   timeout: Boolean,
   startAt: String,       // ISO 8601
   statusCode: Number,

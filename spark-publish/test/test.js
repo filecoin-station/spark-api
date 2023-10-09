@@ -91,7 +91,6 @@ describe('integration', () => {
       providerAddress: '/dns4/localhost/tcp/8080',
       protocol: 'graphsync',
       participantAddress: 't1foobar',
-      success: true,
       timeout: false,
       startAt: new Date('2023-09-18T13:33:51.239Z'),
       statusCode: 200,
@@ -110,7 +109,6 @@ describe('integration', () => {
         provider_address,
         protocol,
         participant_address,
-        success,
         timeout,
         start_at,
         status_code,
@@ -121,7 +119,7 @@ describe('integration', () => {
         completed_at_round
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
       )
     `, [
       measurementRecorded.sparkVersion,
@@ -130,7 +128,6 @@ describe('integration', () => {
       measurementRecorded.providerAddress,
       measurementRecorded.protocol,
       measurementRecorded.participantAddress,
-      measurementRecorded.success,
       measurementRecorded.timeout,
       measurementRecorded.startAt,
       measurementRecorded.statusCode,

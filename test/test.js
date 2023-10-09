@@ -144,10 +144,9 @@ describe('Routes', () => {
         })
       })
       const { id: retrievalId, ...retrieval } = await createRequest.json()
-      const { rows } = await client.query('SELECT success FROM measurements')
+      const { rows } = await client.query('SELECT * FROM measurements')
       assert.strictEqual(rows.length, 0)
       const result = {
-        success: true,
         walletAddress,
         startAt: new Date(),
         statusCode: 200,
@@ -173,7 +172,6 @@ describe('Routes', () => {
       `, [
         measurementId
       ])
-      assert.strictEqual(retrievalResultRow.success, result.success)
       assert.strictEqual(retrievalResultRow.participant_address, participantAddress)
       assert.strictEqual(
         retrievalResultRow.start_at.toJSON(),
@@ -218,7 +216,6 @@ describe('Routes', () => {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            success: true,
             walletAddress,
             startAt: new Date(),
             statusCode: 200,
@@ -238,7 +235,6 @@ describe('Routes', () => {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            success: true,
             walletAddress,
             startAt: new Date(),
             statusCode: 200,
@@ -276,8 +272,7 @@ describe('Routes', () => {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            // success: true,
-            walletAddress,
+            // walletAddress,
             startAt: new Date(),
             statusCode: 200,
             firstByteAt: new Date(),
@@ -289,7 +284,7 @@ describe('Routes', () => {
       await assertResponseStatus(res, 400)
       assert.strictEqual(
         await res.text(),
-        'Invalid .success - should be a boolean'
+        'Invalid .participantAddress - should be a string'
       )
     })
     it('validates column types', async () => {
@@ -300,10 +295,9 @@ describe('Routes', () => {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            success: 'nope',
             walletAddress,
             startAt: new Date(),
-            statusCode: 200,
+            statusCode: false,
             firstByteAt: new Date(),
             endAt: new Date(),
             byteLength: 100
@@ -313,7 +307,7 @@ describe('Routes', () => {
       await assertResponseStatus(res, 400)
       assert.strictEqual(
         await res.text(),
-        'Invalid .success - should be a boolean'
+        'Invalid .statusCode - should be a number'
       )
     })
     it('validates dates', async () => {
@@ -324,7 +318,6 @@ describe('Routes', () => {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            success: true,
             walletAddress,
             startAt: 'not-iso',
             statusCode: 200,
@@ -348,7 +341,6 @@ describe('Routes', () => {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            success: true,
             walletAddress,
             startAt: new Date(),
             statusCode: 200,
@@ -373,7 +365,6 @@ describe('Routes', () => {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              success: true,
               walletAddress,
               startAt: new Date(),
               statusCode: 200,
@@ -392,7 +383,6 @@ describe('Routes', () => {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              success: true,
               walletAddress,
               startAt: new Date(),
               statusCode: 200,
@@ -430,7 +420,6 @@ describe('Routes', () => {
         protocol: 'graphsync',
         sparkVersion: '1.2.3',
         zinniaVersion: '2.3.4',
-        success: true,
         participantAddress,
         startAt: new Date(),
         statusCode: 200,
@@ -455,7 +444,6 @@ describe('Routes', () => {
         `, [
         id
       ])
-      assert.strictEqual(measurementRow.success, measurement.success)
       assert.strictEqual(measurementRow.participant_address, participantAddress)
       assert.strictEqual(
         measurementRow.start_at.toJSON(),
@@ -493,7 +481,6 @@ describe('Routes', () => {
         protocol: 'graphsync',
         sparkVersion: '1.2.3',
         zinniaVersion: '2.3.4',
-        success: true,
         startAt: new Date(),
         statusCode: 200,
         firstByteAt: new Date(),
@@ -538,7 +525,6 @@ describe('Routes', () => {
         protocol
       } = await createRequest.json()
       const retrieval = {
-        success: true,
         participantAddress,
         startAt: new Date(),
         statusCode: 200,
@@ -567,7 +553,6 @@ describe('Routes', () => {
       assert.strictEqual(body.sparkVersion, '1.2.3')
       assert.strictEqual(body.zinniaVersion, '2.3.4')
       assert(body.finishedAt)
-      assert.strictEqual(body.success, retrieval.success)
       assert.strictEqual(body.startAt, retrieval.startAt.toJSON())
       assert.strictEqual(body.statusCode, retrieval.statusCode)
       assert.strictEqual(body.firstByteAt, retrieval.firstByteAt.toJSON())
