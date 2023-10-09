@@ -3,11 +3,22 @@
 After deploying a new version of the impact evaluator framework, update the
 services mentioned in this document.
 
+## contract
+
+```js
+await ieContractWithSigner.setRoundReward(ethers.utils.parseUnits('1.0', 'ether'))
+await ieContractWithSigner.setNextRoundLength(60)
+await ieContractWithSigner.grantRole(ieContractWithSigner.EVALUATE_ROLE(), '0xB0a808b5C49f5Ed7Af9EcAAaF033B2d937692877')
+```
+
+Fund contract using https://faucet.calibration.fildev.network/funds.html.
+
 ## Telemetry
 
 - Replace `t4` and `0x` contract addresses https://github.com/filecoin-station/telegraf/blob/main/telegraf.conf
 - If the ABI changed, replace method IDs https://github.com/filecoin-station/telegraf/blob/main/telegraf.conf
-- Run `fly deploy`
+- Test your changes with `telegraf --config telegraf.conf --test`
+- Commit, push and run `fly deploy`
 
 ## `spark-api`
 
