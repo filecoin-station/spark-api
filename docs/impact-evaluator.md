@@ -1,15 +1,9 @@
 # Impact Evaluator
 
-After deploying a new version of the impact evaluator framework, update the
-services mentioned in this document.
+After deploying a new version of the [`spark-impact-evaluator`](https://github.com/filecoin-station/spark-impact-evaluator),
+update the services mentioned in this document.
 
 ## contract
-
-```js
-await ieContractWithSigner.setRoundReward(ethers.utils.parseUnits('1.0', 'ether'))
-await ieContractWithSigner.setNextRoundLength(60)
-await ieContractWithSigner.grantRole(ieContractWithSigner.EVALUATE_ROLE(), '0xB0a808b5C49f5Ed7Af9EcAAaF033B2d937692877')
-```
 
 Fund contract using https://faucet.calibration.fildev.network/funds.html.
 
