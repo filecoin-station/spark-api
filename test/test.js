@@ -28,7 +28,11 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
-    await maybeCreateSparkRound(client, currentSparkRoundNumber)
+    await maybeCreateSparkRound(client, {
+      sparkRoundNumber: currentSparkRoundNumber,
+      meridianContractAddress: '0x10',
+      meridianRoundIndex: 120n
+    })
     const handler = await createHandler({
       client,
       logger: {
@@ -560,6 +564,49 @@ describe('Routes', () => {
       assert.strictEqual(body.byteLength, retrieval.byteLength)
       assert.strictEqual(body.attestation, retrieval.attestation)
       assert.strictEqual(body.publishedAs, null)
+    })
+  })
+
+  describe('GET /round/meridian/:address/:round', () => {
+    before(async () => {
+      await maybeCreateSparkRound(client, {
+        sparkRoundNumber: 10,
+        meridianContractAddress: '0x1a',
+        meridianRoundIndex: 120n
+      })
+
+      await maybeCreateSparkRound(client, {
+        sparkRoundNumber: 9,
+        meridianContractAddress: '0x99', // different address
+        meridianRoundIndex: 120n
+      })
+
+      await maybeCreateSparkRound(client, {
+        sparkRoundNumber: 11,
+        meridianContractAddress: '0x1a',
+        meridianRoundIndex: 121n // different round index
+      })
+    })
+
+    it('returns details of the correct SPARK round', async () => {
+      const res = await fetch(`${spark}/rounds/meridian/0x1a/120`)
+      await assertResponseStatus(res, 200)
+      const { retrievalTasks, ...details } = await res.json()
+
+      assert.deepStrictEqual(details, {
+        roundId: '10'
+      })
+      assert.strictEqual(retrievalTasks.length, 30)
+    })
+
+    it('returns 404 for unknown round index', async () => {
+      const res = await fetch(`${spark}/rounds/meridian/0x1a/99`)
+      await assertResponseStatus(res, 404)
+    })
+
+    it('returns 404 for unknown contract address', async () => {
+      const res = await fetch(`${spark}/rounds/meridian/0xaa/120`)
+      await assertResponseStatus(res, 404)
     })
   })
 

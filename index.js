@@ -17,6 +17,8 @@ const handler = async (req, res, client, getCurrentRound) => {
     await createMeasurement(req, res, client, getCurrentRound)
   } else if (segs[0] === 'measurements' && req.method === 'GET') {
     await getMeasurement(req, res, client, Number(segs[1]))
+  } else if (segs[0] === 'rounds' && segs[1] === 'meridian' && req.method === 'GET') {
+    await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
     await getRoundDetails(req, res, client, getCurrentRound, segs[1])
   } else {
@@ -230,6 +232,21 @@ const getMeasurement = async (req, res, client, measurementId) => {
   })
 }
 
+const getMeridianRoundDetails = async (req, res, client, meridianAddress, meridianRound) => {
+  const { rows: [round] } = await client.query(`
+    SELECT * FROM spark_rounds
+    WHERE meridian_address = $1 AND meridian_round = $2
+   `, [
+    meridianAddress,
+    meridianRound
+  ])
+  if (!round) {
+    return notFound(res)
+  }
+
+  await replyWithRoundDetails(res, client, round)
+}
+
 const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) => {
   const roundNumber = await parseRoundNumberOrCurrent(getCurrentRound, roundParam)
 
@@ -242,10 +259,14 @@ const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) =>
     return notFound(res)
   }
 
-  const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [roundNumber])
+  await replyWithRoundDetails(res, client, round)
+}
+
+const replyWithRoundDetails = async (res, client, round) => {
+  const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [round.id])
 
   json(res, {
-    roundId: roundNumber.toString(),
+    roundId: round.id.toString(),
     retrievalTasks: tasks.map(t => ({
       cid: t.cid,
       providerAddress: t.provider_address,
