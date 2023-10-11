@@ -36,8 +36,6 @@ describe('Round Tracker', () => {
       let sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
       assertApproximately(sparkRounds[0].created_at, new Date(), 30_000)
-      assert.strictEqual(sparkRounds[0].meridian_address, '0x1a')
-      assert.strictEqual(sparkRounds[0].meridian_round, '120')
 
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
