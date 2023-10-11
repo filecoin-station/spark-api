@@ -37,6 +37,9 @@ describe('Round Tracker', () => {
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
       assertApproximately(sparkRounds[0].created_at, new Date(), 30_000)
 
+      // first round number was correctly initialised
+      assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1a'), '1')
+
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 121n,
@@ -46,6 +49,9 @@ describe('Round Tracker', () => {
       sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1', '2'])
       assertApproximately(sparkRounds[1].created_at, new Date(), 30_000)
+
+      // first round number was not changed
+      assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1a'), '1')
     })
 
     it('handles deployment of a new smart contract', async () => {
@@ -65,6 +71,9 @@ describe('Round Tracker', () => {
       })
       assert.strictEqual(sparkRoundNumber, 2n)
 
+      // first round number was correctly initialised
+      assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1b'), '2')
+
       // Double check that the next meridian round will map correctly
       // New contract version `0x1b`
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
@@ -73,6 +82,9 @@ describe('Round Tracker', () => {
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 3n)
+
+      // first round number was not changed
+      assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1b'), '2')
     })
 
     it('handles duplicate RoundStarted event', async () => {
@@ -141,3 +153,11 @@ describe('Round Tracker', () => {
     })
   })
 })
+
+const getFirstRoundForContractAddress = async (pgClient, contractAddress) => {
+  const { rows } = await pgClient.query(
+    'SELECT first_spark_round_number FROM meridian_contract_versions WHERE contract_address = $1',
+    [contractAddress]
+  )
+  return rows?.[0]?.first_spark_round_number
+}

@@ -3,7 +3,7 @@ import http from 'node:http'
 import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
 import pg from 'pg'
-import { maybeCreateSparkRound } from '../lib/round-tracker.js'
+import { maybeCreateSparkRound, mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
 
 const { DATABASE_URL } = process.env
 const participantAddress = 'f1abc'
@@ -560,6 +560,68 @@ describe('Routes', () => {
       assert.strictEqual(body.byteLength, retrieval.byteLength)
       assert.strictEqual(body.attestation, retrieval.attestation)
       assert.strictEqual(body.publishedAs, null)
+    })
+  })
+
+  describe('GET /round/meridian/:address/:round', () => {
+    before(async () => {
+      await client.query('DELETE FROM meridian_contract_versions')
+
+      // round 1 managed by old contract version
+      let num = await mapCurrentMeridianRoundToSparkRound({
+        pgClient: client,
+        meridianContractAddress: '0xOLD',
+        meridianRoundIndex: 10n
+      })
+      assert.strictEqual(num, 1n)
+
+      // round 2 managed by the new contract version
+      num = await mapCurrentMeridianRoundToSparkRound({
+        pgClient: client,
+        meridianContractAddress: '0xNEW',
+        meridianRoundIndex: 120n
+      })
+      assert.strictEqual(num, 2n)
+
+      // round 3 managed by the new contract version too
+      num = await mapCurrentMeridianRoundToSparkRound({
+        pgClient: client,
+        meridianContractAddress: '0xNEW',
+        meridianRoundIndex: 121n
+      })
+      assert.strictEqual(num, 3n)
+    })
+
+    it('returns details of the correct SPARK round', async () => {
+      const res = await fetch(`${spark}/rounds/meridian/0xNEW/120`)
+      await assertResponseStatus(res, 200)
+      const { retrievalTasks, ...details } = await res.json()
+
+      assert.deepStrictEqual(details, {
+        roundId: '2'
+      })
+      assert.strictEqual(retrievalTasks.length, 30)
+    })
+
+    it('returns details of a SPARK round managed by older contract version', async () => {
+      const res = await fetch(`${spark}/rounds/meridian/0xOLD/10`)
+      await assertResponseStatus(res, 200)
+      const { retrievalTasks, ...details } = await res.json()
+
+      assert.deepStrictEqual(details, {
+        roundId: '1'
+      })
+      assert.strictEqual(retrievalTasks.length, 30)
+    })
+
+    it('returns 404 for unknown round index', async () => {
+      const res = await fetch(`${spark}/rounds/meridian/0xNEW/99`)
+      await assertResponseStatus(res, 404)
+    })
+
+    it('returns 404 for unknown contract address', async () => {
+      const res = await fetch(`${spark}/rounds/meridian/0xaa/120`)
+      await assertResponseStatus(res, 404)
     })
   })
 
