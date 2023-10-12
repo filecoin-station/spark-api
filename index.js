@@ -18,6 +18,8 @@ const handler = async (req, res, client, getCurrentRound) => {
     await createMeasurement(req, res, client, getCurrentRound)
   } else if (segs[0] === 'measurements' && req.method === 'GET') {
     await getMeasurement(req, res, client, Number(segs[1]))
+  } else if (segs[0] === 'rounds' && segs[1] === 'meridian' && req.method === 'GET') {
+    await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
     await getRoundDetails(req, res, client, getCurrentRound, segs[1])
   } else {
@@ -243,21 +245,64 @@ const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) =>
     res.setHeader('cache-control', 'no-store')
   }
 
+  await replyWithDetailsForRoundNumber(res, client, roundNumber)
+}
+
+const replyWithDetailsForRoundNumber = async (res, client, roundNumber) => {
   const { rows: [round] } = await client.query('SELECT * FROM spark_rounds WHERE id = $1', [roundNumber])
   if (!round) {
     return notFound(res)
   }
 
-  const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [roundNumber])
+  const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [round.id])
 
   json(res, {
-    roundId: roundNumber.toString(),
+    roundId: round.id.toString(),
     retrievalTasks: tasks.map(t => ({
       cid: t.cid,
       providerAddress: t.provider_address,
       protocol: t.protocol
     }))
   })
+}
+
+const getMeridianRoundDetails = async (_req, res, client, meridianAddress, meridianRound) => {
+  meridianRound = BigInt(meridianRound)
+  const { rows } = await client.query(`
+    SELECT
+      first_spark_round_number - spark_round_offset as first,
+      last_spark_round_number - spark_round_offset as last,
+      spark_round_offset as offset
+    FROM meridian_contract_versions
+    WHERE contract_address = $1
+  `, [
+    meridianAddress
+  ])
+  if (!rows.length) {
+    console.error('Unknown Meridian contract address: %s', meridianAddress)
+    return notFound(res)
+  }
+  const first = BigInt(rows[0].first)
+  const last = BigInt(rows[0].last)
+  const offset = BigInt(rows[0].offset)
+
+  if (meridianRound < first || meridianRound > last) {
+    console.error('Meridian contract %s round %s is out of bounds [%s, %s]',
+      meridianAddress,
+      meridianRound,
+      first,
+      last
+    )
+    return notFound(res)
+  }
+
+  const roundNumber = meridianRound + offset
+  console.log('Mapped meridian contract %s round %s to SPARK round %s',
+    meridianAddress,
+    meridianRound,
+    roundNumber
+  )
+  await replyWithDetailsForRoundNumber(res, client, roundNumber)
 }
 
 const parseRoundNumberOrCurrent = async (getCurrentRound, roundParam) => {
