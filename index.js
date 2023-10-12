@@ -3,6 +3,7 @@ import { migrate } from './lib/migrate.js'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'
+import { mapRequestToInetGroup } from './lib/inet-grouping.js'
 
 const handler = async (req, res, client, getCurrentRound) => {
   const segs = req.url.split('/').filter(Boolean)
@@ -160,6 +161,9 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'byteLength', { type: 'number', required: false })
   validate(measurement, 'attestation', { type: 'string', required: false })
 
+  const inetGroup = mapRequestToInetGroup(req)
+  console.log('inet group: %o', inetGroup)
+
   const { rows } = await client.query(`
       INSERT INTO measurements (
         spark_version,
@@ -175,10 +179,11 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         end_at,
         byte_length,
         attestation,
+        inet_group,
         completed_at_round
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
       )
       RETURNING id
     `, [
@@ -195,6 +200,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     new Date(measurement.endAt),
     measurement.byteLength,
     measurement.attestation,
+    inetGroup,
     round
   ])
   json(res, { id: rows[0].id })
