@@ -672,27 +672,32 @@ describe('Routes', () => {
 
   describe('Redirect', () => {
     it('redirects to the right domain', async () => {
-      const handler = await createHandler({
-        client,
-        logger: {
-          info () {},
-          error (...args) { console.error(...args) }
-        },
-        async getCurrentRound () {
-          return currentSparkRoundNumber
-        },
-        domain: 'foobar'
-      })
-      const server = http.createServer(handler)
-      server.listen()
-      await once(server, 'listening')
-      spark = `http://127.0.0.1:${server.address().port}`
-      const res = await fetch(
-        `${spark}/rounds/${currentSparkRoundNumber}`,
-        { redirect: 'manual' }
-      )
-      await assertResponseStatus(res, 301)
-      assert.strictEqual(res.headers.get('location'), `https://foobar/rounds/${currentSparkRoundNumber}`)
+      try {
+        const handler = await createHandler({
+          client,
+          logger: {
+            info () {},
+            error (...args) { console.error(...args) }
+          },
+          async getCurrentRound () {
+            return currentSparkRoundNumber
+          },
+          domain: 'foobar'
+        })
+        const server = http.createServer(handler)
+        server.listen()
+        await once(server, 'listening')
+        spark = `http://127.0.0.1:${server.address().port}`
+        const res = await fetch(
+          `${spark}/rounds/${currentSparkRoundNumber}`,
+          { redirect: 'manual' }
+        )
+        await assertResponseStatus(res, 301)
+        assert.strictEqual(res.headers.get('location'), `https://foobar/rounds/${currentSparkRoundNumber}`)
+      } finally {
+        server.closeAllConnections()
+        server.close()
+      }
     })
   })
 
