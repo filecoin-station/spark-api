@@ -4,7 +4,10 @@ import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'
 
-const handler = async (req, res, client, getCurrentRound) => {
+const handler = async (req, res, client, getCurrentRound, domain) => {
+  if (req.headers.host.split(':')[0] !== domain) {
+    return redirect(res, `https://${domain}${req.url}`)
+  }
   const segs = req.url.split('/').filter(Boolean)
   if (segs[0] === 'retrievals' && req.method === 'POST') {
     await createRetrieval(req, res, client, getCurrentRound)
@@ -334,12 +337,23 @@ const notFound = (res) => {
   res.end('Not Found')
 }
 
-export const createHandler = async ({ client, logger, getCurrentRound }) => {
+const redirect = (res, location) => {
+  res.statusCode = 301
+  res.setHeader('location', location)
+  res.end()
+}
+
+export const createHandler = async ({
+  client,
+  logger,
+  getCurrentRound,
+  domain
+}) => {
   await migrate(client)
   return (req, res) => {
     const start = new Date()
     logger.info(`${req.method} ${req.url} ...`)
-    handler(req, res, client, getCurrentRound)
+    handler(req, res, client, getCurrentRound, domain)
       .catch(err => errorHandler(res, err, logger))
       .then(() => {
         logger.info(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)
