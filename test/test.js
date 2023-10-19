@@ -672,6 +672,7 @@ describe('Routes', () => {
 
   describe('Redirect', () => {
     it('redirects to the right domain', async () => {
+      let server
       try {
         const handler = await createHandler({
           client,
@@ -684,10 +685,10 @@ describe('Routes', () => {
           },
           domain: 'foobar'
         })
-        const server = http.createServer(handler)
+        server = http.createServer(handler)
         server.listen()
         await once(server, 'listening')
-        spark = `http://127.0.0.1:${server.address().port}`
+        const spark = `http://127.0.0.1:${server.address().port}`
         const res = await fetch(
           `${spark}/rounds/${currentSparkRoundNumber}`,
           { redirect: 'manual' }
