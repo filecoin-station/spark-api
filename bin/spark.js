@@ -12,7 +12,7 @@ import assert from 'node:assert'
 const {
   PORT = 8080,
   HOST = '127.0.0.1',
-  DOMAIN = 'api.filspark.com',
+  DOMAIN = 'localhost',
   DATABASE_URL,
   SENTRY_ENVIRONMENT = 'development'
 } = process.env
