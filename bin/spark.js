@@ -12,6 +12,7 @@ import assert from 'node:assert'
 const {
   PORT = 8080,
   HOST = '127.0.0.1',
+  DOMAIN = 'localhost',
   DATABASE_URL,
   SENTRY_ENVIRONMENT = 'development'
 } = process.env
@@ -58,7 +59,12 @@ const round = await getCurrentRound()
 assert(!!round, 'cannot obtain the current Spark round number')
 console.log('SPARK round number at service startup:', round)
 
-const handler = await createHandler({ client, logger: console, getCurrentRound })
+const handler = await createHandler({
+  client,
+  logger: console,
+  getCurrentRound,
+  domain: DOMAIN
+})
 const server = http.createServer(handler)
 console.log('Starting the http server on host %j port %s', HOST, PORT)
 server.listen(PORT, HOST)
