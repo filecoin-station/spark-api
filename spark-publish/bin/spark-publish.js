@@ -9,7 +9,7 @@ import { newDelegatedEthAddress } from '@glif/filecoin-address'
 
 const {
   DATABASE_URL,
-  SENTRY_ENVIRONMMENT = 'development',
+  SENTRY_ENVIRONMENT = 'development',
   WALLET_SEED,
   WEB3_STORAGE_API_TOKEN,
   MIN_ROUND_LENGTH_SECONDS = 30,
@@ -18,7 +18,7 @@ const {
 
 Sentry.init({
   dsn: 'https://b5bd47a165dcd801408bc14d9fcbc1c3@o1408530.ingest.sentry.io/4505861814878208',
-  environment: SENTRY_ENVIRONMMENT,
+  environment: SENTRY_ENVIRONMENT,
   tracesSampleRate: 0.1
 })
 

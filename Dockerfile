@@ -32,5 +32,6 @@ COPY --from=builder /app /app
 WORKDIR /app
 ENV NODE_ENV production
 ENV PATH /root/.volta/bin:$PATH
+ENV DOMAIN api.filspark.com
 
 CMD [ "npm", "run", "start" ]

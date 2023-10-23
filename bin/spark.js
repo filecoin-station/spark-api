@@ -12,8 +12,9 @@ import assert from 'node:assert'
 const {
   PORT = 8080,
   HOST = '127.0.0.1',
+  DOMAIN = 'localhost',
   DATABASE_URL,
-  SENTRY_ENVIRONMMENT = 'development'
+  SENTRY_ENVIRONMENT = 'development'
 } = process.env
 
 const pkg = JSON.parse(
@@ -30,7 +31,7 @@ const pkg = JSON.parse(
 Sentry.init({
   dsn: 'https://4a55431b256641f98f6a51651526831f@o1408530.ingest.sentry.io/4505199717122048',
   release: pkg.version,
-  environment: SENTRY_ENVIRONMMENT,
+  environment: SENTRY_ENVIRONMENT,
   tracesSampleRate: 0.1
 })
 
@@ -58,7 +59,12 @@ const round = await getCurrentRound()
 assert(!!round, 'cannot obtain the current Spark round number')
 console.log('SPARK round number at service startup:', round)
 
-const handler = await createHandler({ client, logger: console, getCurrentRound })
+const handler = await createHandler({
+  client,
+  logger: console,
+  getCurrentRound,
+  domain: DOMAIN
+})
 const server = http.createServer(handler)
 console.log('Starting the http server on host %j port %s', HOST, PORT)
 server.listen(PORT, HOST)

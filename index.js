@@ -5,7 +5,10 @@ import assert from 'http-assert'
 import { validate } from './lib/validate.js'
 import { mapRequestToInetGroup } from './lib/inet-grouping.js'
 
-const handler = async (req, res, client, getCurrentRound) => {
+const handler = async (req, res, client, getCurrentRound, domain) => {
+  if (req.headers.host.split(':')[0] !== domain) {
+    return redirect(res, `https://${domain}${req.url}`)
+  }
   const segs = req.url.split('/').filter(Boolean)
   if (segs[0] === 'retrievals' && req.method === 'POST') {
     await createRetrieval(req, res, client, getCurrentRound)
@@ -22,6 +25,8 @@ const handler = async (req, res, client, getCurrentRound) => {
     await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
     await getRoundDetails(req, res, client, getCurrentRound, segs[1])
+  } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
+    await inspectRequest(req, res)
   } else {
     notFound(res)
   }
@@ -340,12 +345,33 @@ const notFound = (res) => {
   res.end('Not Found')
 }
 
-export const createHandler = async ({ client, logger, getCurrentRound }) => {
+const redirect = (res, location) => {
+  res.statusCode = 301
+  res.setHeader('location', location)
+  res.end()
+}
+
+export const inspectRequest = async (req, res) => {
+  await json(res, {
+    remoteAddress: req.socket.remoteAddress,
+    flyClientAddr: req.headers['fly-client-ip'],
+    cloudfareAddr: req.headers['cf-connecting-ip'],
+    forwardedFor: req.headers['x-forwarded-for'],
+    headers: req.headersDistinct
+  })
+}
+
+export const createHandler = async ({
+  client,
+  logger,
+  getCurrentRound,
+  domain
+}) => {
   await migrate(client)
   return (req, res) => {
     const start = new Date()
     logger.info(`${req.method} ${req.url} ...`)
-    handler(req, res, client, getCurrentRound)
+    handler(req, res, client, getCurrentRound, domain)
       .catch(err => errorHandler(res, err, logger))
       .then(() => {
         logger.info(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)
