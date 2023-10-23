@@ -24,6 +24,8 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
     await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
     await getRoundDetails(req, res, client, getCurrentRound, segs[1])
+  } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
+    await inspectRequest(req, res)
   } else {
     notFound(res)
   }
@@ -341,6 +343,16 @@ const redirect = (res, location) => {
   res.statusCode = 301
   res.setHeader('location', location)
   res.end()
+}
+
+export const inspectRequest = async (req, res) => {
+  await json(res, {
+    remoteAddress: req.socket.remoteAddress,
+    flyClientAddr: req.headers['fly-client-ip'],
+    cloudfareAddr: req.headers['cf-connecting-ip'],
+    forwardedFor: req.headers['x-forwarded-for'],
+    headers: req.headersDistinct
+  })
 }
 
 export const createHandler = async ({
