@@ -1,4 +1,5 @@
 import assert from 'node:assert'
+import { setTimeout } from 'node:timers/promises'
 import pg from 'pg'
 import { mapRequestToInetGroup, mapRequestToSubnet, mapSubnetToInetGroup } from '../lib/inet-grouping.js'
 import { Request as FakeRequest } from 'light-my-request/lib/request.js'
@@ -89,32 +90,29 @@ describe('mapSubnetToInetGroup', () => {
   })
 
   it('maps a newly seen subnet', async () => {
-    const now = new Date('2023-10-24T10:20:30.456Z')
-    const group = await mapSubnetToInetGroup(pgClient, '127.0.0.0/24', now)
-    assert.match(group, /^uTa.{9}$/)
+    const group = await mapSubnetToInetGroup(pgClient, '127.0.0.0/24')
+    assert.match(group, /^[a-zA-Z0-9_-]{12}$/)
 
-    const { rows } = await pgClient.query('SELECT * FROM inet_groups')
+    const { rows } = await pgClient.query('SELECT id, subnet FROM inet_groups')
     assert.deepStrictEqual(rows, [
       {
         id: group,
-        subnet: '127.0.0.0/24',
-        created_at: now
+        subnet: '127.0.0.0/24'
       }
     ])
   })
 
   it('maps an already seen subnet', async () => {
-    const now = new Date('2023-10-24T10:20:30.456Z')
-    const first = await mapSubnetToInetGroup(pgClient, '127.0.0.0/24', now)
-    const second = await mapSubnetToInetGroup(pgClient, '127.0.0.0/24', new Date())
+    const first = await mapSubnetToInetGroup(pgClient, '127.0.0.0/24')
+    await setTimeout(100)
+    const second = await mapSubnetToInetGroup(pgClient, '127.0.0.0/24')
     assert.strictEqual(first, second)
 
-    const { rows } = await pgClient.query('SELECT * FROM inet_groups')
+    const { rows } = await pgClient.query('SELECT id, subnet FROM inet_groups')
     assert.deepStrictEqual(rows, [
       {
         id: first,
-        subnet: '127.0.0.0/24',
-        created_at: now
+        subnet: '127.0.0.0/24'
       }
     ])
   })
