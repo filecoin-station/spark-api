@@ -1,4 +1,5 @@
 import { json } from 'http-responders'
+import Sentry from '@sentry/node'
 import { migrate } from './lib/migrate.js'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
@@ -336,6 +337,10 @@ const errorHandler = (res, err, logger) => {
     logger.error(err)
     res.statusCode = 500
     res.end('Internal Server Error')
+  }
+
+  if (res.statusCode >= 500) {
+    Sentry.captureException(err)
   }
 }
 
