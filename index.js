@@ -169,7 +169,6 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'attestation', { type: 'string', required: false })
 
   const inetGroup = await mapRequestToInetGroup(client, req)
-  console.log('inet group: %o', inetGroup)
 
   const { rows } = await client.query(`
       INSERT INTO measurements (
