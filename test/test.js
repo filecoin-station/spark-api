@@ -468,7 +468,7 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.zinnia_version, '2.3.4')
       assert.strictEqual(measurementRow.completed_at_round, currentSparkRoundNumber.toString())
       assert.strictEqual(measurementRow.published_as, null)
-      assert.strictEqual(measurementRow.inet_group, '127.0.0.0')
+      assert.match(measurementRow.inet_group, /^.{12}$/)
     })
 
     it('allows older format with walletAddress', async () => {
