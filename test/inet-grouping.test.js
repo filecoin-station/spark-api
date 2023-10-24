@@ -35,6 +35,11 @@ describe('mapRequestToInetGroup', () => {
     const different = await mapRequestToInetGroup(pgClient, createRequestFromAddress('10.20.99.1'))
     assert.notStrictEqual(different, first)
   })
+
+  it('maps all IPv6 address to the same inet_group', async () => {
+    const group = await mapRequestToInetGroup(pgClient, createRequestFromAddress('bf27:c63a:689a:da7c:8150:6e23:1045:045d'))
+    assert.strictEqual(group, 'ipv6')
+  })
 })
 
 describe('mapRequestToSubnet', () => {
