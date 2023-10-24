@@ -27,7 +27,6 @@ jobs:
       - run: npm ci
       - run: npm test
 
-
   build-publish:
     runs-on: ubuntu-latest
     services:
@@ -55,7 +54,6 @@ jobs:
       - run: npm run migrate
       - run: cd spark-publish && npm ci
       - run: cd spark-publish && npm test
-
 
   docker-build-api:
     runs-on: ubuntu-latest
