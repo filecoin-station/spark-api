@@ -25,6 +25,7 @@ export const publish = async ({
       end_at,
       byte_length,
       attestation,
+      inet_group,
       cid,
       provider_address,
       protocol
