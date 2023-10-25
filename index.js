@@ -17,7 +17,7 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
     // TODO: Deprecate once clients have been updated
     await setRetrievalResult(req, res, client, Number(segs[1]), getCurrentRound)
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
-    assert.fail(501, 'This API endpoint is no longer supported.')
+    assert.fail(410, 'This API endpoint is no longer supported.')
   } else if (segs[0] === 'measurements' && req.method === 'POST') {
     await createMeasurement(req, res, client, getCurrentRound)
   } else if (segs[0] === 'measurements' && req.method === 'GET') {
