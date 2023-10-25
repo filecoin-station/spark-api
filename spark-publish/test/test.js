@@ -201,10 +201,10 @@ describe('integration', () => {
     const published = payload[0]
     assert.strictEqual(published.spark_version, measurementRecorded.sparkVersion)
     assert.strictEqual(published.cid, measurementRecorded.cid)
+    assert.strictEqual(published.inet_group, measurementRecorded.inetGroup)
     // TODO: test other fields
 
     // We are publishing records with invalid wallet addresses too
     assert.strictEqual(published.participant_address, 't1foobar')
-    assert.strictEqual(published.inet_group, measurementRecorded.inetGroup)
   })
 })
