@@ -408,7 +408,7 @@ describe('Routes', () => {
   describe('GET /retrievals/:id', () => {
     it('returns error', async () => {
       const res = await fetch(`${spark}/retrievals/0`)
-      await assertResponseStatus(res, 501 /* Not Implemented */)
+      await assertResponseStatus(res, 410 /* Gone */)
     })
   })
   describe('POST /measurements', () => {
