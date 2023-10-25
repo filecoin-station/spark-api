@@ -98,6 +98,7 @@ describe('integration', () => {
       endAt: new Date('2023-09-18T13:33:51.239Z'),
       byteLength: 100,
       attestation: 'json.sig',
+      inetGroup: 'MTIzNDU2Nzg',
       round: 42
     }
 
@@ -116,10 +117,11 @@ describe('integration', () => {
         end_at,
         byte_length,
         attestation,
+        inet_group,
         completed_at_round
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
       )
     `, [
       measurementRecorded.sparkVersion,
@@ -135,6 +137,7 @@ describe('integration', () => {
       measurementRecorded.endAt,
       measurementRecorded.byteLength,
       measurementRecorded.attestation,
+      measurementRecorded.inetGroup,
       measurementRecorded.round
     ])
 
@@ -202,5 +205,6 @@ describe('integration', () => {
 
     // We are publishing records with invalid wallet addresses too
     assert.strictEqual(published.participant_address, 't1foobar')
+    assert.strictEqual(published.inet_group, measurementRecorded.inetGroup)
   })
 })
