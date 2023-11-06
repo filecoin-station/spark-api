@@ -118,6 +118,7 @@ describe('Routes', () => {
         firstByteAt: new Date(),
         endAt: new Date(),
         byteLength: 100,
+        carTooLarge: true,
         attestation: 'json.sig'
       }
 
@@ -160,6 +161,7 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.completed_at_round, currentSparkRoundNumber.toString())
       assert.strictEqual(measurementRow.published_as, null)
       assert.match(measurementRow.inet_group, /^.{12}$/)
+      assert.strictEqual(measurementRow.car_too_large, true)
     })
 
     it('allows older format with walletAddress', async () => {

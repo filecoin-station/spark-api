@@ -59,6 +59,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'endAt', { type: 'date', required: false })
   validate(measurement, 'byteLength', { type: 'number', required: false })
   validate(measurement, 'attestation', { type: 'string', required: false })
+  validate(measurement, 'car_too_large', { type: 'boolean', required: false })
 
   const inetGroup = await mapRequestToInetGroup(client, req)
 
@@ -78,10 +79,11 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         byte_length,
         attestation,
         inet_group,
+        car_too_large,
         completed_at_round
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
       )
       RETURNING id
     `, [
@@ -99,6 +101,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.byteLength,
     measurement.attestation,
     inetGroup,
+    measurement.carTooLarge ?? false,
     round
   ])
   json(res, { id: rows[0].id })
