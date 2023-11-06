@@ -602,7 +602,7 @@ describe('Routes', () => {
       assert.deepStrictEqual(details, {
         roundId: '2'
       })
-      assert.strictEqual(retrievalTasks.length, 30)
+      assert.strictEqual(retrievalTasks.length, 200)
     })
 
     it('returns details of a SPARK round managed by older contract version', async () => {
@@ -613,7 +613,7 @@ describe('Routes', () => {
       assert.deepStrictEqual(details, {
         roundId: '1'
       })
-      assert.strictEqual(retrievalTasks.length, 30)
+      assert.strictEqual(retrievalTasks.length, 200)
     })
 
     it('returns 404 for unknown round index', async () => {
