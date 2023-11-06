@@ -12,10 +12,9 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
   }
   const segs = req.url.split('/').filter(Boolean)
   if (segs[0] === 'retrievals' && req.method === 'POST') {
-    await createRetrieval(req, res, client, getCurrentRound)
+    assert.fail(410, 'OUTDATED CLIENT')
   } else if (segs[0] === 'retrievals' && req.method === 'PATCH') {
-    // TODO: Deprecate once clients have been updated
-    await setRetrievalResult(req, res, client, Number(segs[1]), getCurrentRound)
+    assert.fail(410, 'OUTDATED CLIENT')
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
     assert.fail(410, 'This API endpoint is no longer supported.')
   } else if (segs[0] === 'measurements' && req.method === 'POST') {
@@ -31,114 +30,6 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
   } else {
     notFound(res)
   }
-}
-
-const createRetrieval = async (req, res, client, getCurrentRound) => {
-  const round = await getCurrentRound()
-  const body = await getRawBody(req, { limit: '100kb' })
-  const meta = body.length > 0 ? JSON.parse(body) : {}
-  validate(meta, 'sparkVersion', { type: 'string', required: false })
-  validate(meta, 'zinniaVersion', { type: 'string', required: false })
-  assert(meta.sparkVersion, 400, 'OUTDATED CLIENT')
-
-  // TODO: Consolidate to one query
-  const { rows: [retrievalTemplate] } = await client.query(`
-    SELECT id, cid, provider_address, protocol
-    FROM retrieval_templates
-    WHERE deleted = FALSE
-    OFFSET floor(random() * (SELECT COUNT(*) FROM retrieval_templates WHERE deleted = FALSE))
-    LIMIT 1
-  `)
-  const { rows: [retrieval] } = await client.query(`
-    INSERT INTO retrievals (
-      retrieval_template_id,
-      spark_version,
-      zinnia_version,
-      created_at_round
-    )
-    VALUES ($1, $2, $3, $4)
-    RETURNING id
-  `, [
-    retrievalTemplate.id,
-    meta.sparkVersion,
-    meta.zinniaVersion,
-    round
-  ])
-  json(res, {
-    id: retrieval.id,
-    cid: retrievalTemplate.cid,
-    providerAddress: retrievalTemplate.provider_address,
-    protocol: retrievalTemplate.protocol
-  })
-}
-
-const setRetrievalResult = async (req, res, client, retrievalId, getCurrentRound) => {
-  const round = await getCurrentRound()
-  assert(!Number.isNaN(retrievalId), 400, 'Invalid Retrieval ID')
-  const body = await getRawBody(req, { limit: '100kb' })
-  const result = JSON.parse(body)
-
-  // Backwards-compatibility with older clients sending walletAddress instead of participantAddress
-  // We can remove this after enough SPARK clients are running the new version (mid-October 2023)
-  if (!('participantAddress' in result) && ('walletAddress' in result)) {
-    validate(result, 'walletAddress', { type: 'string', required: true })
-    result.participantAddress = result.walletAddress
-    delete result.walletAddress
-  }
-
-  validate(result, 'participantAddress', { type: 'string', required: true })
-  validate(result, 'timeout', { type: 'boolean', required: false })
-  validate(result, 'startAt', { type: 'date', required: true })
-  validate(result, 'statusCode', { type: 'number', required: false })
-  validate(result, 'firstByteAt', { type: 'date', required: false })
-  validate(result, 'endAt', { type: 'date', required: false })
-  validate(result, 'byteLength', { type: 'number', required: false })
-  validate(result, 'attestation', { type: 'string', required: false })
-
-  const { rows } = await client.query(`
-      INSERT INTO measurements (
-        spark_version,
-        zinnia_version,
-        cid,
-        provider_address,
-        protocol,
-        participant_address,
-        timeout,
-        start_at,
-        status_code,
-        first_byte_at,
-        end_at,
-        byte_length,
-        attestation,
-        completed_at_round
-      )
-      SELECT
-        retrievals.spark_version,
-        retrievals.zinnia_version,
-        retrieval_templates.cid,
-        retrieval_templates.provider_address,
-        retrieval_templates.protocol,
-        $2, $3, $4, $5, $6, $7, $8, $9, $10
-      FROM retrievals LEFT JOIN retrieval_templates
-        ON retrievals.retrieval_template_id = retrieval_templates.id
-      WHERE retrievals.id = $1
-      RETURNING id
-    `, [
-    retrievalId,
-    result.participantAddress,
-    result.timeout || false,
-    new Date(result.startAt),
-    result.statusCode,
-    new Date(result.firstByteAt),
-    new Date(result.endAt),
-    result.byteLength,
-    result.attestation,
-    round
-  ])
-  if (!rows.length) {
-    assert.fail(404, 'Retrieval Not Found')
-  }
-  json(res, { measurementId: rows[0].id })
 }
 
 const createMeasurement = async (req, res, client, getCurrentRound) => {
