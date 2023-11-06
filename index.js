@@ -59,7 +59,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'endAt', { type: 'date', required: false })
   validate(measurement, 'byteLength', { type: 'number', required: false })
   validate(measurement, 'attestation', { type: 'string', required: false })
-  validate(measurement, 'car_too_large', { type: 'boolean', required: false })
+  validate(measurement, 'carTooLarge', { type: 'boolean', required: false })
 
   const inetGroup = await mapRequestToInetGroup(client, req)
 
