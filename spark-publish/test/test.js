@@ -99,6 +99,7 @@ describe('integration', () => {
       byteLength: 100,
       attestation: 'json.sig',
       inetGroup: 'MTIzNDU2Nzg',
+      carTooLarge: true,
       round: 42
     }
 
@@ -118,10 +119,11 @@ describe('integration', () => {
         byte_length,
         attestation,
         inet_group,
+        car_too_large,
         completed_at_round
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
       )
     `, [
       measurementRecorded.sparkVersion,
@@ -138,6 +140,7 @@ describe('integration', () => {
       measurementRecorded.byteLength,
       measurementRecorded.attestation,
       measurementRecorded.inetGroup,
+      measurementRecorded.carTooLarge,
       measurementRecorded.round
     ])
 
@@ -202,6 +205,7 @@ describe('integration', () => {
     assert.strictEqual(published.spark_version, measurementRecorded.sparkVersion)
     assert.strictEqual(published.cid, measurementRecorded.cid)
     assert.strictEqual(published.inet_group, measurementRecorded.inetGroup)
+    assert.strictEqual(published.car_too_large, measurementRecorded.carTooLarge)
     // TODO: test other fields
 
     // We are publishing records with invalid wallet addresses too
