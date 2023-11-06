@@ -245,6 +245,7 @@ describe('Routes', () => {
       assert.strictEqual(body.byteLength, retrieval.byteLength)
       assert.strictEqual(body.attestation, retrieval.attestation)
       assert.strictEqual(body.publishedAs, null)
+      assert.strictEqual(body.carTooLarge, false)
     })
   })
 
