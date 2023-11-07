@@ -5,7 +5,7 @@ update the services mentioned in this document.
 
 ## contract
 
-Fund contract using https://faucet.calibration.fildev.network/funds.html.
+Send rewards FIL to the contract.
 
 ## Telemetry
 
