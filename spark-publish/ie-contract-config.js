@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
 const {
-  IE_CONTRACT_ADDRESS = '0xeeadb614b63dee83f0e7b4095094ae7c5d439ba2',
+  IE_CONTRACT_ADDRESS = '0x8c9f415ee86e65ec72d08b05c42cdc40bfecb8e5',
   RPC_URL = 'https://api.node.glif.io/rpc/v0'
 } = process.env
 
