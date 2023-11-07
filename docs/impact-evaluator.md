@@ -5,7 +5,7 @@ update the services mentioned in this document.
 
 ## contract
 
-- Store address in [ with the updated address](https://www.notion.so/pl-strflt/Addresses-c1140fd90af94388a9bfbd4f4da2a377#5dda4b1708054349af91fa356e58b950)
+- Add address to https://www.notion.so/pl-strflt/Addresses-c1140fd90af94388a9bfbd4f4da2a377#5dda4b1708054349af91fa356e58b950
 - Send FIL rewards to the contract
 
 ## Telemetry
