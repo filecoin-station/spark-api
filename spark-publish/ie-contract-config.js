@@ -2,8 +2,8 @@ import fs from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
 const {
-  IE_CONTRACT_ADDRESS = '0x3113b83ccec38a18df936f31297de490485d7b2e',
-  RPC_URL = 'https://api.calibration.node.glif.io/rpc/v0'
+  IE_CONTRACT_ADDRESS = '0xeeadb614b63dee83f0e7b4095094ae7c5d439ba2',
+  RPC_URL = 'https://api.node.glif.io/rpc/v0'
 } = process.env
 
 const IE_CONTRACT_ABI = JSON.parse(
