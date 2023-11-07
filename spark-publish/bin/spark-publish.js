@@ -38,7 +38,7 @@ const ieContract = new ethers.Contract(
 console.log(
   'Wallet address:',
   signer.address,
-  newDelegatedEthAddress(signer.address, 't').toString()
+  newDelegatedEthAddress(signer.address, 'f').toString()
 )
 
 await startPublishLoop({
