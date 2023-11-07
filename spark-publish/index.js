@@ -26,6 +26,7 @@ export const publish = async ({
       byte_length,
       attestation,
       inet_group,
+      car_too_large,
       cid,
       provider_address,
       protocol
