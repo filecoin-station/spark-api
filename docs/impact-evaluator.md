@@ -26,3 +26,8 @@ update the services mentioned in this document.
 - Replace `0x` contract address https://github.com/filecoin-station/spark-api/blob/main/spark-publish/ie-contract-config.js
 - If the ABI changed, replace https://github.com/filecoin-station/spark-api/blob/main/spark-publish/abi.json
 - Push to `main` to deploy
+
+## Station Desktop
+
+- Replace `0x` contract address
+- 
