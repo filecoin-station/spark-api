@@ -6,6 +6,7 @@ update the services mentioned in this document.
 ## contract
 
 - Add address to https://www.notion.so/pl-strflt/Addresses-c1140fd90af94388a9bfbd4f4da2a377#5dda4b1708054349af91fa356e58b950
+- Replace CLI contract address
 - Send FIL rewards to the contract
 
 ## Telemetry
@@ -30,4 +31,7 @@ update the services mentioned in this document.
 ## Station Desktop
 
 - Replace `0x` contract address
-- 
+
+## Station Core
+
+- Replace `0x` contract address
