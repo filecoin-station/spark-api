@@ -297,7 +297,7 @@ describe('Routes', () => {
       assert.deepStrictEqual(details, {
         roundId: '1'
       })
-      assert.strictEqual(retrievalTasks.length, 200)
+      assert.strictEqual(retrievalTasks.length, 400)
     })
 
     it('returns 404 for unknown round index', async () => {
