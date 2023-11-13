@@ -3,7 +3,11 @@ import http from 'node:http'
 import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
 import pg from 'pg'
-import { maybeCreateSparkRound, mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
+import {
+  TASKS_PER_ROUND,
+  maybeCreateSparkRound,
+  mapCurrentMeridianRoundToSparkRound
+} from '../lib/round-tracker.js'
 
 const { DATABASE_URL } = process.env
 const participantAddress = 'f1abc'
@@ -286,7 +290,7 @@ describe('Routes', () => {
       assert.deepStrictEqual(details, {
         roundId: '2'
       })
-      assert.strictEqual(retrievalTasks.length, 400)
+      assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
     })
 
     it('returns details of a SPARK round managed by older contract version', async () => {
@@ -297,7 +301,7 @@ describe('Routes', () => {
       assert.deepStrictEqual(details, {
         roundId: '1'
       })
-      assert.strictEqual(retrievalTasks.length, 400)
+      assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
     })
 
     it('returns 404 for unknown round index', async () => {
