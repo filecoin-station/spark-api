@@ -1,0 +1,14 @@
+# fly.toml app configuration file generated for spark-logshipper-twilight-grass-5309 on 2023-11-16T14:49:48+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "spark-logshipper-twilight-grass-5309"
+primary_region = "fra"
+
+[build]
+  image = "ghcr.io/superfly/fly-log-shipper:latest"
+
+[[services]]
+  protocol = ""
+  internal_port = 8686
