@@ -286,7 +286,7 @@ describe('Routes', () => {
       assert.deepStrictEqual(details, {
         roundId: '2'
       })
-      assert.strictEqual(retrievalTasks.length, 200)
+      assert.strictEqual(retrievalTasks.length, 400)
     })
 
     it('returns details of a SPARK round managed by older contract version', async () => {
