@@ -14,7 +14,11 @@ describe('unit', () => {
 
     const clientQueryParams = []
     const client = {
-      async query (_, params) {
+      async query (statement, params) {
+        if (statement.includes('SELECT COUNT(*) FROM measurements')) {
+          return { rows: [{ count: 10 }] }
+        }
+
         clientQueryParams.push(params)
         return { rows: [] }
       }
