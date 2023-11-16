@@ -10,6 +10,11 @@ export const publish = async ({
   maxMeasurements = 1000,
   logger = console
 }) => {
+  // Fetch the count of all unpublished measurements - we need this for monitoring
+  const totalCount = (await client.query(
+    'SELECT COUNT(*) FROM measurements WHERE published_as IS NULL'
+  )).rows[0].count
+
   // Fetch measurements
   const { rows: measurements } = await client.query(`
     SELECT
@@ -78,6 +83,7 @@ export const publish = async ({
   record('publish', point => {
     point.intField('round_index', roundIndex)
     point.intField('measurements', measurements.length)
+    point.floatField('load', measurements.length / totalCount)
     point.intField(
       'upload_measurements_duration_ms',
       uploadMeasurementsDuration
