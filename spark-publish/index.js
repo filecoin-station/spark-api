@@ -10,11 +10,6 @@ export const publish = async ({
   maxMeasurements = 1000,
   logger = console
 }) => {
-  // Fetch the count of all unpublished measurements - we need this for monitoring
-  const totalCount = (await client.query(
-    'SELECT COUNT(*) FROM measurements WHERE published_as IS NULL'
-  )).rows[0].count
-
   // Fetch measurements
   const { rows: measurements } = await client.query(`
     SELECT
@@ -41,6 +36,14 @@ export const publish = async ({
   `, [
     maxMeasurements
   ])
+
+  // Fetch the count of all unpublished measurements - we need this for monitoring
+  // Note: this number will be higher than `measurements.length` because spark-api adds more
+  // measurements in between the previous and the next query.
+  const totalCount = (await client.query(
+    'SELECT COUNT(*) FROM measurements WHERE published_as IS NULL'
+  )).rows[0].count
+
   logger.log(`Publishing ${measurements.length} measurements. Total unpublished: ${totalCount}. Batch size: ${maxMeasurements}.`)
 
   // Share measurements
