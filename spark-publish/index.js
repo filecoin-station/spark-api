@@ -41,7 +41,7 @@ export const publish = async ({
   `, [
     maxMeasurements
   ])
-  logger.log(`Publishing ${measurements.length} measurements`)
+  logger.log(`Publishing ${measurements.length} measurements. Total unpublished: ${totalCount}. Batch size: ${maxMeasurements}.`)
 
   // Share measurements
   let start = new Date()
@@ -83,7 +83,7 @@ export const publish = async ({
   record('publish', point => {
     point.intField('round_index', roundIndex)
     point.intField('measurements', measurements.length)
-    point.floatField('load', measurements.length / totalCount)
+    point.floatField('load', totalCount / maxMeasurements)
     point.intField(
       'upload_measurements_duration_ms',
       uploadMeasurementsDuration
