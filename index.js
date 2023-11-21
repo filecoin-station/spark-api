@@ -141,9 +141,10 @@ const getMeasurement = async (req, res, client, measurementId) => {
 const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) => {
   const roundNumber = await parseRoundNumberOrCurrent(getCurrentRound, roundParam)
 
-  if (roundParam === 'current') {
-    res.setHeader('cache-control', 'no-store')
-  }
+  res.setHeader(
+    'cache-control',
+    `max-age=${roundParam === 'current' ? 60 : 31536000}}`
+  )
 
   await replyWithDetailsForRoundNumber(res, client, roundNumber)
 }
