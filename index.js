@@ -1,6 +1,5 @@
 import { json } from 'http-responders'
 import Sentry from '@sentry/node'
-import { migrate } from './lib/migrate.js'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'
@@ -271,7 +270,6 @@ export const createHandler = async ({
   getCurrentRound,
   domain
 }) => {
-  await migrate(client)
   return (req, res) => {
     const start = new Date()
     logger.info(`${req.method} ${req.url} ...`)
