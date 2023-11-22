@@ -43,8 +43,12 @@ describe('Routes', () => {
         info () {},
         error (...args) { console.error(...args) }
       },
-      async getCurrentRound () {
-        return currentSparkRoundNumber
+      getCurrentRound () {
+        return {
+          sparkRoundNumber: currentSparkRoundNumber,
+          meridianContractAddress: '0x1a',
+          meridianRoundIndex: 123n
+        }
       },
       domain: '127.0.0.1'
     })
@@ -331,7 +335,14 @@ describe('Routes', () => {
       })
     })
 
-    it('returns all properties of the current round', async () => {
+    it('returns temporary redirect with a short max-age', async () => {
+      const res = await fetch(`${spark}/rounds/current`, { redirect: 'manual' })
+      await assertResponseStatus(res, 302)
+      assert.strictEqual(res.headers.get('location'), '/rounds/meridian/0x1a/123')
+      assert.strictEqual(res.headers.get('cache-control'), 'max-age=1')
+    })
+
+    it('returns all properties of the current round after redirect', async () => {
       const res = await fetch(`${spark}/rounds/current`)
       await assertResponseStatus(res, 200)
       const body = await res.json()
@@ -394,8 +405,12 @@ describe('Routes', () => {
             info () {},
             error (...args) { console.error(...args) }
           },
-          async getCurrentRound () {
-            return currentSparkRoundNumber
+          getCurrentRound () {
+            return {
+              sparkRoundNumber: currentSparkRoundNumber,
+              meridianContractAddress: '0x1a',
+              meridianRoundIndex: 123n
+            }
           },
           domain: 'foobar'
         })

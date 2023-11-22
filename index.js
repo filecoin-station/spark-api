@@ -33,7 +33,8 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
 }
 
 const createMeasurement = async (req, res, client, getCurrentRound) => {
-  const round = await getCurrentRound()
+  console.log('round', getCurrentRound())
+  const { sparkRoundNumber } = getCurrentRound()
   const body = await getRawBody(req, { limit: '100kb' })
   const measurement = JSON.parse(body)
   validate(measurement, 'sparkVersion', { type: 'string', required: false })
@@ -102,7 +103,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.attestation,
     inetGroup,
     measurement.carTooLarge ?? false,
-    round
+    sparkRoundNumber
   ])
   json(res, { id: rows[0].id })
 }
@@ -139,12 +140,27 @@ const getMeasurement = async (req, res, client, measurementId) => {
 }
 
 const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) => {
-  const roundNumber = await parseRoundNumberOrCurrent(getCurrentRound, roundParam)
-
   if (roundParam === 'current') {
-    res.setHeader('cache-control', 'no-store')
+    const { meridianContractAddress, meridianRoundIndex } = getCurrentRound()
+    const addr = encodeURIComponent(meridianContractAddress)
+    const idx = encodeURIComponent(meridianRoundIndex)
+    const location = `/rounds/meridian/${addr}/${idx}`
+    res.setHeader('location', location)
+
+    // Cache the location of the current round for a short time to ensure clients learn quickly
+    // about a new round when it starts. Also, this endpoint is cheap to execute, so we can
+    // afford to call it frequently
+    res.setHeader('cache-control', 'max-age=1')
+
+    // Temporary redirect, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/302
+    res.statusCode = 302
+    res.end(location)
+
+    return
   }
 
+  // TODO(bajtos) Remove this branch and return 404
+  const roundNumber = await parseRoundNumberOrCurrent(getCurrentRound, roundParam)
   await replyWithDetailsForRoundNumber(res, client, roundNumber)
 }
 
