@@ -33,7 +33,6 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
 }
 
 const createMeasurement = async (req, res, client, getCurrentRound) => {
-  console.log('round', getCurrentRound())
   const { sparkRoundNumber } = getCurrentRound()
   const body = await getRawBody(req, { limit: '100kb' })
   const measurement = JSON.parse(body)
