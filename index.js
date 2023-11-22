@@ -160,7 +160,7 @@ const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) =>
   }
 
   // TODO(bajtos) Remove this branch and return 404
-  const roundNumber = await parseRoundNumberOrCurrent(getCurrentRound, roundParam)
+  const roundNumber = parseRoundNumber(roundParam)
   await replyWithDetailsForRoundNumber(res, client, roundNumber)
 }
 
@@ -214,10 +214,7 @@ const getMeridianRoundDetails = async (_req, res, client, meridianAddress, merid
   })
 }
 
-const parseRoundNumberOrCurrent = async (getCurrentRound, roundParam) => {
-  if (roundParam === 'current') {
-    return await getCurrentRound()
-  }
+const parseRoundNumber = (roundParam) => {
   try {
     return BigInt(roundParam)
   } catch (err) {
