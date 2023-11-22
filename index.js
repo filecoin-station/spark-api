@@ -166,43 +166,36 @@ const replyWithDetailsForRoundNumber = async (res, client, roundNumber) => {
   })
 }
 
+const ONE_YEAR_IN_SECONDS = 365 * 24 * 3600
+
 const getMeridianRoundDetails = async (_req, res, client, meridianAddress, meridianRound) => {
   meridianRound = BigInt(meridianRound)
-  const { rows } = await client.query(`
-    SELECT
-      first_spark_round_number - spark_round_offset as first,
-      last_spark_round_number - spark_round_offset as last,
-      spark_round_offset as offset
-    FROM meridian_contract_versions
-    WHERE contract_address = $1
-  `, [
-    meridianAddress
-  ])
-  if (!rows.length) {
-    console.error('Unknown Meridian contract address: %s', meridianAddress)
-    return notFound(res)
-  }
-  const first = BigInt(rows[0].first)
-  const last = BigInt(rows[0].last)
-  const offset = BigInt(rows[0].offset)
 
-  if (meridianRound < first || meridianRound > last) {
-    console.error('Meridian contract %s round %s is out of bounds [%s, %s]',
-      meridianAddress,
-      meridianRound,
-      first,
-      last
-    )
-    return notFound(res)
-  }
-
-  const roundNumber = meridianRound + offset
-  console.log('Mapped meridian contract %s round %s to SPARK round %s',
+  const { rows: [round] } = await client.query(`
+    SELECT * FROM spark_rounds
+    WHERE meridian_address = $1 and meridian_round = $2
+    `, [
     meridianAddress,
-    meridianRound,
-    roundNumber
-  )
-  await replyWithDetailsForRoundNumber(res, client, roundNumber)
+    meridianRound
+  ])
+  if (!round) {
+    // IMPORTANT: This response must not be cached for too long to handle the case when the client
+    // requested details of a future round.
+    res.setHeader('cache-control', 'max-age=60')
+    return notFound(res)
+  }
+
+  const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [round.id])
+
+  res.setHeader('cache-control', `public, max-age=${ONE_YEAR_IN_SECONDS}, immutable`)
+  json(res, {
+    roundId: round.id.toString(),
+    retrievalTasks: tasks.map(t => ({
+      cid: t.cid,
+      providerAddress: t.provider_address,
+      protocol: t.protocol
+    }))
+  })
 }
 
 const parseRoundNumberOrCurrent = async (getCurrentRound, roundParam) => {
