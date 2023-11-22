@@ -32,15 +32,23 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
-    await maybeCreateSparkRound(client, currentSparkRoundNumber)
+    await maybeCreateSparkRound(client, {
+      sparkRoundNumber: currentSparkRoundNumber,
+      meridianContractAddress: '0x1a',
+      meridianRoundIndex: 123n
+    })
     const handler = await createHandler({
       client,
       logger: {
         info () {},
         error (...args) { console.error(...args) }
       },
-      async getCurrentRound () {
-        return currentSparkRoundNumber
+      getCurrentRound () {
+        return {
+          sparkRoundNumber: currentSparkRoundNumber,
+          meridianContractAddress: '0x1a',
+          meridianRoundIndex: 123n
+        }
       },
       domain: '127.0.0.1'
     })
@@ -256,6 +264,7 @@ describe('Routes', () => {
   describe('GET /round/meridian/:address/:round', () => {
     before(async () => {
       await client.query('DELETE FROM meridian_contract_versions')
+      await client.query('DELETE FROM spark_rounds')
 
       // round 1 managed by old contract version
       let num = await mapCurrentMeridianRoundToSparkRound({
@@ -316,7 +325,24 @@ describe('Routes', () => {
   })
 
   describe('GET /rounds/current', () => {
-    it('returns all properties of the current round', async () => {
+    before(async () => {
+      await client.query('DELETE FROM meridian_contract_versions')
+      await client.query('DELETE FROM spark_rounds')
+      await maybeCreateSparkRound(client, {
+        sparkRoundNumber: currentSparkRoundNumber,
+        meridianContractAddress: '0x1a',
+        meridianRoundIndex: 123n
+      })
+    })
+
+    it('returns temporary redirect with a short max-age', async () => {
+      const res = await fetch(`${spark}/rounds/current`, { redirect: 'manual' })
+      await assertResponseStatus(res, 302)
+      assert.strictEqual(res.headers.get('location'), '/rounds/meridian/0x1a/123')
+      assert.strictEqual(res.headers.get('cache-control'), 'max-age=1')
+    })
+
+    it('returns all properties of the current round after redirect', async () => {
       const res = await fetch(`${spark}/rounds/current`)
       await assertResponseStatus(res, 200)
       const body = await res.json()
@@ -336,6 +362,16 @@ describe('Routes', () => {
   })
 
   describe('GET /rounds/:id', () => {
+    before(async () => {
+      await client.query('DELETE FROM meridian_contract_versions')
+      await client.query('DELETE FROM spark_rounds')
+      await maybeCreateSparkRound(client, {
+        sparkRoundNumber: currentSparkRoundNumber,
+        meridianContractAddress: '0x1a',
+        meridianRoundIndex: 123n
+      })
+    })
+
     it('returns 404 when the round does not exist', async () => {
       const res = await fetch(`${spark}/rounds/${currentSparkRoundNumber * 2n}`)
       await assertResponseStatus(res, 404)
@@ -369,8 +405,12 @@ describe('Routes', () => {
             info () {},
             error (...args) { console.error(...args) }
           },
-          async getCurrentRound () {
-            return currentSparkRoundNumber
+          getCurrentRound () {
+            return {
+              sparkRoundNumber: currentSparkRoundNumber,
+              meridianContractAddress: '0x1a',
+              meridianRoundIndex: 123n
+            }
           },
           domain: 'foobar'
         })
