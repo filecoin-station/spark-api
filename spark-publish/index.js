@@ -53,7 +53,7 @@ export const publish = async ({
     'measurements.json',
     { type: 'application/json' }
   )
-  const cid = await web3Storage.put([file])
+  const cid = await web3Storage.uploadFile(file)
   const uploadMeasurementsDuration = new Date() - start
   logger.log(`Measurements packaged in ${cid}`)
 
