@@ -1,6 +1,5 @@
 import { json } from 'http-responders'
 import Sentry from '@sentry/node'
-import { migrate } from './lib/migrate.js'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'
@@ -33,7 +32,7 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
 }
 
 const createMeasurement = async (req, res, client, getCurrentRound) => {
-  const round = await getCurrentRound()
+  const { sparkRoundNumber } = getCurrentRound()
   const body = await getRawBody(req, { limit: '100kb' })
   const measurement = JSON.parse(body)
   validate(measurement, 'sparkVersion', { type: 'string', required: false })
@@ -102,7 +101,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.attestation,
     inetGroup,
     measurement.carTooLarge ?? false,
-    round
+    sparkRoundNumber
   ])
   json(res, { id: rows[0].id })
 }
@@ -139,12 +138,27 @@ const getMeasurement = async (req, res, client, measurementId) => {
 }
 
 const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) => {
-  const roundNumber = await parseRoundNumberOrCurrent(getCurrentRound, roundParam)
-
   if (roundParam === 'current') {
-    res.setHeader('cache-control', 'no-store')
+    const { meridianContractAddress, meridianRoundIndex } = getCurrentRound()
+    const addr = encodeURIComponent(meridianContractAddress)
+    const idx = encodeURIComponent(meridianRoundIndex)
+    const location = `/rounds/meridian/${addr}/${idx}`
+    res.setHeader('location', location)
+
+    // Cache the location of the current round for a short time to ensure clients learn quickly
+    // about a new round when it starts. Also, this endpoint is cheap to execute, so we can
+    // afford to call it frequently
+    res.setHeader('cache-control', 'max-age=1')
+
+    // Temporary redirect, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/302
+    res.statusCode = 302
+    res.end(location)
+
+    return
   }
 
+  // TODO(bajtos) Remove this branch and return 404
+  const roundNumber = parseRoundNumber(roundParam)
   await replyWithDetailsForRoundNumber(res, client, roundNumber)
 }
 
@@ -166,49 +180,39 @@ const replyWithDetailsForRoundNumber = async (res, client, roundNumber) => {
   })
 }
 
+const ONE_YEAR_IN_SECONDS = 365 * 24 * 3600
+
 const getMeridianRoundDetails = async (_req, res, client, meridianAddress, meridianRound) => {
   meridianRound = BigInt(meridianRound)
-  const { rows } = await client.query(`
-    SELECT
-      first_spark_round_number - spark_round_offset as first,
-      last_spark_round_number - spark_round_offset as last,
-      spark_round_offset as offset
-    FROM meridian_contract_versions
-    WHERE contract_address = $1
-  `, [
-    meridianAddress
-  ])
-  if (!rows.length) {
-    console.error('Unknown Meridian contract address: %s', meridianAddress)
-    return notFound(res)
-  }
-  const first = BigInt(rows[0].first)
-  const last = BigInt(rows[0].last)
-  const offset = BigInt(rows[0].offset)
 
-  if (meridianRound < first || meridianRound > last) {
-    console.error('Meridian contract %s round %s is out of bounds [%s, %s]',
-      meridianAddress,
-      meridianRound,
-      first,
-      last
-    )
-    return notFound(res)
-  }
-
-  const roundNumber = meridianRound + offset
-  console.log('Mapped meridian contract %s round %s to SPARK round %s',
+  const { rows: [round] } = await client.query(`
+    SELECT * FROM spark_rounds
+    WHERE meridian_address = $1 and meridian_round = $2
+    `, [
     meridianAddress,
-    meridianRound,
-    roundNumber
-  )
-  await replyWithDetailsForRoundNumber(res, client, roundNumber)
+    meridianRound
+  ])
+  if (!round) {
+    // IMPORTANT: This response must not be cached for too long to handle the case when the client
+    // requested details of a future round.
+    res.setHeader('cache-control', 'max-age=60')
+    return notFound(res)
+  }
+
+  const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [round.id])
+
+  res.setHeader('cache-control', `public, max-age=${ONE_YEAR_IN_SECONDS}, immutable`)
+  json(res, {
+    roundId: round.id.toString(),
+    retrievalTasks: tasks.map(t => ({
+      cid: t.cid,
+      providerAddress: t.provider_address,
+      protocol: t.protocol
+    }))
+  })
 }
 
-const parseRoundNumberOrCurrent = async (getCurrentRound, roundParam) => {
-  if (roundParam === 'current') {
-    return await getCurrentRound()
-  }
+const parseRoundNumber = (roundParam) => {
   try {
     return BigInt(roundParam)
   } catch (err) {
@@ -266,7 +270,6 @@ export const createHandler = async ({
   getCurrentRound,
   domain
 }) => {
-  await migrate(client)
   return (req, res) => {
     const start = new Date()
     logger.info(`${req.method} ${req.url} ...`)

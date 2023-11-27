@@ -36,6 +36,8 @@ describe('Round Tracker', () => {
       let sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
       assertApproximately(sparkRounds[0].created_at, new Date(), 30_000)
+      assert.strictEqual(sparkRounds[0].meridian_address, '0x1a')
+      assert.strictEqual(sparkRounds[0].meridian_round, '120')
 
       // first round number was correctly initialised
       assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1a'), '1')
@@ -49,6 +51,8 @@ describe('Round Tracker', () => {
       sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1', '2'])
       assertApproximately(sparkRounds[1].created_at, new Date(), 30_000)
+      assert.strictEqual(sparkRounds[1].meridian_address, '0x1a')
+      assert.strictEqual(sparkRounds[1].meridian_round, '121')
 
       // first round number was not changed
       assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1a'), '1')
@@ -74,6 +78,10 @@ describe('Round Tracker', () => {
       // first round number was correctly initialised
       assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1b'), '2')
 
+      const { rows: [round2] } = await pgClient.query('SELECT * FROM spark_rounds WHERE id = 2')
+      assert.strictEqual(round2.meridian_address, '0x1b')
+      assert.strictEqual(round2.meridian_round, '10')
+
       // Double check that the next meridian round will map correctly
       // New contract version `0x1b`
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
@@ -82,6 +90,10 @@ describe('Round Tracker', () => {
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 3n)
+
+      const { rows: [round3] } = await pgClient.query('SELECT * FROM spark_rounds WHERE id = 3')
+      assert.strictEqual(round3.meridian_address, '0x1b')
+      assert.strictEqual(round3.meridian_round, '11')
 
       // first round number was not changed
       assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1b'), '2')
@@ -101,6 +113,8 @@ describe('Round Tracker', () => {
       let sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
       assertApproximately(sparkRounds[0].created_at, now, 30_000)
+      assert.strictEqual(sparkRounds[0].meridian_address, '0x1a')
+      assert.strictEqual(sparkRounds[0].meridian_round, '1')
 
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress,
@@ -111,6 +125,8 @@ describe('Round Tracker', () => {
       sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
       assertApproximately(sparkRounds[0].created_at, now, 30_000)
+      assert.strictEqual(sparkRounds[0].meridian_address, '0x1a')
+      assert.strictEqual(sparkRounds[0].meridian_round, '1')
     })
 
     it('creates tasks when a new round starts', async () => {

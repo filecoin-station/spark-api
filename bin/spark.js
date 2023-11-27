@@ -7,6 +7,7 @@ import fs from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRoundGetter } from '../lib/round-tracker.js'
+import { migrate } from '../lib/migrate.js'
 import assert from 'node:assert'
 
 const {
@@ -52,12 +53,13 @@ client.on('error', err => {
   // https://github.com/brianc/node-postgres/issues/1324#issuecomment-308778405
   console.error('An idle client has experienced an error', err.stack)
 })
+await migrate(client)
 
 const getCurrentRound = await createRoundGetter(client)
 
-const round = await getCurrentRound()
+const round = getCurrentRound()
 assert(!!round, 'cannot obtain the current Spark round number')
-console.log('SPARK round number at service startup:', round)
+console.log('SPARK round number at service startup:', round.sparkRoundNumber)
 
 const handler = await createHandler({
   client,
