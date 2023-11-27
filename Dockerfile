@@ -13,6 +13,7 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV SENTRY_ENVIRONMENT production
 ENV DOMAIN api.filspark.com
+ENV REQUEST_LOGGING false
 
 #######################################################################
 # Throw-away build stage to reduce size of final image
