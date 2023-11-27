@@ -24,10 +24,10 @@ describe('unit', () => {
       }
     }
 
-    const web3StoragePutFiles = []
+    const web3StorageUploadFiles = []
     const web3Storage = {
-      async put (files) {
-        web3StoragePutFiles.push(files)
+      async uploadFile (file) {
+        web3StorageUploadFiles.push(file)
         return CID.parse(cid)
       }
     }
@@ -67,8 +67,7 @@ describe('unit', () => {
       [1],
       [cid, []]
     ])
-    assert.strictEqual(web3StoragePutFiles.length, 1)
-    assert.strictEqual(web3StoragePutFiles[0].length, 1)
+    assert.strictEqual(web3StorageUploadFiles.length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
   })
 })
@@ -152,10 +151,10 @@ describe('integration', () => {
 
     // We're not sure if we're going to stick with web3.storage, or switch to
     // helia or another tool. Therefore, we're going to use a mock here.
-    const web3StoragePutFiles = []
+    const web3StorageUploadFiles = []
     const web3Storage = {
-      async put (files) {
-        web3StoragePutFiles.push(files)
+      async uploadFile (file) {
+        web3StorageUploadFiles.push(file)
         return CID.parse(cid)
       }
     }
@@ -199,11 +198,10 @@ describe('integration', () => {
 
     // TODO: Check data has been committed to the contract
 
-    assert.strictEqual(web3StoragePutFiles.length, 1)
-    assert.strictEqual(web3StoragePutFiles[0].length, 1)
+    assert.strictEqual(web3StorageUploadFiles.length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
 
-    const payload = JSON.parse(await web3StoragePutFiles[0][0].text())
+    const payload = JSON.parse(await web3StorageUploadFiles[0].text())
     assert.strictEqual(payload.length, 1)
     const published = payload[0]
     assert.strictEqual(published.spark_version, measurementRecorded.sparkVersion)
