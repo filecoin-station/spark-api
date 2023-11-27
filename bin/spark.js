@@ -15,7 +15,8 @@ const {
   HOST = '127.0.0.1',
   DOMAIN = 'localhost',
   DATABASE_URL,
-  SENTRY_ENVIRONMENT = 'development'
+  SENTRY_ENVIRONMENT = 'development',
+  REQUEST_LOGGING = 'true'
 } = process.env
 
 const pkg = JSON.parse(
@@ -65,7 +66,8 @@ const handler = await createHandler({
   client,
   logger: console,
   getCurrentRound,
-  domain: DOMAIN
+  domain: DOMAIN,
+  logRequests: ['1', 'true'].includes(REQUEST_LOGGING)
 })
 const server = http.createServer(handler)
 console.log('Starting the http server on host %j port %s', HOST, PORT)
