@@ -7,10 +7,14 @@
   "dependencies": {
     "@glif/filecoin-address": "^2.0.43",
     "@influxdata/influxdb-client": "^1.33.2",
+    "@ipld/car": "^5.2.4",
     "@sentry/node": "^7.66.0",
+    "@ucanto/core": "^9.0.1",
+    "@ucanto/principal": "^9.0.0",
+    "@web3-storage/access": "^18.0.3",
+    "@web3-storage/w3up-client": "^11.0.2",
     "ethers": "^5.7.2",
-    "pg": "^8.11.3",
-    "web3.storage": "^4.5.5"
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.4.8",
