@@ -268,20 +268,15 @@ export const createHandler = async ({
   client,
   logger,
   getCurrentRound,
-  domain,
-  logRequests = true
+  domain
 }) => {
   return (req, res) => {
     const start = new Date()
-    if (logRequests) {
-      logger.info(`${req.method} ${req.url} ...`)
-    }
+    logger.request(`${req.method} ${req.url} ...`)
     handler(req, res, client, getCurrentRound, domain)
       .catch(err => errorHandler(res, err, logger))
       .then(() => {
-        if (logRequests) {
-          logger.info(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)
-        }
+        logger.request(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)
       })
   }
 }
