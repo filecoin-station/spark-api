@@ -93,10 +93,10 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.protocol,
     measurement.participantAddress,
     measurement.timeout || false,
-    new Date(measurement.startAt),
+    parseDateStringOrNull(measurement.startAt),
     measurement.statusCode,
-    new Date(measurement.firstByteAt),
-    new Date(measurement.endAt),
+    parseDateStringOrNull(measurement.firstByteAt),
+    parseDateStringOrNull(measurement.endAt),
     measurement.byteLength,
     measurement.attestation,
     inetGroup,
@@ -284,4 +284,9 @@ export const createHandler = async ({
         }
       })
   }
+}
+
+const parseDateStringOrNull = (strOrNull) => {
+  if (strOrNull === undefined || strOrNull === null) return undefined
+  return new Date(strOrNull)
 }
