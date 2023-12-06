@@ -93,10 +93,10 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.protocol,
     measurement.participantAddress,
     measurement.timeout || false,
-    new Date(measurement.startAt),
+    parseOptionalDate(measurement.startAt),
     measurement.statusCode,
-    new Date(measurement.firstByteAt),
-    new Date(measurement.endAt),
+    parseOptionalDate(measurement.firstByteAt),
+    parseOptionalDate(measurement.endAt),
     measurement.byteLength,
     measurement.attestation,
     inetGroup,
@@ -284,4 +284,19 @@ export const createHandler = async ({
         }
       })
   }
+}
+
+/**
+ * Parse a date string field that may be `undefined` or `null`.
+ *
+ * - undefined -> undefined
+ * - null -> undefined
+ * - "iso-date-string" -> new Date("iso-date-string")
+ *
+ * @param {string | null | undefined} str
+ * @returns {Date | undefined}
+ */
+const parseOptionalDate = (str) => {
+  if (str === undefined || str === null) return undefined
+  return new Date(str)
 }

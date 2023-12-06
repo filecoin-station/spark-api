@@ -98,7 +98,7 @@ describe('integration', () => {
       startAt: new Date('2023-09-18T13:33:51.239Z'),
       statusCode: 200,
       firstByteAt: new Date('2023-09-18T13:33:51.239Z'),
-      endAt: new Date('2023-09-18T13:33:51.239Z'),
+      endAt: null,
       byteLength: 100,
       attestation: 'json.sig',
       inetGroup: 'MTIzNDU2Nzg',
@@ -208,6 +208,7 @@ describe('integration', () => {
     assert.strictEqual(published.cid, measurementRecorded.cid)
     assert.strictEqual(published.inet_group, measurementRecorded.inetGroup)
     assert.strictEqual(published.car_too_large, measurementRecorded.carTooLarge)
+    assert.strictEqual(published.end_at, null)
     // TODO: test other fields
 
     // We are publishing records with invalid wallet addresses too

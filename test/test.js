@@ -213,6 +213,43 @@ describe('Routes', () => {
       ])
       assert.strictEqual(measurementRow.participant_address, participantAddress)
     })
+
+    it('handles date fields set to null', async () => {
+      await client.query('DELETE FROM measurements')
+
+      const measurement = {
+        cid: 'bafytest',
+        providerAddress: '/dns4/localhost/tcp/8080',
+        protocol: 'graphsync',
+        sparkVersion: '1.2.3',
+        zinniaVersion: '2.3.4',
+        participantAddress,
+        startAt: new Date(),
+        statusCode: undefined,
+        firstByteAt: null,
+        endAt: null
+      }
+
+      const createRequest = await fetch(`${spark}/measurements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(measurement)
+      })
+      await assertResponseStatus(createRequest, 200)
+      const { id } = await createRequest.json()
+
+      const { rows: [measurementRow] } = await client.query(`
+          SELECT *
+          FROM measurements
+          WHERE id = $1
+        `, [
+        id
+      ])
+
+      assert.strictEqual(measurementRow.status_code, null)
+      assert.strictEqual(measurementRow.first_byte_at, null)
+      assert.strictEqual(measurementRow.end_at, null)
+    })
   })
 
   describe('GET /measurements/:id', () => {
