@@ -10,6 +10,7 @@ import { importDAG } from '@ucanto/core/delegation'
 import { ethers } from 'ethers'
 import { IE_CONTRACT_ABI, IE_CONTRACT_ADDRESS, RPC_URL } from '../ie-contract-config.js'
 import assert from 'node:assert'
+import { writeClient } from '../lib/telemetry.js'
 
 const {
   DATABASE_URL,
@@ -56,9 +57,18 @@ const ieContract = new ethers.Contract(
   provider
 ).connect(signer)
 
-await publish({
-  client,
-  web3Storage,
-  ieContract,
-  maxMeasurements: MAX_MEASUREMENTS_PER_ROUND
-})
+try {
+  await publish({
+    client,
+    web3Storage,
+    ieContract,
+    maxMeasurements: MAX_MEASUREMENTS_PER_ROUND
+  })
+} finally {
+  // Ensure telemetry has been submitted before exiting
+  try {
+    await writeClient.flush()
+  } catch (err) {
+    console.error(err)
+  }
+}
