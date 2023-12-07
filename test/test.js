@@ -41,7 +41,7 @@ describe('Routes', () => {
       client,
       logger: {
         info () {},
-        error (...args) { console.error(...args) },
+        error: console.error,
         request () {}
       },
       getCurrentRound () {
@@ -404,7 +404,7 @@ describe('Routes', () => {
           client,
           logger: {
             info () {},
-            error (...args) { console.error(...args) },
+            error: console.error,
             request () {}
           },
           getCurrentRound () {
