@@ -50,7 +50,7 @@ export const publish = async ({
   let start = new Date()
   const file = new File(
     [measurements.map(m => JSON.stringify(m)).join('\n')],
-    'measurements.json',
+    'measurements.ndjson',
     { type: 'application/json' }
   )
   const cid = await web3Storage.uploadFile(file)
