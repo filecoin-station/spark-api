@@ -211,7 +211,7 @@ describe('integration', () => {
       client,
       web3Storage,
       ieContract,
-      maxMeasurements: 1,
+      maxMeasurements: 2,
       logger
     })
 
