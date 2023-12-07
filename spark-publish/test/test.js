@@ -226,10 +226,11 @@ describe('integration', () => {
       .map(JSON.parse)
     assert.strictEqual(payload.length, 2)
     const published = payload[0]
-    assert.strictEqual(published.spark_version, measurements[0].sparkVersion)
-    assert.strictEqual(published.cid, measurements[0].cid)
-    assert.strictEqual(published.inet_group, measurements[0].inetGroup)
-    assert.strictEqual(published.car_too_large, measurements[0].carTooLarge)
+    const measurementRecorded = measurements[0]
+    assert.strictEqual(published.spark_version, measurementRecorded.sparkVersion)
+    assert.strictEqual(published.cid, measurementRecorded.cid)
+    assert.strictEqual(published.inet_group, measurementRecorded.inetGroup)
+    assert.strictEqual(published.car_too_large, measurementRecorded.carTooLarge)
     assert.strictEqual(published.end_at, null)
     // TODO: test other fields
 
