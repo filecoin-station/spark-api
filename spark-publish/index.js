@@ -1,6 +1,5 @@
 /* global File */
 
-import timers from 'node:timers/promises'
 import { record } from './lib/telemetry.js'
 
 export const publish = async ({
@@ -93,24 +92,4 @@ export const publish = async ({
     )
     point.intField('add_measurements_duration_ms', ieAddMeasurementsDuration)
   })
-}
-
-export const startPublishLoop = async ({
-  client,
-  web3Storage,
-  ieContract,
-  minRoundLength = 30_000,
-  maxMeasurementsPerRound = 1000
-}) => {
-  while (true) {
-    const lastStart = new Date()
-    await publish({
-      client,
-      web3Storage,
-      ieContract,
-      maxMeasurements: maxMeasurementsPerRound
-    })
-    const dt = new Date() - lastStart
-    if (dt < minRoundLength) await timers.setTimeout(minRoundLength - dt)
-  }
 }

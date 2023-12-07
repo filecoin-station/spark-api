@@ -5,7 +5,7 @@ const influx = new InfluxDB({
   // spark-publish-write
   token: 'Zkqa_s7mI0W_WKI6DUmu-iRnQkCvwNaQfbPK_zT7I6iYYaC2C1kokdlhO2jb4tjRcAJQHQXAGnrdD3vqlMZ63g=='
 })
-const writeClient = influx.getWriteApi(
+export const writeClient = influx.getWriteApi(
   'Filecoin Station', // org
   'spark-publish', // bucket
   'ns' // precision
