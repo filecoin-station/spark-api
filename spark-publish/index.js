@@ -48,8 +48,8 @@ export const publish = async ({
   // Share measurements
   let start = new Date()
   const file = new File(
-    [JSON.stringify(measurements)],
-    'measurements.json',
+    [measurements.map(m => JSON.stringify(m)).join('\n')],
+    'measurements.ndjson',
     { type: 'application/json' }
   )
   const cid = await web3Storage.uploadFile(file)
