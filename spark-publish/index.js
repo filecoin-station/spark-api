@@ -2,6 +2,9 @@
 
 import timers from 'node:timers/promises'
 import { record } from './lib/telemetry.js'
+import QueryStream from 'pg-query-stream'
+import JSONStream from 'JSONStream'
+import { pipeline } from 'node:stream/promises'
 
 export const publish = async ({
   client,
@@ -11,7 +14,7 @@ export const publish = async ({
   logger = console
 }) => {
   // Fetch measurements
-  const { rows: measurements } = await client.query(`
+  const query = new QueryStream(`
     SELECT
       id,
       spark_version,
@@ -36,6 +39,20 @@ export const publish = async ({
   `, [
     maxMeasurements
   ])
+  const stringify = JSONStream.stringify()
+  await Promise.all([
+    pipeline(
+      client.query(query),
+      stringify
+    ),
+    (async () => {
+      const file = new File(
+        [stringify],
+        'measurements.json',
+        { type: 'application/json' }
+      )
+    })()
+  ])
 
   // Fetch the count of all unpublished measurements - we need this for monitoring
   // Note: this number will be higher than `measurements.length` because spark-api adds more
@@ -48,11 +65,6 @@ export const publish = async ({
 
   // Share measurements
   let start = new Date()
-  const file = new File(
-    [JSON.stringify(measurements)],
-    'measurements.json',
-    { type: 'application/json' }
-  )
   const cid = await web3Storage.uploadFile(file)
   const uploadMeasurementsDuration = new Date() - start
   logger.log(`Measurements packaged in ${cid}`)
