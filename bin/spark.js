@@ -62,12 +62,17 @@ const round = getCurrentRound()
 assert(!!round, 'cannot obtain the current Spark round number')
 console.log('SPARK round number at service startup:', round.sparkRoundNumber)
 
+const logger = {
+  error: console.error,
+  info: console.info,
+  request: ['1', 'true'].includes(REQUEST_LOGGING) ? console.info : () => {}
+}
+
 const handler = await createHandler({
   client,
-  logger: console,
+  logger,
   getCurrentRound,
-  domain: DOMAIN,
-  logRequests: ['1', 'true'].includes(REQUEST_LOGGING)
+  domain: DOMAIN
 })
 const server = http.createServer(handler)
 console.log('Starting the http server on host %j port %s', HOST, PORT)
