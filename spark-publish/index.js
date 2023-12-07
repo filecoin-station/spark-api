@@ -49,7 +49,7 @@ export const publish = async ({
   // Share measurements
   let start = new Date()
   const file = new File(
-    [JSON.stringify(measurements)],
+    [measurements.map(m => JSON.stringify(m)).join('\n')],
     'measurements.json',
     { type: 'application/json' }
   )

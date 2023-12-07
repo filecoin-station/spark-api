@@ -201,9 +201,7 @@ describe('integration', () => {
     assert.strictEqual(web3StorageUploadFiles.length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
 
-    const payload = JSON.parse(await web3StorageUploadFiles[0].text())
-    assert.strictEqual(payload.length, 1)
-    const published = payload[0]
+    const published = JSON.parse(await web3StorageUploadFiles[0].text())
     assert.strictEqual(published.spark_version, measurementRecorded.sparkVersion)
     assert.strictEqual(published.cid, measurementRecorded.cid)
     assert.strictEqual(published.inet_group, measurementRecorded.inetGroup)
