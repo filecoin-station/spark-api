@@ -24,7 +24,7 @@ Response:
   id: String,
   cid: String,
   providerAddress: String,
-  protocol: 'graphsync'|'bitswap'
+  protocol: 'graphsync'|'bitswap'|'http'
 }
 ```
 

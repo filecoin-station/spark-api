@@ -24,10 +24,10 @@ describe('unit', () => {
       }
     }
 
-    const web3StoragePutFiles = []
+    const web3StorageUploadFiles = []
     const web3Storage = {
-      async put (files) {
-        web3StoragePutFiles.push(files)
+      async uploadFile (file) {
+        web3StorageUploadFiles.push(file)
         return CID.parse(cid)
       }
     }
@@ -67,8 +67,7 @@ describe('unit', () => {
       [1],
       [cid, []]
     ])
-    assert.strictEqual(web3StoragePutFiles.length, 1)
-    assert.strictEqual(web3StoragePutFiles[0].length, 1)
+    assert.strictEqual(web3StorageUploadFiles.length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
   })
 })
@@ -88,7 +87,7 @@ describe('integration', () => {
   it('publishes', async () => {
     await client.query('DELETE FROM measurements')
 
-    const measurementRecorded = {
+    const measurements = [{
       sparkVersion: '1.2.3',
       zinniaVersion: '0.5.6',
       cid: 'bafytest',
@@ -99,63 +98,82 @@ describe('integration', () => {
       startAt: new Date('2023-09-18T13:33:51.239Z'),
       statusCode: 200,
       firstByteAt: new Date('2023-09-18T13:33:51.239Z'),
-      endAt: new Date('2023-09-18T13:33:51.239Z'),
+      endAt: null,
       byteLength: 100,
       attestation: 'json.sig',
       inetGroup: 'MTIzNDU2Nzg',
       carTooLarge: true,
       round: 42
-    }
+    }, {
+      sparkVersion: '1.2.3',
+      zinniaVersion: '0.5.6',
+      cid: 'bafytest',
+      providerAddress: '/dns4/localhost/tcp/8080',
+      protocol: 'graphsync',
+      participantAddress: 't1foobar',
+      timeout: false,
+      startAt: new Date('2023-09-18T13:33:51.239Z'),
+      statusCode: 200,
+      firstByteAt: new Date('2023-09-18T13:33:51.239Z'),
+      endAt: null,
+      byteLength: 100,
+      attestation: 'json.sig',
+      inetGroup: 'MTIzNDU2Nzg',
+      carTooLarge: true,
+      round: 42
+    }]
 
-    await client.query(`
-      INSERT INTO measurements (
-        spark_version,
-        zinnia_version,
-        cid,
-        provider_address,
-        protocol,
-        participant_address,
-        timeout,
-        start_at,
-        status_code,
-        first_byte_at,
-        end_at,
-        byte_length,
-        attestation,
-        inet_group,
-        car_too_large,
-        completed_at_round
-      )
-      VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
-      )
-    `, [
-      measurementRecorded.sparkVersion,
-      measurementRecorded.zinniaVersion,
-      measurementRecorded.cid,
-      measurementRecorded.providerAddress,
-      measurementRecorded.protocol,
-      measurementRecorded.participantAddress,
-      measurementRecorded.timeout,
-      measurementRecorded.startAt,
-      measurementRecorded.statusCode,
-      measurementRecorded.firstByteAt,
-      measurementRecorded.endAt,
-      measurementRecorded.byteLength,
-      measurementRecorded.attestation,
-      measurementRecorded.inetGroup,
-      measurementRecorded.carTooLarge,
-      measurementRecorded.round
-    ])
+    for (const measurement of measurements) {
+      await client.query(`
+        INSERT INTO measurements (
+          spark_version,
+          zinnia_version,
+          cid,
+          provider_address,
+          protocol,
+          participant_address,
+          timeout,
+          start_at,
+          status_code,
+          first_byte_at,
+          end_at,
+          byte_length,
+          attestation,
+          inet_group,
+          car_too_large,
+          completed_at_round
+        )
+        VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+        )
+      `, [
+        measurement.sparkVersion,
+        measurement.zinniaVersion,
+        measurement.cid,
+        measurement.providerAddress,
+        measurement.protocol,
+        measurement.participantAddress,
+        measurement.timeout,
+        measurement.startAt,
+        measurement.statusCode,
+        measurement.firstByteAt,
+        measurement.endAt,
+        measurement.byteLength,
+        measurement.attestation,
+        measurement.inetGroup,
+        measurement.carTooLarge,
+        measurement.round
+      ])
+    }
 
     const cid = 'bafybeicmyzlxgqeg5lgjgnzducj37s7bxhxk6vywqtuym2vhqzxjtymqvm'
 
     // We're not sure if we're going to stick with web3.storage, or switch to
     // helia or another tool. Therefore, we're going to use a mock here.
-    const web3StoragePutFiles = []
+    const web3StorageUploadFiles = []
     const web3Storage = {
-      async put (files) {
-        web3StoragePutFiles.push(files)
+      async uploadFile (file) {
+        web3StorageUploadFiles.push(file)
         return CID.parse(cid)
       }
     }
@@ -193,23 +211,27 @@ describe('integration', () => {
       client,
       web3Storage,
       ieContract,
-      maxMeasurements: 1,
+      maxMeasurements: 2,
       logger
     })
 
     // TODO: Check data has been committed to the contract
 
-    assert.strictEqual(web3StoragePutFiles.length, 1)
-    assert.strictEqual(web3StoragePutFiles[0].length, 1)
+    assert.strictEqual(web3StorageUploadFiles.length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
 
-    const payload = JSON.parse(await web3StoragePutFiles[0][0].text())
-    assert.strictEqual(payload.length, 1)
+    const payload = (await web3StorageUploadFiles[0].text())
+      .split('\n')
+      .filter(Boolean)
+      .map(JSON.parse)
+    assert.strictEqual(payload.length, 2)
     const published = payload[0]
+    const measurementRecorded = measurements[0]
     assert.strictEqual(published.spark_version, measurementRecorded.sparkVersion)
     assert.strictEqual(published.cid, measurementRecorded.cid)
     assert.strictEqual(published.inet_group, measurementRecorded.inetGroup)
     assert.strictEqual(published.car_too_large, measurementRecorded.carTooLarge)
+    assert.strictEqual(published.end_at, null)
     // TODO: test other fields
 
     // We are publishing records with invalid wallet addresses too

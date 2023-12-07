@@ -1,19 +1,21 @@
-import pg from 'pg'
-import { startPublishLoop } from '../index.js'
-import { IE_CONTRACT_ABI, IE_CONTRACT_ADDRESS, RPC_URL } from '../ie-contract-config.js'
 import Sentry from '@sentry/node'
 import assert from 'node:assert'
-import { Web3Storage } from 'web3.storage'
-import { ethers } from 'ethers'
 import { newDelegatedEthAddress } from '@glif/filecoin-address'
+import timers from 'node:timers/promises'
+import { ethers } from 'ethers'
+import { spawn } from 'node:child_process'
+import { once } from 'events'
+import { RPC_URL } from '../ie-contract-config.js'
+import { fileURLToPath } from 'node:url'
 
 const {
-  DATABASE_URL,
   SENTRY_ENVIRONMENT = 'development',
   WALLET_SEED,
-  WEB3_STORAGE_API_TOKEN,
   MIN_ROUND_LENGTH_SECONDS = 120,
-  MAX_MEASUREMENTS_PER_ROUND = 1000
+  MAX_MEASUREMENTS_PER_ROUND = 1000,
+  // See https://web3.storage/docs/how-to/upload/#bring-your-own-agent
+  W3UP_PRIVATE_KEY,
+  W3UP_PROOF
 } = process.env
 
 Sentry.init({
@@ -23,17 +25,13 @@ Sentry.init({
 })
 
 assert(WALLET_SEED, 'WALLET_SEED required')
-assert(WEB3_STORAGE_API_TOKEN, 'WEB3_STORAGE_API_TOKEN required')
+assert(W3UP_PRIVATE_KEY, 'W3UP_PRIVATE_KEY required')
+assert(W3UP_PROOF, 'W3UP_PROOF required')
 
-const client = new pg.Pool({ connectionString: DATABASE_URL })
-const web3Storage = new Web3Storage({ token: WEB3_STORAGE_API_TOKEN })
+const minRoundLength = Number(MIN_ROUND_LENGTH_SECONDS) * 1000
+
 const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
 const signer = ethers.Wallet.fromMnemonic(WALLET_SEED).connect(provider)
-const ieContract = new ethers.Contract(
-  IE_CONTRACT_ADDRESS,
-  IE_CONTRACT_ABI,
-  provider
-).connect(signer)
 
 console.log(
   'Wallet address:',
@@ -41,10 +39,26 @@ console.log(
   newDelegatedEthAddress(signer.address, 'f').toString()
 )
 
-await startPublishLoop({
-  client,
-  web3Storage,
-  ieContract,
-  minRoundLength: MIN_ROUND_LENGTH_SECONDS * 1000,
-  maxMeasurementsPerRound: MAX_MEASUREMENTS_PER_ROUND
-})
+while (true) {
+  const lastStart = new Date()
+  const ps = spawn(
+    'node',
+    [fileURLToPath(new URL('publish-batch.js', import.meta.url))],
+    {
+      env: {
+        ...process.env,
+        MIN_ROUND_LENGTH_SECONDS,
+        MAX_MEASUREMENTS_PER_ROUND,
+        WALLET_SEED,
+        W3UP_PRIVATE_KEY,
+        W3UP_PROOF
+      }
+    }
+  )
+  ps.stdout.pipe(process.stdout)
+  ps.stderr.pipe(process.stderr)
+  const [code] = await once(ps, 'exit')
+  assert.strictEqual(code, 0, `Bad exit code: ${code}`)
+  const dt = new Date() - lastStart
+  if (dt < minRoundLength) await timers.setTimeout(minRoundLength - dt)
+}
