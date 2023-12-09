@@ -58,7 +58,10 @@ while (true) {
   ps.stdout.pipe(process.stdout)
   ps.stderr.pipe(process.stderr)
   const [code] = await once(ps, 'exit')
-  assert.strictEqual(code, 0, `Bad exit code: ${code}`)
+  if (code !== 0) {
+    console.error(`Bad exit code: ${code}`)
+    Sentry.captureMessage(`Bad exit code: ${code}`)
+  }
   const dt = new Date() - lastStart
   if (dt < minRoundLength) await timers.setTimeout(minRoundLength - dt)
 }
