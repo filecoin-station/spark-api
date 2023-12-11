@@ -3,8 +3,10 @@ import { fileURLToPath } from 'node:url'
 
 const {
   IE_CONTRACT_ADDRESS = '0xaaef78eaf86dcf34f275288752e892424dda9341',
-  RPC_URL = 'https://api.node.glif.io/rpc/v0'
+  RPC_URLS = 'https://api.node.glif.io/rpc/v0,https://api.chain.love/rpc/v1'
 } = process.env
+
+const rpcUrls = RPC_URLS.split(',')
 
 const IE_CONTRACT_ABI = JSON.parse(
   await fs.readFile(
@@ -15,6 +17,6 @@ const IE_CONTRACT_ABI = JSON.parse(
 
 export {
   IE_CONTRACT_ADDRESS,
-  RPC_URL,
+  rpcUrls,
   IE_CONTRACT_ABI
 }
