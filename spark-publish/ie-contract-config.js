@@ -8,6 +8,7 @@ const {
 
 const rpcUrls = RPC_URLS.split(',')
 const RPC_URL = rpcUrls[Math.floor(Math.random() * rpcUrls.length)]
+console.log(`Selected JSON-RPC endpoint ${RPC_URL}`)
 
 const IE_CONTRACT_ABI = JSON.parse(
   await fs.readFile(
