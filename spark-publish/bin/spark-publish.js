@@ -5,7 +5,6 @@ import timers from 'node:timers/promises'
 import { ethers } from 'ethers'
 import { spawn } from 'node:child_process'
 import { once } from 'events'
-import { RPC_URL } from '../ie-contract-config.js'
 import { fileURLToPath } from 'node:url'
 
 const {
@@ -30,8 +29,7 @@ assert(W3UP_PROOF, 'W3UP_PROOF required')
 
 const minRoundLength = Number(MIN_ROUND_LENGTH_SECONDS) * 1000
 
-const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
-const signer = ethers.Wallet.fromMnemonic(WALLET_SEED).connect(provider)
+const signer = ethers.Wallet.fromMnemonic(WALLET_SEED)
 
 console.log(
   'Wallet address:',
