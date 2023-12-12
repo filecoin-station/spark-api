@@ -172,6 +172,7 @@ const replyWithDetailsForRoundNumber = async (res, client, roundNumber) => {
 
   json(res, {
     roundId: round.id.toString(),
+    maxTasksPerNode: round.max_tasks_per_node,
     retrievalTasks: tasks.map(t => ({
       cid: t.cid,
       providerAddress: t.provider_address,
@@ -204,6 +205,7 @@ const getMeridianRoundDetails = async (_req, res, client, meridianAddress, merid
   res.setHeader('cache-control', `public, max-age=${ONE_YEAR_IN_SECONDS}, immutable`)
   json(res, {
     roundId: round.id.toString(),
+    maxTasksPerNode: round.max_tasks_per_node,
     retrievalTasks: tasks.map(t => ({
       cid: t.cid,
       providerAddress: t.provider_address,
