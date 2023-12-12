@@ -167,6 +167,21 @@ describe('Round Tracker', () => {
         assert.strictEqual(BigInt(t.round_id), firstRoundNumber)
       }
     })
+
+    it('sets tasks_per_round', async () => {
+      const meridianRoundIndex = 1n
+      const meridianContractAddress = '0x1a'
+
+      const sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+        meridianContractAddress,
+        meridianRoundIndex,
+        pgClient
+      })
+      assert.strictEqual(sparkRoundNumber, 1n)
+      const sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
+      assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
+      assert.strictEqual(sparkRounds[0].max_tasks_per_node, 60)
+    })
   })
 })
 

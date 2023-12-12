@@ -6,7 +6,8 @@ import pg from 'pg'
 import {
   TASKS_PER_ROUND,
   maybeCreateSparkRound,
-  mapCurrentMeridianRoundToSparkRound
+  mapCurrentMeridianRoundToSparkRound,
+  MAX_TASKS_PER_NODE
 } from '../lib/round-tracker.js'
 
 const { DATABASE_URL } = process.env
@@ -335,7 +336,8 @@ describe('Routes', () => {
       const { retrievalTasks, ...details } = await res.json()
 
       assert.deepStrictEqual(details, {
-        roundId: '2'
+        roundId: '2',
+        maxTasksPerNode: MAX_TASKS_PER_NODE
       })
       assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
     })
@@ -346,7 +348,8 @@ describe('Routes', () => {
       const { retrievalTasks, ...details } = await res.json()
 
       assert.deepStrictEqual(details, {
-        roundId: '1'
+        roundId: '1',
+        maxTasksPerNode: MAX_TASKS_PER_NODE
       })
       assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
     })
@@ -387,6 +390,7 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(Object.keys(body), [
         'roundId',
+        'maxTasksPerNode',
         'retrievalTasks'
       ])
       assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
@@ -427,6 +431,7 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(Object.keys(body), [
         'roundId',
+        'maxTasksPerNode',
         'retrievalTasks'
       ])
       assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
