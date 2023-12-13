@@ -12,7 +12,7 @@ import {
 
 const { DATABASE_URL } = process.env
 const participantAddress = 'f1abc'
-const sparkVersion = '0.12.0' // This must be in sync with the minimum supported client version
+const sparkVersion = '1.7.0' // This must be in sync with the minimum supported client version
 const currentSparkRoundNumber = 42n
 
 const assertResponseStatus = async (res, status) => {
@@ -124,7 +124,7 @@ describe('Routes', () => {
         cid: 'bafytest',
         providerAddress: '/dns4/localhost/tcp/8080',
         protocol: 'graphsync',
-        sparkVersion: '1.2.3',
+        sparkVersion,
         zinniaVersion: '2.3.4',
         participantAddress,
         startAt: new Date(),
@@ -170,7 +170,7 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.cid, measurement.cid)
       assert.strictEqual(measurementRow.provider_address, measurement.providerAddress)
       assert.strictEqual(measurementRow.protocol, measurement.protocol)
-      assert.strictEqual(measurementRow.spark_version, '1.2.3')
+      assert.strictEqual(measurementRow.spark_version, sparkVersion)
       assert.strictEqual(measurementRow.zinnia_version, '2.3.4')
       assert.strictEqual(measurementRow.completed_at_round, currentSparkRoundNumber.toString())
       assert.strictEqual(measurementRow.published_as, null)
@@ -188,7 +188,7 @@ describe('Routes', () => {
         cid: 'bafytest',
         providerAddress: '/dns4/localhost/tcp/8080',
         protocol: 'graphsync',
-        sparkVersion: '1.2.3',
+        sparkVersion,
         zinniaVersion: '2.3.4',
         startAt: new Date(),
         statusCode: 200,
@@ -223,7 +223,7 @@ describe('Routes', () => {
         cid: 'bafytest',
         providerAddress: '/dns4/localhost/tcp/8080',
         protocol: 'graphsync',
-        sparkVersion: '1.2.3',
+        sparkVersion,
         zinniaVersion: '2.3.4',
         participantAddress,
         startAt: new Date(),
@@ -252,6 +252,40 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.first_byte_at, null)
       assert.strictEqual(measurementRow.end_at, null)
     })
+
+    it('rejects spark_version before v1.7.0', async () => {
+      await client.query('DELETE FROM measurements')
+
+      const measurement = {
+        // THIS IS IMPORTANT
+        sparkVersion: '1.6.0',
+        // Everything else does not matter
+        cid: 'bafytest',
+        providerAddress: '/dns4/localhost/tcp/8080',
+        protocol: 'graphsync',
+        zinniaVersion: '2.3.4',
+        participantAddress,
+        startAt: new Date(),
+        statusCode: 200,
+        firstByteAt: new Date(),
+        endAt: new Date(),
+        byteLength: 100,
+        carTooLarge: true,
+        attestation: 'json.sig'
+      }
+
+      const res = await fetch(`${spark}/measurements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(measurement)
+      })
+      await assertResponseStatus(res, 410)
+      const body = await res.text()
+      assert.strictEqual(body, 'OUTDATED CLIENT')
+
+      const { rows } = await client.query('SELECT id, spark_version FROM measurements')
+      assert.deepStrictEqual(rows, [])
+    })
   })
 
   describe('GET /measurements/:id', () => {
@@ -260,7 +294,7 @@ describe('Routes', () => {
         cid: 'bafytest',
         providerAddress: '/dns4/localhost/tcp/8080',
         protocol: 'graphsync',
-        sparkVersion: '1.2.3',
+        sparkVersion,
         zinniaVersion: '2.3.4',
         participantAddress,
         startAt: new Date(),
@@ -286,7 +320,7 @@ describe('Routes', () => {
       assert.strictEqual(body.cid, retrieval.cid)
       assert.strictEqual(body.providerAddress, retrieval.providerAddress)
       assert.strictEqual(body.protocol, retrieval.protocol)
-      assert.strictEqual(body.sparkVersion, '1.2.3')
+      assert.strictEqual(body.sparkVersion, sparkVersion)
       assert.strictEqual(body.zinniaVersion, '2.3.4')
       assert(body.finishedAt)
       assert.strictEqual(body.startAt, retrieval.startAt.toJSON())
