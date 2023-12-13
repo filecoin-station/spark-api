@@ -4,6 +4,7 @@ import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'
 import { mapRequestToInetGroup } from './lib/inet-grouping.js'
+import { satisfies } from 'compare-versions'
 
 const handler = async (req, res, client, getCurrentRound, domain) => {
   if (req.headers.host.split(':')[0] !== domain) {
@@ -37,7 +38,10 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   const measurement = JSON.parse(body)
   validate(measurement, 'sparkVersion', { type: 'string', required: false })
   validate(measurement, 'zinniaVersion', { type: 'string', required: false })
-  assert(measurement.sparkVersion, 400, 'OUTDATED CLIENT')
+  assert(
+    typeof measurement.sparkVersion === 'string' && satisfies(measurement.sparkVersion, '>=1.7.0'),
+    410, 'OUTDATED CLIENT'
+  )
 
   // Backwards-compatibility with older clients sending walletAddress instead of participantAddress
   // We can remove this after enough SPARK clients are running the new version (mid-October 2023)
