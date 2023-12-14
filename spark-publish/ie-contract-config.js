@@ -20,5 +20,6 @@ const IE_CONTRACT_ABI = JSON.parse(
 export {
   IE_CONTRACT_ADDRESS,
   RPC_URL,
+  rpcUrls,
   IE_CONTRACT_ABI
 }
