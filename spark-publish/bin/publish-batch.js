@@ -8,7 +8,12 @@ import { ed25519 } from '@ucanto/principal'
 import { CarReader } from '@ipld/car'
 import { importDAG } from '@ucanto/core/delegation'
 import { ethers } from 'ethers'
-import { IE_CONTRACT_ABI, IE_CONTRACT_ADDRESS, RPC_URL } from '../ie-contract-config.js'
+import {
+  IE_CONTRACT_ABI,
+  IE_CONTRACT_ADDRESS,
+  RPC_URL,
+  GLIF_TOKEN
+} from '../ie-contract-config.js'
 import assert from 'node:assert'
 import { writeClient } from '../lib/telemetry.js'
 
@@ -49,7 +54,12 @@ const proof = await parseProof(W3UP_PROOF)
 const space = await web3Storage.addSpace(proof)
 await web3Storage.setCurrentSpace(space.did())
 
-const provider = new ethers.providers.JsonRpcProvider(RPC_URL)
+const provider = new ethers.providers.JsonRpcProvider({
+  url: RPC_URL,
+  headers: {
+    Authorization: `Bearer ${GLIF_TOKEN}`
+  }
+})
 const signer = ethers.Wallet.fromMnemonic(WALLET_SEED).connect(provider)
 const ieContract = new ethers.Contract(
   IE_CONTRACT_ADDRESS,
