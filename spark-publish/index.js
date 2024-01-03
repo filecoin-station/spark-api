@@ -66,21 +66,30 @@ export const publish = async ({
   const ieAddMeasurementsDuration = new Date() - start
   logger.log('Measurements added to round', roundIndex.toString())
 
-  // Mark measurements as shared
-  await client.query(`
-    UPDATE measurements
-    SET published_as = $1
-    WHERE id = ANY($2::int[])
-  `, [
-    cid.toString(),
-    measurements.map(m => m.id)
-  ])
+  try {
+    await client.query('BEGIN')
 
-  // Record the commitment for future queries
-  // TODO: store also ieContract.address and roundIndex
-  await client.query('INSERT INTO commitments (cid, published_at) VALUES ($1, $2)', [
-    cid.toString(), new Date()
-  ])
+    // Mark measurements as shared
+    await client.query(`
+      UPDATE measurements
+      SET published_as = $1
+      WHERE id = ANY($2::int[])
+    `, [
+      cid.toString(),
+      measurements.map(m => m.id)
+    ])
+
+    // Record the commitment for future queries
+    // TODO: store also ieContract.address and roundIndex
+    await client.query('INSERT INTO commitments (cid, published_at) VALUES ($1, $2)', [
+      cid.toString(), new Date()
+    ])
+
+    await client.query('COMMIT')
+  } catch (err) {
+    await client.query('ROLLBACK')
+    throw err
+  }
 
   // TODO: Add cleanup
   // We're not sure if we're going to stick with web3.storage, or switch to
