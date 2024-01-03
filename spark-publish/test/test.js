@@ -4,6 +4,8 @@ import { CID } from 'multiformats/cid'
 import pg from 'pg'
 import * as telemetry from '../lib/telemetry.js'
 
+import { assertApproximately } from '../../test/test-helpers.js'
+
 const { DATABASE_URL } = process.env
 
 after(telemetry.close)
@@ -17,6 +19,9 @@ describe('unit', () => {
       async query (statement, params) {
         if (statement.includes('SELECT COUNT(*) FROM measurements')) {
           return { rows: [{ count: 10 }] }
+        }
+        if (statement.includes('INSERT INTO commitments')) {
+          return { rows: [] }
         }
 
         clientQueryParams.push(params)
@@ -85,6 +90,7 @@ describe('integration', () => {
   })
 
   it('publishes', async () => {
+    await client.query('DELETE FROM commitments')
     await client.query('DELETE FROM measurements')
 
     const measurements = [{
@@ -236,5 +242,9 @@ describe('integration', () => {
 
     // We are publishing records with invalid wallet addresses too
     assert.strictEqual(published.participant_address, 't1foobar')
+
+    const { rows: commitments } = await client.query('SELECT * FROM commitments')
+    assert.deepStrictEqual(commitments.map(c => c.cid), [cid])
+    assertApproximately(commitments[0].published_at, new Date(), 1_000 /* milliseconds */)
   })
 })

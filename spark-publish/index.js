@@ -76,6 +76,12 @@ export const publish = async ({
     measurements.map(m => m.id)
   ])
 
+  // Record the commitment for future queries
+  // TODO: store also ieContract.address and roundIndex
+  await client.query('INSERT INTO commitments (cid, published_at) VALUES ($1, $2)', [
+    cid.toString(), new Date()
+  ])
+
   // TODO: Add cleanup
   // We're not sure if we're going to stick with web3.storage, or switch to
   // helia or another tool. Therefore, add this later.
