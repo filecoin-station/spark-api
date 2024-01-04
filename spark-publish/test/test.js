@@ -19,6 +19,7 @@ describe('unit', () => {
       connect () {
         return client
       },
+      release () {},
       async query (statement, params) {
         if (statement.includes('SELECT COUNT(*) FROM measurements')) {
           return { rows: [{ count: 10 }] }
@@ -73,7 +74,9 @@ describe('unit', () => {
 
     assert.deepStrictEqual(clientQueryParams, [
       [1],
-      [cid, []]
+      undefined,
+      [cid, []],
+      undefined
     ])
     assert.strictEqual(web3StorageUploadFiles.length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
@@ -85,7 +88,6 @@ describe('integration', () => {
 
   before(async () => {
     client = new pg.Pool({ connectionString: DATABASE_URL })
-    await client.connect()
   })
 
   after(async () => {
