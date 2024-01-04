@@ -66,11 +66,12 @@ export const publish = async ({
   const ieAddMeasurementsDuration = new Date() - start
   logger.log('Measurements added to round', roundIndex.toString())
 
+  const pgClient = await client.connect()
   try {
-    await client.query('BEGIN')
+    await pgClient.query('BEGIN')
 
     // Mark measurements as shared
-    await client.query(`
+    await pgClient.query(`
       UPDATE measurements
       SET published_as = $1
       WHERE id = ANY($2::int[])
@@ -81,14 +82,16 @@ export const publish = async ({
 
     // Record the commitment for future queries
     // TODO: store also ieContract.address and roundIndex
-    await client.query('INSERT INTO commitments (cid, published_at) VALUES ($1, $2)', [
+    await pgClient.query('INSERT INTO commitments (cid, published_at) VALUES ($1, $2)', [
       cid.toString(), new Date()
     ])
 
-    await client.query('COMMIT')
+    await pgClient.query('COMMIT')
   } catch (err) {
-    await client.query('ROLLBACK')
+    await pgClient.query('ROLLBACK')
     throw err
+  } finally {
+    pgClient.release()
   }
 
   // TODO: Add cleanup
