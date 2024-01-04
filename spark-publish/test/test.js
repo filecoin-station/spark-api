@@ -16,6 +16,9 @@ describe('unit', () => {
 
     const clientQueryParams = []
     const client = {
+      connect () {
+        return client
+      },
       async query (statement, params) {
         if (statement.includes('SELECT COUNT(*) FROM measurements')) {
           return { rows: [{ count: 10 }] }
@@ -81,7 +84,7 @@ describe('integration', () => {
   let client
 
   before(async () => {
-    client = new pg.Client({ connectionString: DATABASE_URL })
+    client = new pg.Pool({ connectionString: DATABASE_URL })
     await client.connect()
   })
 
