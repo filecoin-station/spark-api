@@ -41,7 +41,7 @@ while (true) {
   const { rows, rowCount } = await client.query(`
   INSERT INTO commitments (cid, published_at)
     SELECT published_as as cid, MAX(finished_at) + INTERVAL '3 minutes' as published_at FROM measurements
-    WHERE finished_at >= ($1::TIMESTAMPTZ - INTERVAL '1 hour') AND finished_at <= $1::TIMESTAMPTZ
+    WHERE finished_at >= ($1::TIMESTAMPTZ - INTERVAL '12 hour') AND finished_at <= $1::TIMESTAMPTZ
     GROUP BY published_as
     ORDER BY published_at
   ON CONFLICT DO NOTHING
