@@ -136,8 +136,7 @@ const getMeasurement = async (req, res, client, measurementId) => {
     endAt: resultRow.end_at,
     byteLength: resultRow.byte_length,
     carTooLarge: resultRow.car_too_large,
-    attestation: resultRow.attestation,
-    publishedAs: resultRow.published_as
+    attestation: resultRow.attestation
   })
 }
 
