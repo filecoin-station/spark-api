@@ -30,7 +30,6 @@ export const publish = async ({
       provider_address,
       protocol
     FROM measurements
-    WHERE published_as IS NULL
     LIMIT $1
   `, [
     maxMeasurements
@@ -40,7 +39,7 @@ export const publish = async ({
   // Note: this number will be higher than `measurements.length` because spark-api adds more
   // measurements in between the previous and the next query.
   const totalCount = (await client.query(
-    'SELECT COUNT(*) FROM measurements WHERE published_as IS NULL'
+    'SELECT COUNT(*) FROM measurements'
   )).rows[0].count
 
   logger.log(`Publishing ${measurements.length} measurements. Total unpublished: ${totalCount}. Batch size: ${maxMeasurements}.`)
@@ -70,13 +69,11 @@ export const publish = async ({
   try {
     await pgClient.query('BEGIN')
 
-    // Mark measurements as shared
-    await pgClient.query(`
-      UPDATE measurements
-      SET published_as = $1
-      WHERE id = ANY($2::int[])
+    // Delete published measurements
+    await client.query(`
+      DELETE FROM measurements
+      WHERE id = ANY($1::int[])
     `, [
-      cid.toString(),
       measurements.map(m => m.id)
     ])
 
