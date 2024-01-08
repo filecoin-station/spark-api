@@ -66,13 +66,11 @@ export const publish = async ({
   const ieAddMeasurementsDuration = new Date() - start
   logger.log('Measurements added to round', roundIndex.toString())
 
-  // Mark measurements as shared
+  // Delete published measurements
   await client.query(`
-    UPDATE measurements
-    SET published_as = $1
-    WHERE id = ANY($2::int[])
+    DELETE FROM measurements
+    WHERE id = ANY($1::int[])
   `, [
-    cid.toString(),
     measurements.map(m => m.id)
   ])
 

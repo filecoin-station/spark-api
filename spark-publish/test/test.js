@@ -70,7 +70,7 @@ describe('unit', () => {
 
     assert.deepStrictEqual(clientQueryParams, [
       [1],
-      [cid, []]
+      [[]]
     ])
     assert.strictEqual(web3StorageUploadFiles.length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
@@ -130,46 +130,7 @@ describe('integration', () => {
     }]
 
     for (const measurement of measurements) {
-      await client.query(`
-        INSERT INTO measurements (
-          spark_version,
-          zinnia_version,
-          cid,
-          provider_address,
-          protocol,
-          participant_address,
-          timeout,
-          start_at,
-          status_code,
-          first_byte_at,
-          end_at,
-          byte_length,
-          attestation,
-          inet_group,
-          car_too_large,
-          completed_at_round
-        )
-        VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
-        )
-      `, [
-        measurement.sparkVersion,
-        measurement.zinniaVersion,
-        measurement.cid,
-        measurement.providerAddress,
-        measurement.protocol,
-        measurement.participantAddress,
-        measurement.timeout,
-        measurement.startAt,
-        measurement.statusCode,
-        measurement.firstByteAt,
-        measurement.endAt,
-        measurement.byteLength,
-        measurement.attestation,
-        measurement.inetGroup,
-        measurement.carTooLarge,
-        measurement.round
-      ])
+      await insertMeasurement(client, measurement)
     }
 
     const cid = 'bafybeicmyzlxgqeg5lgjgnzducj37s7bxhxk6vywqtuym2vhqzxjtymqvm'
@@ -184,11 +145,19 @@ describe('integration', () => {
       }
     }
 
+    const nextMeasurement = {
+      ...(measurements[0]),
+      cid: 'bafynew'
+    }
+
     // TODO: Figure out how to use anvil here
     const ieContractMeasurementCIDs = []
     const ieContract = {
       async addMeasurements (_cid) {
         ieContractMeasurementCIDs.push(_cid)
+        // In real world, calling the IE contract takes ~3 minutes. In the meantime, more
+        // measurements are recorded. We need to test that these measurements are not deleted.
+        await insertMeasurement(client, nextMeasurement)
         return {
           async wait () {
             return {
@@ -246,5 +215,52 @@ describe('integration', () => {
     const { rows: commitments } = await client.query('SELECT * FROM commitments')
     assert.deepStrictEqual(commitments.map(c => c.cid), [cid])
     assertApproximately(commitments[0].published_at, new Date(), 1_000 /* milliseconds */)
+
+    // Check that published measurements were deleted and measurements added later were preserved
+    const { rows: remainingMeasurements } = await client.query('SELECT cid FROM measurements')
+    assert.deepStrictEqual(remainingMeasurements.map(r => r.cid), ['bafynew'])
   })
 })
+
+const insertMeasurement = async (client, measurement) => {
+  await client.query(`
+  INSERT INTO measurements (
+    spark_version,
+    zinnia_version,
+    cid,
+    provider_address,
+    protocol,
+    participant_address,
+    timeout,
+    start_at,
+    status_code,
+    first_byte_at,
+    end_at,
+    byte_length,
+    attestation,
+    inet_group,
+    car_too_large,
+    completed_at_round
+  )
+  VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+  )
+`, [
+    measurement.sparkVersion,
+    measurement.zinniaVersion,
+    measurement.cid,
+    measurement.providerAddress,
+    measurement.protocol,
+    measurement.participantAddress,
+    measurement.timeout,
+    measurement.startAt,
+    measurement.statusCode,
+    measurement.firstByteAt,
+    measurement.endAt,
+    measurement.byteLength,
+    measurement.attestation,
+    measurement.inetGroup,
+    measurement.carTooLarge,
+    measurement.round
+  ])
+}
