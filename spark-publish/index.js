@@ -65,19 +65,31 @@ export const publish = async ({
   const ieAddMeasurementsDuration = new Date() - start
   logger.log('Measurements added to round', roundIndex.toString())
 
-  // Delete published measurements
-  await client.query(`
-    DELETE FROM measurements
-    WHERE id = ANY($1::int[])
-  `, [
-    measurements.map(m => m.id)
-  ])
+  const pgClient = await client.connect()
+  try {
+    await pgClient.query('BEGIN')
 
-  // Record the commitment for future queries
-  // TODO: store also ieContract.address and roundIndex
-  await client.query('INSERT INTO commitments (cid, published_at) VALUES ($1, $2)', [
-    cid.toString(), new Date()
-  ])
+    // Delete published measurements
+    await client.query(`
+      DELETE FROM measurements
+      WHERE id = ANY($1::int[])
+    `, [
+      measurements.map(m => m.id)
+    ])
+
+    // Record the commitment for future queries
+    // TODO: store also ieContract.address and roundIndex
+    await pgClient.query('INSERT INTO commitments (cid, published_at) VALUES ($1, $2)', [
+      cid.toString(), new Date()
+    ])
+
+    await pgClient.query('COMMIT')
+  } catch (err) {
+    await pgClient.query('ROLLBACK')
+    throw err
+  } finally {
+    pgClient.release()
+  }
 
   // TODO: Add cleanup
   // We're not sure if we're going to stick with web3.storage, or switch to
