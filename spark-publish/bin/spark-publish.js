@@ -7,6 +7,7 @@ import { spawn } from 'node:child_process'
 import { once } from 'events'
 import { fileURLToPath } from 'node:url'
 import { rpcUrls } from '../ie-contract-config.js'
+import http from 'node:http'
 
 const {
   SENTRY_ENVIRONMENT = 'development',
@@ -37,6 +38,9 @@ console.log(
   signer.address,
   newDelegatedEthAddress(signer.address, 'f').toString()
 )
+
+// FIXME fly.io
+http.createServer((_, res) => res.end()).listen(8080)
 
 let rpcUrlIndex = 0
 
