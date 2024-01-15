@@ -27,6 +27,12 @@ update the services mentioned in this document.
 - Replace ABI https://github.com/filecoin-station/spark-api/blob/main/spark-publish/abi.json
 - Push to `main` to deploy
 
+## `site-backend`
+
+- Replace `0x` contract address https://github.com/filecoin-station/site-backend/blob/main/lib/getFilEarned.ts
+- Test your changes
+- Push to `main` to deploy
+
 ## Station Desktop
 
 - Replace `0x` contract address
