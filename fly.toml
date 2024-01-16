@@ -20,6 +20,7 @@ processes = []
   protocol = "tcp"
   script_checks = []
   [services.concurrency]
+    # Remember to update PG Pool config option `max` in bin/spark.js when changing `hard_limit`.
     hard_limit = 800
     soft_limit = 600
     type = "connections"
