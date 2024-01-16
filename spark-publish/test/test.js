@@ -48,15 +48,18 @@ describe('unit', () => {
         return {
           async wait () {
             return {
-              events: [
-                {
-                  event: 'MeasurementsAdded',
-                  args: {
-                    roundIndex: 1
-                  }
-                }
-              ]
+              logs: []
             }
+          }
+        }
+      },
+      interface: {
+        parseLog () {
+          return {
+            args: [
+              null,
+              1
+            ]
           }
         }
       }
@@ -166,15 +169,18 @@ describe('integration', () => {
         return {
           async wait () {
             return {
-              events: [
-                {
-                  event: 'MeasurementsAdded',
-                  args: {
-                    roundIndex: 1
-                  }
-                }
-              ]
+              logs: []
             }
+          }
+        }
+      },
+      interface: {
+        parseLog () {
+          return {
+            args: [
+              null,
+              1
+            ]
           }
         }
       }
