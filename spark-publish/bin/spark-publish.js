@@ -30,7 +30,7 @@ assert(W3UP_PROOF, 'W3UP_PROOF required')
 
 const minRoundLength = Number(MIN_ROUND_LENGTH_SECONDS) * 1000
 
-const signer = ethers.Wallet.fromPhrase(WALLET_SEED)
+const signer = ethers.Wallet.fromMnemonic(WALLET_SEED)
 
 console.log(
   'Wallet address:',

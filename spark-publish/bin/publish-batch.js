@@ -54,14 +54,13 @@ const proof = await parseProof(W3UP_PROOF)
 const space = await web3Storage.addSpace(proof)
 await web3Storage.setCurrentSpace(space.did())
 
-const fetchRequest = new ethers.FetchRequest(RPC_URL)
-fetchRequest.setHeader('Authorization', `Bearer ${GLIF_TOKEN}`)
-const provider = new ethers.JsonRpcProvider(
-  fetchRequest,
-  null,
-  { batchMaxCount: 1 }
-)
-const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
+const provider = new ethers.providers.JsonRpcProvider({
+  url: RPC_URL,
+  headers: {
+    Authorization: `Bearer ${GLIF_TOKEN}`
+  }
+})
+const signer = ethers.Wallet.fromMnemonic(WALLET_SEED).connect(provider)
 const ieContract = new ethers.Contract(
   IE_CONTRACT_ADDRESS,
   IE_CONTRACT_ABI,
