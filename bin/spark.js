@@ -51,7 +51,6 @@ const client = new pg.Pool({
   maxLifetimeSeconds: 60
 })
 
-await client.connect()
 client.on('error', err => {
   // Prevent crashing the process on idle client errors, the pool will recover
   // itself. If all connections are lost, the process will still crash.
