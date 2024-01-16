@@ -60,8 +60,8 @@ export const publish = async ({
   start = new Date()
   const tx = await ieContract.addMeasurements(cid.toString())
   const receipt = await tx.wait()
-  const event = receipt.events.find(e => e.event === 'MeasurementsAdded')
-  const { roundIndex } = event.args
+  const log = ieContract.interface.parseLog(receipt.logs[0])
+  const roundIndex = log.args[1]
   const ieAddMeasurementsDuration = new Date() - start
   logger.log('Measurements added to round', roundIndex.toString())
 
