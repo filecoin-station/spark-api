@@ -1,6 +1,7 @@
 # fly.toml file generated for spark on 2023-05-16T19:09:01+02:00
 
 app = "spark"
+primary_region = "cdg"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
