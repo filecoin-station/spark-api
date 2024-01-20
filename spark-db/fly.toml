@@ -40,6 +40,10 @@ primary_region = "cdg"
 [[services]]
   internal_port = 5432 # Postgres instance
   protocol = "tcp"
+  [services.concurrency]
+    hard_limit = 1000
+    soft_limit = 1000
+    type = "connections"
 
 [[services.ports]]
   handlers = ["pg_tls"]
