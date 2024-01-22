@@ -44,7 +44,10 @@ while (true) {
   const lastStart = new Date()
   const ps = spawn(
     'node',
-    [fileURLToPath(new URL('publish-batch.js', import.meta.url))],
+    [
+      '--unhandled-rejections=strict',
+      fileURLToPath(new URL('publish-batch.js', import.meta.url))
+    ],
     {
       env: {
         ...process.env,
