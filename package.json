@@ -18,7 +18,7 @@
     "varint": "^6.0.0"
   },
   "dependencies": {
-    "@sentry/node": "^7.93.0",
+    "@sentry/node": "^7.94.1",
     "compare-versions": "^6.1.0",
     "ethers": "^5.7.2",
     "http-assert": "^1.5.0",
