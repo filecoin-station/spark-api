@@ -91,6 +91,8 @@ export const publish = async ({
     pgClient.release()
   }
 
+  await client.query('VACUUM measurements')
+
   // TODO: Add cleanup
   // We're not sure if we're going to stick with web3.storage, or switch to
   // helia or another tool. Therefore, add this later.

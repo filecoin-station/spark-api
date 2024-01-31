@@ -14,6 +14,7 @@ describe('unit', () => {
   it('publishes', async () => {
     const cid = 'bafybeicmyzlxgqeg5lgjgnzducj37s7bxhxk6vywqtuym2vhqzxjtymqvm'
 
+    const clientStatements = []
     const clientQueryParams = []
     const client = {
       connect () {
@@ -21,10 +22,14 @@ describe('unit', () => {
       },
       release () {},
       async query (statement, params) {
+        clientStatements.push(statement)
         if (statement.includes('SELECT COUNT(*) FROM measurements')) {
           return { rows: [{ count: 10 }] }
         }
         if (statement.includes('INSERT INTO commitments')) {
+          return { rows: [] }
+        }
+        if (statement.startsWith('VACUUM')) {
           return { rows: [] }
         }
 
@@ -81,6 +86,7 @@ describe('unit', () => {
       [[]],
       undefined
     ])
+    assert.strictEqual(clientStatements.pop(), 'VACUUM measurements')
     assert.strictEqual(web3StorageUploadFiles.length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
   })
