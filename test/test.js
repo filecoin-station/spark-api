@@ -133,7 +133,9 @@ describe('Routes', () => {
         endAt: new Date(),
         byteLength: 100,
         carTooLarge: true,
-        attestation: 'json.sig'
+        attestation: 'json.sig',
+        carChecksum: 'somehash',
+        indexerResult: 'OK'
       }
 
       const createRequest = await fetch(`${spark}/measurements`, {
@@ -175,6 +177,8 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.completed_at_round, currentSparkRoundNumber.toString())
       assert.match(measurementRow.inet_group, /^.{12}$/)
       assert.strictEqual(measurementRow.car_too_large, true)
+      assert.strictEqual(measurementRow.indexer_result, 'OK')
+      assert.strictEqual(measurementRow.car_checksum, 'somehash')
     })
 
     it('allows older format with walletAddress', async () => {
