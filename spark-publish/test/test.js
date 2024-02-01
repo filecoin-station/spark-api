@@ -123,6 +123,8 @@ describe('integration', () => {
       attestation: 'json.sig',
       inetGroup: 'MTIzNDU2Nzg',
       carTooLarge: true,
+      carChecksum: 'somehash',
+      indexerResult: 'ERROR_404',
       round: 42
     }, {
       sparkVersion: '1.2.3',
@@ -224,6 +226,8 @@ describe('integration', () => {
     assert.strictEqual(published.inet_group, measurementRecorded.inetGroup)
     assert.strictEqual(published.car_too_large, measurementRecorded.carTooLarge)
     assert.strictEqual(published.end_at, null)
+    assert.strictEqual(published.car_checksum, measurementRecorded.carChecksum)
+    assert.strictEqual(published.indexer_result, measurementRecorded.indexerResult)
     // TODO: test other fields
 
     // We are publishing records with invalid wallet addresses too
@@ -257,10 +261,12 @@ const insertMeasurement = async (client, measurement) => {
     attestation,
     inet_group,
     car_too_large,
+    car_checksum,
+    indexer_result,
     completed_at_round
   )
   VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
   )
 `, [
     measurement.sparkVersion,
@@ -278,6 +284,8 @@ const insertMeasurement = async (client, measurement) => {
     measurement.attestation,
     measurement.inetGroup,
     measurement.carTooLarge,
+    measurement.carChecksum,
+    measurement.indexerResult,
     measurement.round
   ])
 }
