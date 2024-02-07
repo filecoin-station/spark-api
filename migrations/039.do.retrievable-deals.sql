@@ -5,7 +5,6 @@ CREATE TABLE retrievable_deals (
 
 -- First 10k deals to bootstrap the dataset. Ingest the remaining 22m deals manually.
 
-TRUNCATE TABLE retrievable_deals;
 INSERT INTO retrievable_deals (cid, expires_at) VALUES
 ('QmZvbLAzsoLZREAGWocWZ7irFAa1KTXwCtfCe3F5BVDT8o', '2024-09-05T07:07:30.000Z'),
 ('QmWw8E2nzDrWX6r6wP6MqnsoiCbRKuDfy6ByN89hBN6Jgv', '2024-09-05T07:13:30.000Z'),
