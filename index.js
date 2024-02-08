@@ -217,11 +217,14 @@ const getMeridianRoundDetails = async (_req, res, client, meridianAddress, merid
     maxTasksPerNode: round.max_tasks_per_node,
     retrievalTasks: tasks.map(t => ({
       cid: t.cid,
-      providerAddress: t.provider_address,
-      protocol: t.protocol
+      // We are preserving these fields to make older rounds still verifiable
+      providerAddress: fixNullToUndefined(t.provider_address),
+      protocol: fixNullToUndefined(t.protocol)
     }))
   })
 }
+
+const fixNullToUndefined = (valueOrNull) => valueOrNull === null ? undefined : valueOrNull
 
 const parseRoundNumber = (roundParam) => {
   try {

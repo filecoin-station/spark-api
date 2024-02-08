@@ -141,8 +141,9 @@ describe('Round Tracker', () => {
       for (const [ix, t] of tasks.entries()) {
         assert.strictEqual(BigInt(t.round_id), sparkRoundNumber)
         assert.strictEqual(typeof t.cid, 'string', `task#${ix} cid`)
-        assert.strictEqual(typeof t.provider_address, 'string', `task#${ix} providerAddress`)
-        assert.strictEqual(typeof t.protocol, 'string', `task#${ix} protocol`)
+        // node-pg maps SQL value `NULL` to JS value `null`
+        assert.strictEqual(t.provider_address, null, `task#${ix} providerAddress`)
+        assert.strictEqual(t.protocol, null, `task#${ix} protocol`)
       }
     })
 
