@@ -12,7 +12,7 @@ WORKDIR /app
 # Set production environment
 ENV NODE_ENV production
 ENV SENTRY_ENVIRONMENT production
-ENV MAX_MEASUREMENTS_PER_ROUND 150000
+ENV MAX_MEASUREMENTS_PER_ROUND 100000
 
 #######################################################################
 # Throw-away build stage to reduce size of final image
