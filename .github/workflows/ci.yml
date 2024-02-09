@@ -115,7 +115,19 @@ jobs:
       - uses: slackapi/slack-github-action@v1.25.0
         with:
           channel-id: filecoin-station-incidents
-          slack-message: "Deployment of `${{ github.event.repository.name }}` failed!\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n${{ github.event.head_commit.url }}"
+          payload: |
+            {
+              "text": "Deployment of `${{ github.event.repository.name }}` failed!\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n${{ github.event.head_commit.url }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Deployment of `${{ github.event.repository.name }}` failed!\n- [Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n- [Commit](${{ github.event.head_commit.url }})"
+                  }
+                }
+              ]
+            }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   deploy-publish:
