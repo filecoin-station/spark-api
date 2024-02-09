@@ -102,17 +102,17 @@ jobs:
           cache-to: type=inline
 
   deploy-api:
-    if: github.ref == 'refs/heads/main'
+    # if: github.ref == 'refs/heads/main'
     needs: [build-api, build-publish, docker-build-api, docker-build-publish]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-      - if: failure()
-        uses: slackapi/slack-github-action@v1.25.0
+      # - uses: actions/checkout@v4
+      # - uses: superfly/flyctl-actions/setup-flyctl@master
+      # - run: flyctl deploy --remote-only
+      #   env:
+      #     FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      # - if: failure()
+      - uses: slackapi/slack-github-action@v1.25.0
         with:
           channel-id: filecoin-station-incidents
           slack-message: "${{ github.event.repository.name }} deployment failed!\n${{ github.event.head_commit.url }}"
