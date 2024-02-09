@@ -11,7 +11,7 @@ import { rpcUrls } from '../ie-contract-config.js'
 const {
   SENTRY_ENVIRONMENT = 'development',
   WALLET_SEED,
-  MIN_ROUND_LENGTH_SECONDS = 100,
+  MIN_ROUND_LENGTH_SECONDS = 60,
   MAX_MEASUREMENTS_PER_ROUND = 1000,
   // See https://web3.storage/docs/how-to/upload/#bring-your-own-agent
   W3UP_PRIVATE_KEY,
