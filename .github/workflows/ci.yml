@@ -117,13 +117,13 @@ jobs:
           channel-id: filecoin-station-incidents
           payload: |
             {
-              "text": "Deployment of `${{ github.event.repository.name }}` failed!\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n${{ github.event.head_commit.url }}",
+              "text": "Deployment of `${{ github.event.repository.name }}` failed",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Deployment of `${{ github.event.repository.name }}` failed!\n- [Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n- [Commit](${{ github.event.head_commit.url }})"
+                    "text": "*Deployment of `${{ github.event.repository.name }}` failed*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Logs> | <${{ github.event.head_commit.url }}|Commit>"
                   }
                 }
               ]
