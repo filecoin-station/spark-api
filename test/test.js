@@ -474,6 +474,29 @@ describe('Routes', () => {
     })
   })
 
+  describe('POST /measurements', () => {
+    it('returns a measurement ID above 2^31-1', async () => {
+      await client.query(`
+        SELECT setval('retrieval_results_id_seq', ${2 ** 31 - 1}, true)
+      `)
+      const res = await fetch(`${spark}/measurements`, {
+        method: 'POST',
+        body: JSON.stringify({
+          sparkVersion: '1.7.0',
+          cid: 'cid',
+          providerAddress: 'address',
+          protocol: 'http',
+          participantAddress: 'address',
+          startAt: new Date()
+        })
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(body, { id: String(2 ** 31) })
+    })
+  })
+
   describe('Redirect', () => {
     it('redirects to the right domain', async () => {
       let server
