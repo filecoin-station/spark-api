@@ -180,7 +180,7 @@ describe('Round Tracker', () => {
       assert.strictEqual(sparkRoundNumber, 1n)
       const sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
-      assert.strictEqual(sparkRounds[0].max_tasks_per_node, 60)
+      assert.strictEqual(sparkRounds[0].max_tasks_per_node, 15)
     })
   })
 })
