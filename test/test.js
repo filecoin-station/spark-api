@@ -433,8 +433,8 @@ describe('Routes', () => {
 
       for (const t of body.retrievalTasks) {
         assert.strictEqual(typeof t.cid, 'string')
-        assert.strictEqual(typeof t.providerAddress, 'string')
-        assert.strictEqual(typeof t.protocol, 'string')
+        assert.strictEqual(t.providerAddress, undefined)
+        assert.strictEqual(t.protocol, undefined)
       }
     })
   })
