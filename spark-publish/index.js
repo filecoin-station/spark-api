@@ -74,7 +74,7 @@ export const publish = async ({
     // Delete published measurements
     await pgClient.query(`
       DELETE FROM measurements
-      WHERE id = ANY($1::int[])
+      WHERE id = ANY($1::bigint[])
     `, [
       measurements.map(m => m.id)
     ])

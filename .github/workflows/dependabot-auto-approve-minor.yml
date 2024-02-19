@@ -12,6 +12,7 @@ jobs:
       matrix:
         dependencyStartsWith:
           - '@sentry/'
+          - mocha
     steps:
       - name: Dependabot metadata
         id: metadata

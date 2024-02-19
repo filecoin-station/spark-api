@@ -12,7 +12,7 @@ import {
 
 const { DATABASE_URL } = process.env
 const participantAddress = 'f1abc'
-const sparkVersion = '1.7.0' // This must be in sync with the minimum supported client version
+const sparkVersion = '1.9.0' // This must be in sync with the minimum supported client version
 const currentSparkRoundNumber = 42n
 
 const assertResponseStatus = async (res, status) => {
@@ -256,12 +256,12 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.end_at, null)
     })
 
-    it('rejects spark_version before v1.7.0', async () => {
+    it('rejects spark_version before v1.9.0', async () => {
       await client.query('DELETE FROM measurements')
 
       const measurement = {
         // THIS IS IMPORTANT
-        sparkVersion: '1.6.0',
+        sparkVersion: '1.8.0',
         // Everything else does not matter
         cid: 'bafytest',
         providerAddress: '/dns4/localhost/tcp/8080',
@@ -471,6 +471,29 @@ describe('Routes', () => {
         'retrievalTasks'
       ])
       assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
+    })
+  })
+
+  describe('POST /measurements', () => {
+    it('returns a measurement ID above 2^31-1', async () => {
+      await client.query(`
+        SELECT setval('retrieval_results_id_seq', ${2 ** 31 - 1}, true)
+      `)
+      const res = await fetch(`${spark}/measurements`, {
+        method: 'POST',
+        body: JSON.stringify({
+          sparkVersion,
+          cid: 'cid',
+          providerAddress: 'address',
+          protocol: 'http',
+          participantAddress: 'address',
+          startAt: new Date()
+        })
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(body, { id: String(2 ** 31) })
     })
   })
 

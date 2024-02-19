@@ -1,0 +1,1 @@
+ALTER SEQUENCE "retrieval_results_id_seq" AS bigint MAXVALUE 9223372036854775807;
