@@ -15,6 +15,24 @@ const participantAddress = 'f1abc'
 const sparkVersion = '1.9.0' // This must be in sync with the minimum supported client version
 const currentSparkRoundNumber = 42n
 
+const VALID_MEASUREMENT = {
+  cid: 'bafytest',
+  providerAddress: '/dns4/localhost/tcp/8080',
+  protocol: 'graphsync',
+  sparkVersion,
+  zinniaVersion: '2.3.4',
+  participantAddress,
+  startAt: new Date(),
+  statusCode: 200,
+  firstByteAt: new Date(),
+  endAt: new Date(),
+  byteLength: 100,
+  carTooLarge: true,
+  attestation: 'json.sig',
+  carChecksum: 'somehash',
+  indexerResult: 'OK'
+}
+
 const assertResponseStatus = async (res, status) => {
   if (res.status !== status) {
     throw new AssertionError({
@@ -121,21 +139,8 @@ describe('Routes', () => {
       await client.query('DELETE FROM measurements')
 
       const measurement = {
-        cid: 'bafytest',
-        providerAddress: '/dns4/localhost/tcp/8080',
-        protocol: 'graphsync',
-        sparkVersion,
-        zinniaVersion: '2.3.4',
-        participantAddress,
-        startAt: new Date(),
-        statusCode: 200,
-        firstByteAt: new Date(),
-        endAt: new Date(),
-        byteLength: 100,
-        carTooLarge: true,
-        attestation: 'json.sig',
-        carChecksum: 'somehash',
-        indexerResult: 'OK'
+        ...VALID_MEASUREMENT
+
       }
 
       const createRequest = await fetch(`${spark}/measurements`, {
@@ -288,6 +293,36 @@ describe('Routes', () => {
 
       const { rows } = await client.query('SELECT id, spark_version FROM measurements')
       assert.deepStrictEqual(rows, [])
+    })
+
+    it('allows no provider & protocol', async () => {
+      // We don't have the provider & protocol fields for deals that are not advertised to IPNI
+      await client.query('DELETE FROM measurements')
+
+      const measurement = {
+        ...VALID_MEASUREMENT,
+        providerAddress: undefined,
+        protocol: undefined
+      }
+
+      const createRequest = await fetch(`${spark}/measurements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(measurement)
+      })
+      await assertResponseStatus(createRequest, 200)
+      const { id } = await createRequest.json()
+
+      const { rows: [measurementRow] } = await client.query(`
+          SELECT *
+          FROM measurements
+          WHERE id = $1
+        `, [
+        id
+      ])
+
+      assert.strictEqual(measurementRow.provider_address, null)
+      assert.strictEqual(measurementRow.protocol, null)
     })
   })
 
