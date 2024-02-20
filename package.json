@@ -18,12 +18,12 @@
     "varint": "^6.0.0"
   },
   "dependencies": {
-    "@sentry/node": "^7.101.0",
+    "@sentry/node": "^7.101.1",
     "compare-versions": "^6.1.0",
     "ethers": "^5.7.2",
     "http-assert": "^1.5.0",
     "http-responders": "^2.0.2",
-    "multiformats": "^13.0.1",
+    "multiformats": "^13.1.0",
     "pg": "^8.11.3",
     "postgrator": "^7.2.0",
     "raw-body": "^2.5.2"

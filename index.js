@@ -39,7 +39,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'sparkVersion', { type: 'string', required: false })
   validate(measurement, 'zinniaVersion', { type: 'string', required: false })
   assert(
-    typeof measurement.sparkVersion === 'string' && satisfies(measurement.sparkVersion, '>=1.7.0'),
+    typeof measurement.sparkVersion === 'string' && satisfies(measurement.sparkVersion, '>=1.9.0'),
     410, 'OUTDATED CLIENT'
   )
 
@@ -52,8 +52,8 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   }
 
   validate(measurement, 'cid', { type: 'string', required: true })
-  validate(measurement, 'providerAddress', { type: 'string', required: true })
-  validate(measurement, 'protocol', { type: 'string', required: true })
+  validate(measurement, 'providerAddress', { type: 'string', required: false })
+  validate(measurement, 'protocol', { type: 'string', required: false })
   validate(measurement, 'participantAddress', { type: 'string', required: true })
   validate(measurement, 'timeout', { type: 'boolean', required: false })
   validate(measurement, 'startAt', { type: 'date', required: true })
@@ -217,11 +217,14 @@ const getMeridianRoundDetails = async (_req, res, client, meridianAddress, merid
     maxTasksPerNode: round.max_tasks_per_node,
     retrievalTasks: tasks.map(t => ({
       cid: t.cid,
-      providerAddress: t.provider_address,
-      protocol: t.protocol
+      // We are preserving these fields to make older rounds still verifiable
+      providerAddress: fixNullToUndefined(t.provider_address),
+      protocol: fixNullToUndefined(t.protocol)
     }))
   })
 }
+
+const fixNullToUndefined = (valueOrNull) => valueOrNull === null ? undefined : valueOrNull
 
 const parseRoundNumber = (roundParam) => {
   try {
