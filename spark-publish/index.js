@@ -11,26 +11,7 @@ export const publish = async ({
 }) => {
   // Fetch measurements
   const { rows: measurements } = await pgPool.query(`
-    SELECT
-      id,
-      spark_version,
-      zinnia_version,
-      participant_address,
-      finished_at,
-      timeout,
-      start_at,
-      status_code,
-      first_byte_at,
-      end_at,
-      byte_length,
-      attestation,
-      inet_group,
-      car_too_large,
-      car_checksum,
-      indexer_result,
-      cid,
-      provider_address,
-      protocol
+    SELECT id, data
     FROM measurements
     LIMIT $1
   `, [
@@ -49,7 +30,10 @@ export const publish = async ({
   // Share measurements
   let start = new Date()
   const file = new File(
-    [measurements.map(m => JSON.stringify(m)).join('\n')],
+    [measurements.map(m => JSON.stringify({
+      ...JSON.parse(m.data),
+      id: m.id,
+    })).join('\n')],
     'measurements.ndjson',
     { type: 'application/json' }
   )

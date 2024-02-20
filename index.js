@@ -3,8 +3,10 @@ import Sentry from '@sentry/node'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'
-import { mapRequestToInetGroup } from './lib/inet-grouping.js'
-import { satisfies } from 'compare-versions'
+import * as spark from './lib/spark.js'
+import * as voyager from './lib/voyager.js'
+
+const moduleImplementations = { spark, voyager }
 
 const handler = async (req, res, client, getCurrentRound, domain) => {
   if (req.headers.host.split(':')[0] !== domain) {
@@ -36,13 +38,8 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   const { sparkRoundNumber } = getCurrentRound()
   const body = await getRawBody(req, { limit: '100kb' })
   const measurement = JSON.parse(body)
-  validate(measurement, 'sparkVersion', { type: 'string', required: false })
+  
   validate(measurement, 'zinniaVersion', { type: 'string', required: false })
-  assert(
-    typeof measurement.sparkVersion === 'string' && satisfies(measurement.sparkVersion, '>=1.9.0'),
-    410, 'OUTDATED CLIENT'
-  )
-
   // Backwards-compatibility with older clients sending walletAddress instead of participantAddress
   // We can remove this after enough SPARK clients are running the new version (mid-October 2023)
   if (!('participantAddress' in measurement) && ('walletAddress' in measurement)) {
@@ -50,99 +47,35 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.participantAddress = measurement.walletAddress
     delete measurement.walletAddress
   }
-
-  validate(measurement, 'cid', { type: 'string', required: true })
-  validate(measurement, 'providerAddress', { type: 'string', required: true })
-  validate(measurement, 'protocol', { type: 'string', required: true })
   validate(measurement, 'participantAddress', { type: 'string', required: true })
-  validate(measurement, 'timeout', { type: 'boolean', required: false })
-  validate(measurement, 'startAt', { type: 'date', required: true })
-  validate(measurement, 'statusCode', { type: 'number', required: false })
-  validate(measurement, 'firstByteAt', { type: 'date', required: false })
-  validate(measurement, 'endAt', { type: 'date', required: false })
-  validate(measurement, 'byteLength', { type: 'number', required: false })
-  validate(measurement, 'attestation', { type: 'string', required: false })
-  validate(measurement, 'carTooLarge', { type: 'boolean', required: false })
-  validate(measurement, 'carChecksum', { type: 'string', required: false })
-  validate(measurement, 'indexerResult', { type: 'string', required: false })
 
-  const inetGroup = await mapRequestToInetGroup(client, req)
+  const moduleName = measurement.moduleName || 'spark'
+  const moduleImplementation = moduleImplementations[moduleName]
+  assert(moduleImplementation, `Unknown module: ${moduleName}`)
+
+  moduleImplementation.validateMeasurement(measurement)
 
   const { rows } = await client.query(`
-      INSERT INTO measurements (
-        spark_version,
-        zinnia_version,
-        cid,
-        provider_address,
-        protocol,
-        participant_address,
-        timeout,
-        start_at,
-        status_code,
-        first_byte_at,
-        end_at,
-        byte_length,
-        attestation,
-        inet_group,
-        car_too_large,
-        car_checksum,
-        indexer_result,
-        completed_at_round
-      )
-      VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
-      )
-      RETURNING id
-    `, [
-    measurement.sparkVersion,
-    measurement.zinniaVersion,
-    measurement.cid,
-    measurement.providerAddress,
-    measurement.protocol,
-    measurement.participantAddress,
-    measurement.timeout || false,
-    parseOptionalDate(measurement.startAt),
-    measurement.statusCode,
-    parseOptionalDate(measurement.firstByteAt),
-    parseOptionalDate(measurement.endAt),
-    measurement.byteLength,
-    measurement.attestation,
-    inetGroup,
-    measurement.carTooLarge ?? false,
-    measurement.carChecksum,
-    measurement.indexerResult,
-    sparkRoundNumber
+    INSERT INTO measurements (data)
+    VALUES ($1)
+    RETURNING id
+  `, [
+    JSON.stringify(moduleImplementation.sanitizeMeasurement(measurement))
   ])
+
   json(res, { id: rows[0].id })
 }
 
 const getMeasurement = async (req, res, client, measurementId) => {
   assert(!Number.isNaN(measurementId), 400, 'Invalid RetrievalResult ID')
-  const { rows: [resultRow] } = await client.query(`
-    SELECT *
-    FROM measurements
-    WHERE id = $1
-  `, [
-    measurementId
-  ])
+  const { rows: [resultRow] } = await client.query(
+    `SELECT data FROM measurements WHERE id = $1`,
+    [measurementId]
+  )
   assert(resultRow, 404, 'Measurement Not Found')
   json(res, {
-    id: resultRow.id,
-    cid: resultRow.cid,
-    providerAddress: resultRow.provider_address,
-    protocol: resultRow.protocol,
-    sparkVersion: resultRow.spark_version,
-    zinniaVersion: resultRow.zinnia_version,
-    createdAt: resultRow.created_at,
-    finishedAt: resultRow.finished_at,
-    timeout: resultRow.timeout,
-    startAt: resultRow.start_at,
-    statusCode: resultRow.status_code,
-    firstByteAt: resultRow.first_byte_at,
-    endAt: resultRow.end_at,
-    byteLength: resultRow.byte_length,
-    carTooLarge: resultRow.car_too_large,
-    attestation: resultRow.attestation
+    ...JSON.parse(resultRow.data),
+    id: measurementId
   })
 }
 
@@ -290,19 +223,4 @@ export const createHandler = async ({
         logger.request(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)
       })
   }
-}
-
-/**
- * Parse a date string field that may be `undefined` or `null`.
- *
- * - undefined -> undefined
- * - null -> undefined
- * - "iso-date-string" -> new Date("iso-date-string")
- *
- * @param {string | null | undefined} str
- * @returns {Date | undefined}
- */
-const parseOptionalDate = (str) => {
-  if (str === undefined || str === null) return undefined
-  return new Date(str)
 }
