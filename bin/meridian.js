@@ -62,8 +62,10 @@ await migrate(client)
 const getCurrentRound = await createRoundGetter(client)
 
 const round = getCurrentRound()
-assert(!!round, 'cannot obtain the current Spark round number')
-console.log('SPARK round number at service startup:', round.sparkRoundNumber)
+assert(!!round, 'cannot obtain the current module round numbers')
+for (const [moduleId, moduleRoundNumber] of round.moduleRoundNumbers.entries()) {
+  console.log('%s round number at service startup: %s', moduleId, moduleRoundNumber)
+}
 
 const logger = {
   error: console.error,

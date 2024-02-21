@@ -6,7 +6,10 @@ import { validate } from './lib/validate.js'
 import * as spark from './lib/spark.js'
 import * as voyager from './lib/voyager.js'
 
-const moduleImplementations = { spark, voyager }
+const moduleImplementations = {
+  0: spark,
+  1: voyager
+}
 
 const handler = async (req, res, client, getCurrentRound, domain) => {
   if (req.headers.host.split(':')[0] !== domain) {
@@ -24,8 +27,10 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
   } else if (segs[0] === 'measurements' && req.method === 'GET') {
     await getMeasurement(req, res, client, Number(segs[1]))
   } else if (segs[0] === 'rounds' && segs[1] === 'meridian' && req.method === 'GET') {
+    // TODO: Add moduleId
     await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
+    // TODO: Add moduleId
     await getRoundDetails(req, res, client, getCurrentRound, segs[1])
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
@@ -35,7 +40,6 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
 }
 
 const createMeasurement = async (req, res, client, getCurrentRound) => {
-  const { sparkRoundNumber } = getCurrentRound()
   const body = await getRawBody(req, { limit: '100kb' })
   const measurement = JSON.parse(body)
   
@@ -48,19 +52,22 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     delete measurement.walletAddress
   }
   validate(measurement, 'participantAddress', { type: 'string', required: true })
+  validate(measurement.moduleId, { type: 'number', required: false })
 
-  const moduleName = measurement.moduleName || 'spark'
-  const moduleImplementation = moduleImplementations[moduleName]
-  assert(moduleImplementation, `Unknown module: ${moduleName}`)
+  const moduleId = measurement.moduleId || 0
+  const moduleImplementation = moduleImplementations[moduleId]
+  assert(moduleImplementation, `Unknown moduleId: ${moduleId}`)
 
   moduleImplementation.validateMeasurement(measurement)
 
   const { rows } = await client.query(`
-    INSERT INTO measurements (data)
-    VALUES ($1)
+    INSERT INTO measurements (module_id, data, completed_at_round)
+    VALUES ($1, $2, $3)
     RETURNING id
   `, [
-    JSON.stringify(moduleImplementation.sanitizeMeasurement(measurement))
+    moduleId,
+    JSON.stringify(moduleImplementation.sanitizeMeasurement(measurement)),
+    getCurrentRound().moduleRoundNumbers.get(moduleId)
   ])
 
   json(res, { id: rows[0].id })
@@ -69,19 +76,21 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
 const getMeasurement = async (req, res, client, measurementId) => {
   assert(!Number.isNaN(measurementId), 400, 'Invalid RetrievalResult ID')
   const { rows: [resultRow] } = await client.query(
-    `SELECT data FROM measurements WHERE id = $1`,
+    `SELECT module_id, data, completed_at_round FROM measurements WHERE id = $1`,
     [measurementId]
   )
   assert(resultRow, 404, 'Measurement Not Found')
   json(res, {
     ...JSON.parse(resultRow.data),
-    id: measurementId
+    id: measurementId,
+    moduleId: resultRow.module_id,
+    moduleRound: resultRow.completed_at_round
   })
 }
 
-const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) => {
+const getRoundDetails = async (req, res, client, getCurrentRound, roundParam, moduleId) => {
   if (roundParam === 'current') {
-    const { meridianContractAddress, meridianRoundIndex } = getCurrentRound()
+    const { meridianContractAddresses, meridianRoundIndexes } = getCurrentRound()
     const addr = encodeURIComponent(meridianContractAddress)
     const idx = encodeURIComponent(meridianRoundIndex)
     const location = `/rounds/meridian/${addr}/${idx}`
