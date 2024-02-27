@@ -12,7 +12,7 @@
     "test": "standard && mocha"
   },
   "devDependencies": {
-    "light-my-request": "^5.11.0",
+    "light-my-request": "^5.11.1",
     "mocha": "^10.3.0",
     "standard": "^17.1.0",
     "varint": "^6.0.0"
