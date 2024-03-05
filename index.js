@@ -272,7 +272,7 @@ export const inspectRequest = async (req, res) => {
   await json(res, {
     remoteAddress: req.socket.remoteAddress,
     flyClientAddr: req.headers['fly-client-ip'],
-    cloudfareAddr: req.headers['cf-connecting-ip'],
+    cloudflareAddr: req.headers['cf-connecting-ip'],
     forwardedFor: req.headers['x-forwarded-for'],
     headers: req.headersDistinct
   })
