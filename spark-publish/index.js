@@ -28,6 +28,8 @@ export const publish = async ({
       car_too_large,
       car_checksum,
       indexer_result,
+      miner_id,
+      provider_id,
       cid,
       provider_address,
       protocol

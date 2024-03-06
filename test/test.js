@@ -30,6 +30,8 @@ const VALID_MEASUREMENT = {
   carTooLarge: true,
   attestation: 'json.sig',
   carChecksum: 'somehash',
+  minerId: 'f02abc',
+  providerId: 'provider-pubkey',
   indexerResult: 'OK'
 }
 
@@ -184,6 +186,8 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.car_too_large, true)
       assert.strictEqual(measurementRow.indexer_result, 'OK')
       assert.strictEqual(measurementRow.car_checksum, 'somehash')
+      assert.strictEqual(measurementRow.miner_id, measurement.minerId)
+      assert.strictEqual(measurementRow.provider_id, measurement.providerId)
     })
 
     it('allows older format with walletAddress', async () => {
@@ -323,6 +327,35 @@ describe('Routes', () => {
 
       assert.strictEqual(measurementRow.provider_address, null)
       assert.strictEqual(measurementRow.protocol, null)
+    })
+
+    it('allows no minerId/providerId', async () => {
+      await client.query('DELETE FROM measurements')
+
+      const measurement = {
+        ...VALID_MEASUREMENT,
+        minerId: undefined,
+        providerId: undefined
+      }
+
+      const createRequest = await fetch(`${spark}/measurements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(measurement)
+      })
+      await assertResponseStatus(createRequest, 200)
+      const { id } = await createRequest.json()
+
+      const { rows: [measurementRow] } = await client.query(`
+          SELECT *
+          FROM measurements
+          WHERE id = $1
+        `, [
+        id
+      ])
+
+      assert.strictEqual(measurementRow.miner_id, null)
+      assert.strictEqual(measurementRow.provider_id, null)
     })
   })
 
