@@ -433,6 +433,11 @@ describe('Routes', () => {
         maxTasksPerNode: MAX_TASKS_PER_NODE
       })
       assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
+
+      for (const task of retrievalTasks) {
+        assert.equal(typeof task.cid, 'string', 'all tasks have "cid"')
+        assert.equal(typeof task.minerId, 'string', 'all tasks have "minerId"')
+      }
     })
 
     it('returns details of a SPARK round managed by older contract version', async () => {

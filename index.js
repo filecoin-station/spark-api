@@ -226,6 +226,7 @@ const getMeridianRoundDetails = async (_req, res, client, meridianAddress, merid
     maxTasksPerNode: round.max_tasks_per_node,
     retrievalTasks: tasks.map(t => ({
       cid: t.cid,
+      minerId: t.miner_id,
       // We are preserving these fields to make older rounds still verifiable
       providerAddress: fixNullToUndefined(t.provider_address),
       protocol: fixNullToUndefined(t.protocol)
