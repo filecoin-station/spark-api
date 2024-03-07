@@ -135,6 +135,7 @@ const getMeasurement = async (req, res, client, measurementId) => {
   json(res, {
     id: resultRow.id,
     cid: resultRow.cid,
+    indexerResult: resultRow.indexer_result,
     providerAddress: resultRow.provider_address,
     protocol: resultRow.protocol,
     sparkVersion: resultRow.spark_version,

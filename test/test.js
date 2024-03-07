@@ -361,25 +361,11 @@ describe('Routes', () => {
 
   describe('GET /measurements/:id', () => {
     it('gets a completed retrieval', async () => {
-      const retrieval = {
-        cid: 'bafytest',
-        providerAddress: '/dns4/localhost/tcp/8080',
-        protocol: 'graphsync',
-        sparkVersion,
-        zinniaVersion: '2.3.4',
-        participantAddress,
-        startAt: new Date(),
-        statusCode: 200,
-        firstByteAt: new Date(),
-        endAt: new Date(),
-        byteLength: 100,
-        attestation: 'json.sig'
-      }
-
+      const measurement = { ...VALID_MEASUREMENT }
       const createRequest = await fetch(`${spark}/measurements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(retrieval)
+        body: JSON.stringify(measurement)
       })
       await assertResponseStatus(createRequest, 200)
       const { id: measurementId } = await createRequest.json()
@@ -388,19 +374,20 @@ describe('Routes', () => {
       await assertResponseStatus(res, 200)
       const body = await res.json()
       assert.strictEqual(body.id, measurementId)
-      assert.strictEqual(body.cid, retrieval.cid)
-      assert.strictEqual(body.providerAddress, retrieval.providerAddress)
-      assert.strictEqual(body.protocol, retrieval.protocol)
+      assert.strictEqual(body.cid, measurement.cid)
+      assert.strictEqual(body.indexerResult, measurement.indexerResult)
+      assert.strictEqual(body.providerAddress, measurement.providerAddress)
+      assert.strictEqual(body.protocol, measurement.protocol)
       assert.strictEqual(body.sparkVersion, sparkVersion)
       assert.strictEqual(body.zinniaVersion, '2.3.4')
       assert(body.finishedAt)
-      assert.strictEqual(body.startAt, retrieval.startAt.toJSON())
-      assert.strictEqual(body.statusCode, retrieval.statusCode)
-      assert.strictEqual(body.firstByteAt, retrieval.firstByteAt.toJSON())
-      assert.strictEqual(body.endAt, retrieval.endAt.toJSON())
-      assert.strictEqual(body.byteLength, retrieval.byteLength)
-      assert.strictEqual(body.attestation, retrieval.attestation)
-      assert.strictEqual(body.carTooLarge, false)
+      assert.strictEqual(body.startAt, measurement.startAt.toJSON())
+      assert.strictEqual(body.statusCode, measurement.statusCode)
+      assert.strictEqual(body.firstByteAt, measurement.firstByteAt.toJSON())
+      assert.strictEqual(body.endAt, measurement.endAt.toJSON())
+      assert.strictEqual(body.byteLength, measurement.byteLength)
+      assert.strictEqual(body.attestation, measurement.attestation)
+      assert.strictEqual(body.carTooLarge, measurement.carTooLarge)
     })
   })
 
