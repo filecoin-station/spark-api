@@ -135,6 +135,8 @@ const getMeasurement = async (req, res, client, measurementId) => {
   json(res, {
     id: resultRow.id,
     cid: resultRow.cid,
+    minerId: resultRow.miner_id,
+    providerId: resultRow.provider_id,
     indexerResult: resultRow.indexer_result,
     providerAddress: resultRow.provider_address,
     protocol: resultRow.protocol,

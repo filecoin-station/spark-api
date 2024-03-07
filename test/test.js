@@ -375,6 +375,8 @@ describe('Routes', () => {
       const body = await res.json()
       assert.strictEqual(body.id, measurementId)
       assert.strictEqual(body.cid, measurement.cid)
+      assert.strictEqual(body.minerId, measurement.minerId)
+      assert.strictEqual(body.providerId, measurement.providerId)
       assert.strictEqual(body.indexerResult, measurement.indexerResult)
       assert.strictEqual(body.providerAddress, measurement.providerAddress)
       assert.strictEqual(body.protocol, measurement.protocol)
