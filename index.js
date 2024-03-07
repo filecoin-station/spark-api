@@ -65,6 +65,8 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'carTooLarge', { type: 'boolean', required: false })
   validate(measurement, 'carChecksum', { type: 'string', required: false })
   validate(measurement, 'indexerResult', { type: 'string', required: false })
+  validate(measurement, 'minerId', { type: 'string', required: false })
+  validate(measurement, 'providerId', { type: 'string', required: false })
 
   const inetGroup = await mapRequestToInetGroup(client, req)
 
@@ -87,10 +89,12 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         car_too_large,
         car_checksum,
         indexer_result,
+        miner_id,
+        provider_id,
         completed_at_round
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
       )
       RETURNING id
     `, [
@@ -111,6 +115,8 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.carTooLarge ?? false,
     measurement.carChecksum,
     measurement.indexerResult,
+    measurement.minerId,
+    measurement.providerId,
     sparkRoundNumber
   ])
   json(res, { id: rows[0].id })
@@ -129,6 +135,8 @@ const getMeasurement = async (req, res, client, measurementId) => {
   json(res, {
     id: resultRow.id,
     cid: resultRow.cid,
+    minerId: resultRow.miner_id,
+    providerId: resultRow.provider_id,
     indexerResult: resultRow.indexer_result,
     providerAddress: resultRow.provider_address,
     protocol: resultRow.protocol,

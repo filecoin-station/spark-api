@@ -125,6 +125,8 @@ describe('integration', () => {
       carTooLarge: true,
       carChecksum: 'somehash',
       indexerResult: 'ERROR_404',
+      minerId: 'f02abc',
+      providerId: 'provider-pubkey',
       round: 42
     }, {
       sparkVersion: '1.2.3',
@@ -142,6 +144,8 @@ describe('integration', () => {
       attestation: 'json.sig',
       inetGroup: 'MTIzNDU2Nzg',
       carTooLarge: true,
+      minerId: 'f02abc',
+      providerId: 'provider-pubkey',
       round: 42
     }]
 
@@ -228,6 +232,8 @@ describe('integration', () => {
     assert.strictEqual(published.end_at, null)
     assert.strictEqual(published.car_checksum, measurementRecorded.carChecksum)
     assert.strictEqual(published.indexer_result, measurementRecorded.indexerResult)
+    assert.strictEqual(published.miner_id, measurementRecorded.minerId)
+    assert.strictEqual(published.provider_id, measurementRecorded.providerId)
     // TODO: test other fields
 
     // We are publishing records with invalid wallet addresses too
@@ -263,10 +269,12 @@ const insertMeasurement = async (client, measurement) => {
     car_too_large,
     car_checksum,
     indexer_result,
+    miner_id,
+    provider_id,
     completed_at_round
   )
   VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
   )
 `, [
     measurement.sparkVersion,
@@ -286,6 +294,8 @@ const insertMeasurement = async (client, measurement) => {
     measurement.carTooLarge,
     measurement.carChecksum,
     measurement.indexerResult,
+    measurement.minerId,
+    measurement.providerId,
     measurement.round
   ])
 }
