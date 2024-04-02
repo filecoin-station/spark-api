@@ -24,7 +24,7 @@
     "http-assert": "^1.5.0",
     "http-responders": "^2.0.2",
     "multiformats": "^13.1.0",
-    "pg": "^8.11.3",
+    "pg": "^8.11.4",
     "postgrator": "^7.2.0",
     "raw-body": "^2.5.2"
   },
