@@ -32,7 +32,8 @@ export const publish = async ({
       provider_id,
       cid,
       provider_address,
-      protocol
+      protocol,
+      station_id
     FROM measurements
     LIMIT $1
   `, [

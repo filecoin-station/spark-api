@@ -32,7 +32,8 @@ const VALID_MEASUREMENT = {
   carChecksum: 'somehash',
   minerId: 'f02abc',
   providerId: 'provider-pubkey',
-  indexerResult: 'OK'
+  indexerResult: 'OK',
+  stationId: '123e4567-e89b-12d3-a456-426614174000'
 }
 
 const assertResponseStatus = async (res, status) => {
@@ -188,6 +189,7 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.car_checksum, 'somehash')
       assert.strictEqual(measurementRow.miner_id, measurement.minerId)
       assert.strictEqual(measurementRow.provider_id, measurement.providerId)
+      assert.strictEqual(measurementRow.station_id, measurement.stationId)
     })
 
     it('allows older format with walletAddress', async () => {
@@ -390,6 +392,7 @@ describe('Routes', () => {
       assert.strictEqual(body.byteLength, measurement.byteLength)
       assert.strictEqual(body.attestation, measurement.attestation)
       assert.strictEqual(body.carTooLarge, measurement.carTooLarge)
+      assert.strictEqual(body.stationId, measurement.stationId)
     })
   })
 
