@@ -79,6 +79,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         provider_address,
         protocol,
         participant_address,
+        station_id,
         timeout,
         start_at,
         status_code,
@@ -92,8 +93,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         indexer_result,
         miner_id,
         provider_id,
-        completed_at_round,
-        station_id
+        completed_at_round
       )
       VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
@@ -106,6 +106,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.providerAddress,
     measurement.protocol,
     measurement.participantAddress,
+    measurement.stationId,
     measurement.timeout || false,
     parseOptionalDate(measurement.startAt),
     measurement.statusCode,
@@ -119,8 +120,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.indexerResult,
     measurement.minerId,
     measurement.providerId,
-    sparkRoundNumber,
-    measurement.stationId
+    sparkRoundNumber
   ])
   json(res, { id: rows[0].id })
 }

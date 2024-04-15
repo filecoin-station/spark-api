@@ -33,7 +33,7 @@ const VALID_MEASUREMENT = {
   minerId: 'f02abc',
   providerId: 'provider-pubkey',
   indexerResult: 'OK',
-  stationId: '123e4567-e89b-12d3-a456-426614174000'
+  stationId: 'some-station-id'
 }
 
 const assertResponseStatus = async (res, status) => {
