@@ -18,6 +18,7 @@ const currentSparkRoundNumber = 42n
 const VALID_MEASUREMENT = {
   cid: 'bafytest',
   providerAddress: '/dns4/localhost/tcp/8080',
+  stationId: '6400000000000000000000000000000000000000000000000000000000000000',
   protocol: 'graphsync',
   sparkVersion,
   zinniaVersion: '2.3.4',
@@ -32,8 +33,7 @@ const VALID_MEASUREMENT = {
   carChecksum: 'somehash',
   minerId: 'f02abc',
   providerId: 'provider-pubkey',
-  indexerResult: 'OK',
-  stationId: 'some-station-id'
+  indexerResult: 'OK'
 }
 
 const assertResponseStatus = async (res, status) => {

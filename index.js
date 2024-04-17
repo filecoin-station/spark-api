@@ -67,7 +67,10 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'indexerResult', { type: 'string', required: false })
   validate(measurement, 'minerId', { type: 'string', required: false })
   validate(measurement, 'providerId', { type: 'string', required: false })
-  validate(measurement, 'stationId', { type: 'string', required: false }) // TODO eventually should be required, optional now for backwards compatibility
+  if ('stationId' in measurement) {
+    validate(measurement, 'stationId', { type: 'string', required: false }) // TODO eventually should be required, optional now for backwards compatibility
+    assert(measurement.stationId.length === 64, 400, 'Invalid Station ID')
+  }
 
   const inetGroup = await mapRequestToInetGroup(client, req)
 
@@ -142,6 +145,7 @@ const getMeasurement = async (req, res, client, measurementId) => {
     providerId: resultRow.provider_id,
     indexerResult: resultRow.indexer_result,
     providerAddress: resultRow.provider_address,
+    stationId: resultRow.station_id,
     protocol: resultRow.protocol,
     sparkVersion: resultRow.spark_version,
     zinniaVersion: resultRow.zinnia_version,
@@ -154,8 +158,7 @@ const getMeasurement = async (req, res, client, measurementId) => {
     endAt: resultRow.end_at,
     byteLength: resultRow.byte_length,
     carTooLarge: resultRow.car_too_large,
-    attestation: resultRow.attestation,
-    stationId: resultRow.station_id
+    attestation: resultRow.attestation
   })
 }
 
