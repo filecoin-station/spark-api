@@ -359,6 +359,34 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.miner_id, null)
       assert.strictEqual(measurementRow.provider_id, null)
     })
+
+    it('rejects invalid stationId', async () => {
+      await client.query('DELETE FROM measurements')
+      const measurements = [
+        {
+          ...VALID_MEASUREMENT,
+          stationId: 'this-is-a-malicious-station-id-with-64-chars-long-12345678901234'
+        },
+        {
+          ...VALID_MEASUREMENT,
+          stationId: '0392c7b3-4b7b-4b7b-8b7b-7b7b7b7b7b7b' // not 64 chars long
+        }
+      ]
+
+      for (const measurement of measurements) {
+        const res = await fetch(`${spark}/measurements`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(measurement)
+        })
+        await assertResponseStatus(res, 400)
+        const body = await res.text()
+        assert.strictEqual(body, 'Invalid Station ID')
+      }
+
+      const { rows } = await client.query('SELECT id FROM measurements')
+      assert.deepStrictEqual(rows, [])
+    })
   })
 
   describe('GET /measurements/:id', () => {
