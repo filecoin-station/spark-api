@@ -67,6 +67,10 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'indexerResult', { type: 'string', required: false })
   validate(measurement, 'minerId', { type: 'string', required: false })
   validate(measurement, 'providerId', { type: 'string', required: false })
+  if ('stationId' in measurement) {
+    validate(measurement, 'stationId', { type: 'string', required: false }) // TODO eventually should be required, optional now for backwards compatibility
+    assert(measurement.stationId.match(/^[0-9a-fA-F]{64}$/), 400, 'Invalid Station ID')
+  }
 
   const inetGroup = await mapRequestToInetGroup(client, req)
 
@@ -78,6 +82,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         provider_address,
         protocol,
         participant_address,
+        station_id,
         timeout,
         start_at,
         status_code,
@@ -94,7 +99,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         completed_at_round
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
       )
       RETURNING id
     `, [
@@ -104,6 +109,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.providerAddress,
     measurement.protocol,
     measurement.participantAddress,
+    measurement.stationId,
     measurement.timeout || false,
     parseOptionalDate(measurement.startAt),
     measurement.statusCode,
@@ -139,6 +145,7 @@ const getMeasurement = async (req, res, client, measurementId) => {
     providerId: resultRow.provider_id,
     indexerResult: resultRow.indexer_result,
     providerAddress: resultRow.provider_address,
+    stationId: resultRow.station_id,
     protocol: resultRow.protocol,
     sparkVersion: resultRow.spark_version,
     zinniaVersion: resultRow.zinnia_version,

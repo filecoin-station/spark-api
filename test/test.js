@@ -18,6 +18,7 @@ const currentSparkRoundNumber = 42n
 const VALID_MEASUREMENT = {
   cid: 'bafytest',
   providerAddress: '/dns4/localhost/tcp/8080',
+  stationId: '6400000000000000000000000000000000000000000000000000000000000000',
   protocol: 'graphsync',
   sparkVersion,
   zinniaVersion: '2.3.4',
@@ -188,6 +189,7 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.car_checksum, 'somehash')
       assert.strictEqual(measurementRow.miner_id, measurement.minerId)
       assert.strictEqual(measurementRow.provider_id, measurement.providerId)
+      assert.strictEqual(measurementRow.station_id, measurement.stationId)
     })
 
     it('allows older format with walletAddress', async () => {
@@ -357,6 +359,34 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.miner_id, null)
       assert.strictEqual(measurementRow.provider_id, null)
     })
+
+    it('rejects invalid stationId', async () => {
+      await client.query('DELETE FROM measurements')
+      const measurements = [
+        {
+          ...VALID_MEASUREMENT,
+          stationId: 'this-is-a-malicious-station-id-with-64-chars-long-12345678901234'
+        },
+        {
+          ...VALID_MEASUREMENT,
+          stationId: '0392c7b3-4b7b-4b7b-8b7b-7b7b7b7b7b7b' // not 64 chars long
+        }
+      ]
+
+      for (const measurement of measurements) {
+        const res = await fetch(`${spark}/measurements`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(measurement)
+        })
+        await assertResponseStatus(res, 400)
+        const body = await res.text()
+        assert.strictEqual(body, 'Invalid Station ID')
+      }
+
+      const { rows } = await client.query('SELECT id FROM measurements')
+      assert.deepStrictEqual(rows, [])
+    })
   })
 
   describe('GET /measurements/:id', () => {
@@ -390,6 +420,7 @@ describe('Routes', () => {
       assert.strictEqual(body.byteLength, measurement.byteLength)
       assert.strictEqual(body.attestation, measurement.attestation)
       assert.strictEqual(body.carTooLarge, measurement.carTooLarge)
+      assert.strictEqual(body.stationId, measurement.stationId)
     })
   })
 

@@ -16,6 +16,7 @@ export const publish = async ({
       spark_version,
       zinnia_version,
       participant_address,
+      station_id,
       finished_at,
       timeout,
       start_at,
