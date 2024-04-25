@@ -69,7 +69,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
   validate(measurement, 'providerId', { type: 'string', required: false })
   if ('stationId' in measurement) {
     validate(measurement, 'stationId', { type: 'string', required: false }) // TODO eventually should be required, optional now for backwards compatibility
-    assert(measurement.stationId.match(/^[0-9a-fA-F]{64}$/), 400, 'Invalid Station ID')
+    assert(measurement.stationId.match(/^[0-9a-fA-F]{88}$/), 400, 'Invalid Station ID')
   }
 
   const inetGroup = await mapRequestToInetGroup(client, req)
