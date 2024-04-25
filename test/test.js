@@ -18,7 +18,7 @@ const currentSparkRoundNumber = 42n
 const VALID_MEASUREMENT = {
   cid: 'bafytest',
   providerAddress: '/dns4/localhost/tcp/8080',
-  stationId: '6400000000000000000000000000000000000000000000000000000000000000',
+  stationId: '8800000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
   protocol: 'graphsync',
   sparkVersion,
   zinniaVersion: '2.3.4',
@@ -365,11 +365,11 @@ describe('Routes', () => {
       const measurements = [
         {
           ...VALID_MEASUREMENT,
-          stationId: 'this-is-a-malicious-station-id-with-64-chars-long-12345678901234'
+          stationId: 'this-is-a-malicious-station-id-with-88-chars-long-12345678901234567890123456789012345678'
         },
         {
           ...VALID_MEASUREMENT,
-          stationId: '0392c7b3-4b7b-4b7b-8b7b-7b7b7b7b7b7b' // not 64 chars long
+          stationId: '0392c7b3-4b7b-4b7b-8b7b-7b7b7b7b7b7b' // not 88 chars long
         }
       ]
 
