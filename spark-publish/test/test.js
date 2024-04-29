@@ -237,7 +237,7 @@ describe('integration', () => {
     // TODO: test other fields
 
     // We are publishing records with invalid wallet addresses too
-    assert.strictEqual(published.participant_address, 't1foobar')
+    assert.strictEqual(published.participant_address, '0x000000000000000000000000000000000000dEaD')
 
     const { rows: commitments } = await client.query('SELECT * FROM commitments')
     assert.deepStrictEqual(commitments.map(c => c.cid), [cid])
