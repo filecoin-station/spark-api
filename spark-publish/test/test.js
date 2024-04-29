@@ -113,7 +113,7 @@ describe('integration', () => {
       cid: 'bafytest',
       providerAddress: '/dns4/localhost/tcp/8080',
       protocol: 'graphsync',
-      participantAddress: 't1foobar',
+      participantAddress: '0x000000000000000000000000000000000000dEaD',
       timeout: false,
       startAt: new Date('2023-09-18T13:33:51.239Z'),
       statusCode: 200,
@@ -134,7 +134,7 @@ describe('integration', () => {
       cid: 'bafytest',
       providerAddress: '/dns4/localhost/tcp/8080',
       protocol: 'graphsync',
-      participantAddress: 't1foobar',
+      participantAddress: '0x000000000000000000000000000000000000dEaD',
       timeout: false,
       startAt: new Date('2023-09-18T13:33:51.239Z'),
       statusCode: 200,
@@ -237,7 +237,7 @@ describe('integration', () => {
     // TODO: test other fields
 
     // We are publishing records with invalid wallet addresses too
-    assert.strictEqual(published.participant_address, 't1foobar')
+    assert.strictEqual(published.participant_address, '0x000000000000000000000000000000000000dEaD')
 
     const { rows: commitments } = await client.query('SELECT * FROM commitments')
     assert.deepStrictEqual(commitments.map(c => c.cid), [cid])
