@@ -11,7 +11,7 @@ import {
 } from '../lib/round-tracker.js'
 
 const { DATABASE_URL } = process.env
-const participantAddress = 'f1abc'
+const participantAddress = '0x000000000000000000000000000000000000dEaD'
 const sparkVersion = '1.9.0' // This must be in sync with the minimum supported client version
 const currentSparkRoundNumber = 42n
 
@@ -579,7 +579,7 @@ describe('Routes', () => {
           cid: 'cid',
           providerAddress: 'address',
           protocol: 'http',
-          participantAddress: 'address',
+          participantAddress: '0x000000000000000000000000000000000000dEaD',
           startAt: new Date()
         })
       })
