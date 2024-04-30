@@ -5,6 +5,7 @@ import assert from 'http-assert'
 import { validate } from './lib/validate.js'
 import { mapRequestToInetGroup } from './lib/inet-grouping.js'
 import { satisfies } from 'compare-versions'
+import { ethAddressFromDelegated } from '@glif/filecoin-address'
 
 const handler = async (req, res, client, getCurrentRound, domain) => {
   if (req.headers.host.split(':')[0] !== domain) {
@@ -49,6 +50,13 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     validate(measurement, 'walletAddress', { type: 'string', required: true })
     measurement.participantAddress = measurement.walletAddress
     delete measurement.walletAddress
+  }
+  if (typeof measurement.participantAddress === 'string' && measurement.participantAddress.startsWith('f4')) {
+    try {
+      measurement.participantAddress = ethAddressFromDelegated(measurement.participantAddress)
+    } catch (err) {
+      assert.fail(400, 'Invalid .participantAddress - doesn\'t convert to 0x address')
+    }
   }
 
   validate(measurement, 'cid', { type: 'string', required: true })
