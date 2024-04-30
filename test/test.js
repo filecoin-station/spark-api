@@ -246,6 +246,22 @@ describe('Routes', () => {
       assert.strictEqual(measurementRow.participant_address, participantAddress)
     })
 
+    it('validates f4 addresses', async () => {
+      await client.query('DELETE FROM measurements')
+
+      const measurement = {
+        ...VALID_MEASUREMENT,
+        participantAddress: `${delegatedFromEthAddress(participantAddress, 'f')}0`
+      }
+
+      const createRequest = await fetch(`${spark}/measurements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(measurement)
+      })
+      await assertResponseStatus(createRequest, 400)
+    })
+
     it('handles date fields set to null', async () => {
       await client.query('DELETE FROM measurements')
 
