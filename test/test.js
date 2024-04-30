@@ -9,6 +9,7 @@ import {
   mapCurrentMeridianRoundToSparkRound,
   MAX_TASKS_PER_NODE
 } from '../lib/round-tracker.js'
+import { delegatedFromEthAddress } from '@glif/filecoin-address'
 
 const { DATABASE_URL } = process.env
 const participantAddress = '0x000000000000000000000000000000000000dEaD'
@@ -196,20 +197,35 @@ describe('Routes', () => {
       await client.query('DELETE FROM measurements')
 
       const measurement = {
-        // THIS IS IMPORTANT
+        ...VALID_MEASUREMENT,
         walletAddress: participantAddress,
-        // Everything else does not matter
-        cid: 'bafytest',
-        providerAddress: '/dns4/localhost/tcp/8080',
-        protocol: 'graphsync',
-        sparkVersion,
-        zinniaVersion: '2.3.4',
-        startAt: new Date(),
-        statusCode: 200,
-        firstByteAt: new Date(),
-        endAt: new Date(),
-        byteLength: 100,
-        attestation: 'json.sig'
+        participantAddress: undefined
+      }
+
+      const createRequest = await fetch(`${spark}/measurements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(measurement)
+      })
+      await assertResponseStatus(createRequest, 200)
+      const { id } = await createRequest.json()
+
+      const { rows: [measurementRow] } = await client.query(`
+          SELECT *
+          FROM measurements
+          WHERE id = $1
+        `, [
+        id
+      ])
+      assert.strictEqual(measurementRow.participant_address, participantAddress)
+    })
+
+    it('allows f4 addresses', async () => {
+      await client.query('DELETE FROM measurements')
+
+      const measurement = {
+        ...VALID_MEASUREMENT,
+        participantAddress: delegatedFromEthAddress(participantAddress, 'f')
       }
 
       const createRequest = await fetch(`${spark}/measurements`, {
