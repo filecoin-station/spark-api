@@ -1,7 +1,9 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
+    directories:
+      - "/"
+      - "/spark-publish"
     schedule:
       interval: "daily"
       time: "09:00"
