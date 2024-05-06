@@ -10,7 +10,7 @@
     "@ipld/car": "^5.2.4",
     "@sentry/node": "^7.113.0",
     "@ucanto/core": "^9.0.1",
-    "@ucanto/principal": "^9.0.0",
+    "@ucanto/principal": "^9.0.1",
     "@web3-storage/access": "^18.0.3",
     "@web3-storage/w3up-client": "^11.0.2",
     "ethers": "^6.10.0",
