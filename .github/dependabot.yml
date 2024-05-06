@@ -25,3 +25,12 @@ updates:
     reviewers:
       - "bajtos"
       - "juliangruber"
+  - package-ecosystem: "docker"
+    directories:
+      - "/"
+      - "/spark-publish"
+    schedule:
+      interval: "daily"
+      time: "15:00"
+      timezone: "Europe/Berlin"
+
