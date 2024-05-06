@@ -238,6 +238,7 @@ const getMeridianRoundDetails = async (_req, res, client, meridianAddress, merid
   res.setHeader('cache-control', `public, max-age=${ONE_YEAR_IN_SECONDS}, immutable`)
   json(res, {
     roundId: round.id.toString(),
+    startEpoch: round.start_epoch,
     maxTasksPerNode: round.max_tasks_per_node,
     retrievalTasks: tasks.map(t => ({
       cid: t.cid,
