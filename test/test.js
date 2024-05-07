@@ -58,7 +58,8 @@ describe('Routes', () => {
     await maybeCreateSparkRound(client, {
       sparkRoundNumber: currentSparkRoundNumber,
       meridianContractAddress: '0x1a',
-      meridianRoundIndex: 123n
+      meridianRoundIndex: 123n,
+      roundStartEpoch: 321n
     })
     const handler = await createHandler({
       client,
@@ -465,7 +466,8 @@ describe('Routes', () => {
       let num = await mapCurrentMeridianRoundToSparkRound({
         pgClient: client,
         meridianContractAddress: '0xOLD',
-        meridianRoundIndex: 10n
+        meridianRoundIndex: 10n,
+        roundStartEpoch: 321n
       })
       assert.strictEqual(num, 1n)
 
@@ -473,7 +475,8 @@ describe('Routes', () => {
       num = await mapCurrentMeridianRoundToSparkRound({
         pgClient: client,
         meridianContractAddress: '0xNEW',
-        meridianRoundIndex: 120n
+        meridianRoundIndex: 120n,
+        roundStartEpoch: 621n
       })
       assert.strictEqual(num, 2n)
 
@@ -481,7 +484,8 @@ describe('Routes', () => {
       num = await mapCurrentMeridianRoundToSparkRound({
         pgClient: client,
         meridianContractAddress: '0xNEW',
-        meridianRoundIndex: 121n
+        meridianRoundIndex: 121n,
+        roundStartEpoch: 921n
       })
       assert.strictEqual(num, 3n)
     })
@@ -493,7 +497,8 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(details, {
         roundId: '2',
-        maxTasksPerNode: MAX_TASKS_PER_NODE
+        maxTasksPerNode: MAX_TASKS_PER_NODE,
+        startEpoch: '621'
       })
       assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
 
@@ -510,7 +515,8 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(details, {
         roundId: '1',
-        maxTasksPerNode: MAX_TASKS_PER_NODE
+        maxTasksPerNode: MAX_TASKS_PER_NODE,
+        startEpoch: '321'
       })
       assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
     })
@@ -533,7 +539,8 @@ describe('Routes', () => {
       await maybeCreateSparkRound(client, {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
-        meridianRoundIndex: 123n
+        meridianRoundIndex: 123n,
+        roundStartEpoch: 321n
       })
     })
 
@@ -551,10 +558,12 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(Object.keys(body), [
         'roundId',
+        'startEpoch',
         'maxTasksPerNode',
         'retrievalTasks'
       ])
       assert.strictEqual(body.roundId, currentSparkRoundNumber.toString())
+      assert.strictEqual(body.startEpoch, '321')
 
       for (const t of body.retrievalTasks) {
         assert.strictEqual(typeof t.cid, 'string')
@@ -571,7 +580,8 @@ describe('Routes', () => {
       await maybeCreateSparkRound(client, {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
-        meridianRoundIndex: 123n
+        meridianRoundIndex: 123n,
+        roundStartEpoch: 321n
       })
     })
 
