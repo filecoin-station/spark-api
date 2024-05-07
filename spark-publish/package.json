@@ -5,7 +5,7 @@
     "test": "standard && mocha"
   },
   "dependencies": {
-    "@glif/filecoin-address": "^2.0.43",
+    "@glif/filecoin-address": "^3.0.4",
     "@influxdata/influxdb-client": "^1.33.2",
     "@ipld/car": "^5.2.4",
     "@sentry/node": "^7.113.0",
