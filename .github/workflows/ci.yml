@@ -119,7 +119,7 @@ jobs:
       - if: failure()
         uses: slackapi/slack-github-action@v1.26.0
         with:
-          channel-id: filecoin-station-incidents
+          channel-id: alerts
           payload: |
             {
               "text": "Deployment of `${{ github.event.repository.name }}` failed",
@@ -148,7 +148,7 @@ jobs:
       - if: failure()
         uses: slackapi/slack-github-action@v1.26.0
         with:
-          channel-id: filecoin-station-incidents
+          channel-id: alerts
           payload: |
             {
               "text": "Deployment of `${{ github.event.repository.name }}` failed",
