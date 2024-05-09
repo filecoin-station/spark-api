@@ -69,5 +69,6 @@ while (true) {
     rpcUrlIndex++
   }
   const dt = new Date() - lastStart
+  console.log(`Done. This iteration took ${dt}ms.`)
   if (dt < minRoundLength) await timers.setTimeout(minRoundLength - dt)
 }
