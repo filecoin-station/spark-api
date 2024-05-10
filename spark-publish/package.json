@@ -7,7 +7,7 @@
   "dependencies": {
     "@glif/filecoin-address": "^2.0.43",
     "@influxdata/influxdb-client": "^1.33.2",
-    "@ipld/car": "^5.2.4",
+    "@ipld/car": "^5.3.0",
     "@sentry/node": "^7.113.0",
     "@ucanto/core": "^9.0.1",
     "@ucanto/principal": "^9.0.1",
