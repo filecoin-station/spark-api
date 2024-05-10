@@ -66,10 +66,15 @@ export const publish = async ({
   start = new Date()
   const tx = await ieContract.addMeasurements(cid.toString())
   logger.log('Waiting for the transaction receipt:', tx.hash)
-  const receipt = await pRetry(() => tx.wait(1 /* confirmation(s) */, 120_000 /* 2 minutes */), {
-    onFailedAttempt: err => console.error(err),
-    maxRetryTime: 600_000 // 10-minute timeout
-  })
+  const receipt = await pRetry(
+    () => tx.wait(
+      1, // confirmation(s)
+      120_000 // 2 minutes
+    ), {
+      onFailedAttempt: err => console.error(err),
+      maxRetryTime: 600_000 // 10-minute timeout
+    }
+  )
   const log = ieContract.interface.parseLog(receipt.logs[0])
   const roundIndex = log.args[1]
   const ieAddMeasurementsDuration = new Date() - start
