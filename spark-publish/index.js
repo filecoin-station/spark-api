@@ -61,14 +61,15 @@ export const publish = async ({
   logger.log(`Measurements packaged in ${cid}`)
 
   // Call contract with CID
-  logger.log('ie.addMeasurements()...')
+  logger.log('Invoking ie.addMeasurements()...')
   start = new Date()
   const tx = await ieContract.addMeasurements(cid.toString())
+  logger.log('Waiting for the transaction receipt:', tx.hash)
   const receipt = await tx.wait()
   const log = ieContract.interface.parseLog(receipt.logs[0])
   const roundIndex = log.args[1]
   const ieAddMeasurementsDuration = new Date() - start
-  logger.log('Measurements added to round', roundIndex.toString())
+  logger.log('Measurements added to round %s in %sms', roundIndex.toString(), ieAddMeasurementsDuration)
 
   const pgClient = await pgPool.connect()
   try {
