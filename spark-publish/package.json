@@ -15,7 +15,7 @@
     "@web3-storage/w3up-client": "^11.0.2",
     "ethers": "^6.10.0",
     "p-retry": "^6.2.0",
-    "pg": "^8.11.3"
+    "pg": "^8.11.5"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.7",
