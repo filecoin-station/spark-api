@@ -14,6 +14,7 @@ jobs:
           - '@sentry/'
           - mocha
           - light-my-request
+          - '@glif/filecoin-address'
     steps:
       - name: Dependabot metadata
         id: metadata
