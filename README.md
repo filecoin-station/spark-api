@@ -44,7 +44,8 @@ Body:
   firstByteAt: String,   // ISO 8601
   endAt: String,         // ISO 8601
   byteLength: Number,
-  attestation: String
+  attestation: String,
+  stationId: String
 }
 ```
 
