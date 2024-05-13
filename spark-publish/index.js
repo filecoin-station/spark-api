@@ -72,7 +72,9 @@ export const publish = async ({
       120_000 // 2 minutes
     ), {
       onFailedAttempt: err => console.error(err),
-      maxRetryTime: 600_000 // 10-minute timeout
+      shouldRetry: err => err.code !== 'CALL_EXCEPTION',
+      signal: AbortSignal.timeout(600_000), // 10-minute timeout
+      retries: 5 // 5 * 2 minutes = 10 minutes - another measure to enforce ~10-minute timeout
     }
   )
   const log = ieContract.interface.parseLog(receipt.logs[0])
