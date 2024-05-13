@@ -1,8 +1,9 @@
 import assert from 'node:assert'
 import pg from 'pg'
-import { TASKS_PER_ROUND, mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
+import { TASKS_PER_ROUND, mapCurrentMeridianRoundToSparkRound, tryGetRoundStartEpoch } from '../lib/round-tracker.js'
 import { migrate } from '../lib/migrate.js'
 import { assertApproximately } from './test-helpers.js'
+import { createMeridianContract } from '../lib/ie-contract.js'
 
 const { DATABASE_URL } = process.env
 
@@ -39,6 +40,7 @@ describe('Round Tracker', () => {
       assertApproximately(sparkRounds[0].created_at, new Date(), 30_000)
       assert.strictEqual(sparkRounds[0].meridian_address, '0x1a')
       assert.strictEqual(sparkRounds[0].meridian_round, '120')
+      assert.strictEqual(sparkRounds[0].start_epoch, '321')
 
       // first round number was correctly initialised
       assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1a'), '1')
@@ -46,7 +48,7 @@ describe('Round Tracker', () => {
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 121n,
-        roundStartEpoch: 321n,
+        roundStartEpoch: 521,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 2n)
@@ -55,6 +57,7 @@ describe('Round Tracker', () => {
       assertApproximately(sparkRounds[1].created_at, new Date(), 30_000)
       assert.strictEqual(sparkRounds[1].meridian_address, '0x1a')
       assert.strictEqual(sparkRounds[1].meridian_round, '121')
+      assert.strictEqual(sparkRounds[1].start_epoch, '521')
 
       // first round number was not changed
       assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1a'), '1')
@@ -74,7 +77,7 @@ describe('Round Tracker', () => {
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1b',
         meridianRoundIndex: 10n,
-        roundStartEpoch: 321n,
+        roundStartEpoch: 521n,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 2n)
@@ -91,7 +94,7 @@ describe('Round Tracker', () => {
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1b',
         meridianRoundIndex: 11n,
-        roundStartEpoch: 321n,
+        roundStartEpoch: 721n,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 3n)
@@ -108,12 +111,11 @@ describe('Round Tracker', () => {
       const now = new Date()
       const meridianRoundIndex = 1n
       const meridianContractAddress = '0x1a'
-      const roundStartEpoch = 321n
 
       let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress,
         meridianRoundIndex,
-        roundStartEpoch,
+        roundStartEpoch: 321n,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
@@ -122,11 +124,13 @@ describe('Round Tracker', () => {
       assertApproximately(sparkRounds[0].created_at, now, 30_000)
       assert.strictEqual(sparkRounds[0].meridian_address, '0x1a')
       assert.strictEqual(sparkRounds[0].meridian_round, '1')
+      assert.strictEqual(sparkRounds[0].start_epoch, '321')
 
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress,
         meridianRoundIndex,
-        roundStartEpoch,
+        // verify that we don't need the start epoch for rounds already tracked in Spark DB
+        roundStartEpoch: undefined,
         pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
@@ -135,6 +139,7 @@ describe('Round Tracker', () => {
       assertApproximately(sparkRounds[0].created_at, now, 30_000)
       assert.strictEqual(sparkRounds[0].meridian_address, '0x1a')
       assert.strictEqual(sparkRounds[0].meridian_round, '1')
+      assert.strictEqual(sparkRounds[0].start_epoch, '321')
     })
 
     it('creates tasks when a new round starts', async () => {
@@ -199,6 +204,15 @@ describe('Round Tracker', () => {
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
       assert.strictEqual(sparkRounds[0].max_tasks_per_node, 15)
     })
+  })
+
+  it('returns null when rounds are not advancing and current one started long ago', async function () {
+    this.timeout(3 * 60_000)
+    const contract = await createMeridianContract()
+    const startEpoch = await tryGetRoundStartEpoch(contract, 10n, {
+      error () { /* no-op */ }
+    })
+    assert.strictEqual(startEpoch, undefined)
   })
 })
 
