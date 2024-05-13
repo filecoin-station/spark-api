@@ -44,8 +44,10 @@ export const publish = async ({
   // Fetch the count of all unpublished measurements - we need this for monitoring
   // Note: this number will be higher than `measurements.length` because spark-api adds more
   // measurements in between the previous and the next query.
+  // Note: counting ALL rows can put too much load on the DB server when the table is very large.
+  // Let's stop after we count 10 million rows. That's enough to let us know that we are in trouble.
   const totalCount = (await pgPool.query(
-    'SELECT COUNT(*) FROM measurements'
+    'SELECT COUNT(*) FROM (SELECT 1 FROM measurements LIMIT 10000000) t;'
   )).rows[0].count
 
   logger.log(`Publishing ${measurements.length} measurements. Total unpublished: ${totalCount}. Batch size: ${maxMeasurements}.`)
