@@ -616,14 +616,7 @@ describe('Routes', () => {
       `)
       const res = await fetch(`${spark}/measurements`, {
         method: 'POST',
-        body: JSON.stringify({
-          sparkVersion,
-          cid: 'cid',
-          providerAddress: 'address',
-          protocol: 'http',
-          participantAddress: '0x000000000000000000000000000000000000dEaD',
-          startAt: new Date()
-        })
+        body: JSON.stringify(VALID_MEASUREMENT)
       })
       await assertResponseStatus(res, 200)
       const body = await res.json()
