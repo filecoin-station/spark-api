@@ -72,6 +72,7 @@ export const publish = async ({
       120_000 // 2 minutes
     ), {
       onFailedAttempt: err => console.error(err),
+      shouldRetry: err => err.code !== 'CALL_EXCEPTION',
       maxRetryTime: 600_000 // 10-minute timeout
     }
   )
