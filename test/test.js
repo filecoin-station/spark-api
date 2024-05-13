@@ -267,13 +267,7 @@ describe('Routes', () => {
       await client.query('DELETE FROM measurements')
 
       const measurement = {
-        cid: 'bafytest',
-        providerAddress: '/dns4/localhost/tcp/8080',
-        protocol: 'graphsync',
-        sparkVersion,
-        zinniaVersion: '2.3.4',
-        participantAddress,
-        startAt: new Date(),
+        ...VALID_MEASUREMENT,
         statusCode: undefined,
         firstByteAt: null,
         endAt: null
