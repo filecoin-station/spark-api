@@ -267,13 +267,7 @@ describe('Routes', () => {
       await client.query('DELETE FROM measurements')
 
       const measurement = {
-        cid: 'bafytest',
-        providerAddress: '/dns4/localhost/tcp/8080',
-        protocol: 'graphsync',
-        sparkVersion,
-        zinniaVersion: '2.3.4',
-        participantAddress,
-        startAt: new Date(),
+        ...VALID_MEASUREMENT,
         statusCode: undefined,
         firstByteAt: null,
         endAt: null
@@ -616,14 +610,7 @@ describe('Routes', () => {
       `)
       const res = await fetch(`${spark}/measurements`, {
         method: 'POST',
-        body: JSON.stringify({
-          sparkVersion,
-          cid: 'cid',
-          providerAddress: 'address',
-          protocol: 'http',
-          participantAddress: '0x000000000000000000000000000000000000dEaD',
-          startAt: new Date()
-        })
+        body: JSON.stringify(VALID_MEASUREMENT)
       })
       await assertResponseStatus(res, 200)
       const body = await res.json()
