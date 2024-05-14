@@ -66,7 +66,7 @@ export const publish = async ({
   const signal = AbortSignal.timeout(600_000) // 10-minute timeout
   const { roundIndex, ieAddMeasurementsDuration } = pTimeout(
     commitMeasurements({ cid, ieContract, logger, signal }),
-    { signal }
+    { signal, milliseconds: Number.POSITIVE_INFINITY /* timeout is triggered by signal */ }
   )
 
   const pgClient = await pgPool.connect()
