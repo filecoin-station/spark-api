@@ -1,4 +1,4 @@
-import { createHandler } from '../index.js'
+import { createHandler, getCurrentRound } from '../index.js'
 import http from 'node:http'
 import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
@@ -68,13 +68,6 @@ describe('Routes', () => {
         error: console.error,
         request () {}
       },
-      getCurrentRound () {
-        return {
-          sparkRoundNumber: currentSparkRoundNumber,
-          meridianContractAddress: '0x1a',
-          meridianRoundIndex: 123n
-        }
-      },
       domain: '127.0.0.1'
     })
     server = http.createServer(handler)
@@ -87,6 +80,17 @@ describe('Routes', () => {
     server.closeAllConnections()
     server.close()
     await client.end()
+  })
+
+  describe('getCurrentRound', () => {
+    it('returns expected round details from database', async () => {
+      const round = await getCurrentRound(client)
+      assert.deepStrictEqual(round, {
+        sparkRoundNumber: currentSparkRoundNumber,
+        meridianContractAddress: '0x1a',
+        meridianRoundIndex: 123n
+      })
+    })
   })
 
   describe('GET /', () => {
@@ -629,13 +633,6 @@ describe('Routes', () => {
             info () {},
             error: console.error,
             request () {}
-          },
-          getCurrentRound () {
-            return {
-              sparkRoundNumber: currentSparkRoundNumber,
-              meridianContractAddress: '0x1a',
-              meridianRoundIndex: 123n
-            }
           },
           domain: 'foobar'
         })

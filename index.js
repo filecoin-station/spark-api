@@ -7,7 +7,7 @@ import { mapRequestToInetGroup } from './lib/inet-grouping.js'
 import { satisfies } from 'compare-versions'
 import { ethAddressFromDelegated } from '@glif/filecoin-address'
 
-const handler = async (req, res, client, getCurrentRound, domain) => {
+const handler = async (req, res, client, domain) => {
   if (req.headers.host.split(':')[0] !== domain) {
     return redirect(res, `https://${domain}${req.url}`)
   }
@@ -19,13 +19,13 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
     assert.fail(410, 'This API endpoint is no longer supported.')
   } else if (segs[0] === 'measurements' && req.method === 'POST') {
-    await createMeasurement(req, res, client, getCurrentRound)
+    await createMeasurement(req, res, client)
   } else if (segs[0] === 'measurements' && req.method === 'GET') {
     await getMeasurement(req, res, client, Number(segs[1]))
   } else if (segs[0] === 'rounds' && segs[1] === 'meridian' && req.method === 'GET') {
     await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
-    await getRoundDetails(req, res, client, getCurrentRound, segs[1])
+    await getRoundDetails(req, res, client, segs[1])
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
   } else {
@@ -33,8 +33,22 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
   }
 }
 
-const createMeasurement = async (req, res, client, getCurrentRound) => {
-  const { sparkRoundNumber } = getCurrentRound()
+export const getCurrentRound = async (client) => {
+  const { rows: [round] } = await client.query(`
+    SELECT * FROM spark_rounds
+    ORDER BY id DESC
+    LIMIT 1
+  `)
+  assert(!!round, 'No rounds found in "spark_rounds" table.')
+  return {
+    meridianContractAddress: round.meridian_address,
+    meridianRoundIndex: BigInt(round.meridian_round),
+    sparkRoundNumber: BigInt(round.id)
+  }
+}
+
+const createMeasurement = async (req, res, client) => {
+  const { sparkRoundNumber } = await getCurrentRound(client)
   const body = await getRawBody(req, { limit: '100kb' })
   const measurement = JSON.parse(body)
   validate(measurement, 'sparkVersion', { type: 'string', required: false })
@@ -168,9 +182,9 @@ const getMeasurement = async (req, res, client, measurementId) => {
   })
 }
 
-const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) => {
+const getRoundDetails = async (req, res, client, roundParam) => {
   if (roundParam === 'current') {
-    const { meridianContractAddress, meridianRoundIndex } = getCurrentRound()
+    const { meridianContractAddress, meridianRoundIndex } = await getCurrentRound(client)
     const addr = encodeURIComponent(meridianContractAddress)
     const idx = encodeURIComponent(meridianRoundIndex)
     const location = `/rounds/meridian/${addr}/${idx}`
@@ -305,13 +319,12 @@ export const inspectRequest = async (req, res) => {
 export const createHandler = async ({
   client,
   logger,
-  getCurrentRound,
   domain
 }) => {
   return (req, res) => {
     const start = new Date()
     logger.request(`${req.method} ${req.url} ...`)
-    handler(req, res, client, getCurrentRound, domain)
+    handler(req, res, client, domain)
       .catch(err => errorHandler(res, err, logger))
       .then(() => {
         logger.request(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)
