@@ -1,5 +1,4 @@
-# To deploy:
-# fly deploy --file-local="/etc/vector/vector.toml=vector.toml"
+# See README.md for instructions on how to deploy!
 
 [api]
   enabled = true
