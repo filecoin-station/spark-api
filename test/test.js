@@ -1,4 +1,4 @@
-import { createHandler, getCurrentRound } from '../index.js'
+import { createHandler } from '../index.js'
 import http from 'node:http'
 import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
@@ -80,17 +80,6 @@ describe('Routes', () => {
     server.closeAllConnections()
     server.close()
     await client.end()
-  })
-
-  describe('getCurrentRound', () => {
-    it('returns expected round details from database', async () => {
-      const round = await getCurrentRound(client)
-      assert.deepStrictEqual(round, {
-        sparkRoundNumber: currentSparkRoundNumber,
-        meridianContractAddress: '0x1a',
-        meridianRoundIndex: 123n
-      })
-    })
   })
 
   describe('GET /', () => {

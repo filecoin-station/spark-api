@@ -33,22 +33,7 @@ const handler = async (req, res, client, domain) => {
   }
 }
 
-export const getCurrentRound = async (client) => {
-  const { rows: [round] } = await client.query(`
-    SELECT * FROM spark_rounds
-    ORDER BY id DESC
-    LIMIT 1
-  `)
-  assert(!!round, 'No rounds found in "spark_rounds" table.')
-  return {
-    meridianContractAddress: round.meridian_address,
-    meridianRoundIndex: BigInt(round.meridian_round),
-    sparkRoundNumber: BigInt(round.id)
-  }
-}
-
 const createMeasurement = async (req, res, client) => {
-  const { sparkRoundNumber } = await getCurrentRound(client)
   const body = await getRawBody(req, { limit: '100kb' })
   const measurement = JSON.parse(body)
   validate(measurement, 'sparkVersion', { type: 'string', required: false })
@@ -118,9 +103,12 @@ const createMeasurement = async (req, res, client) => {
         provider_id,
         completed_at_round
       )
-      VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
-      )
+      SELECT
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+        id as completed_at_round
+      FROM spark_rounds
+      ORDER BY id DESC
+      LIMIT 1
       RETURNING id
     `, [
     measurement.sparkVersion,
@@ -142,8 +130,7 @@ const createMeasurement = async (req, res, client) => {
     measurement.carChecksum,
     measurement.indexerResult,
     measurement.minerId,
-    measurement.providerId,
-    sparkRoundNumber
+    measurement.providerId
   ])
   json(res, { id: rows[0].id })
 }
@@ -184,7 +171,14 @@ const getMeasurement = async (req, res, client, measurementId) => {
 
 const getRoundDetails = async (req, res, client, roundParam) => {
   if (roundParam === 'current') {
-    const { meridianContractAddress, meridianRoundIndex } = await getCurrentRound(client)
+    const { rows: [round] } = await client.query(`
+      SELECT meridianContractAddress, meridianRoundIndex FROM spark_rounds
+      ORDER BY id DESC
+      LIMIT 1
+    `)
+    assert(!!round, 'No rounds found in "spark_rounds" table.')
+    const meridianContractAddress = round.meridian_address
+    const meridianRoundIndex = BigInt(round.meridian_round)
     const addr = encodeURIComponent(meridianContractAddress)
     const idx = encodeURIComponent(meridianRoundIndex)
     const location = `/rounds/meridian/${addr}/${idx}`
