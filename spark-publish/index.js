@@ -1,6 +1,7 @@
 /* global File */
 
 import pRetry from 'p-retry'
+import pTimeout from 'p-timeout'
 import { record } from './lib/telemetry.js'
 
 export const publish = async ({
@@ -51,7 +52,7 @@ export const publish = async ({
   logger.log(`Publishing ${measurements.length} measurements. Total unpublished: ${totalCount}. Batch size: ${maxMeasurements}.`)
 
   // Share measurements
-  let start = new Date()
+  const start = new Date()
   const file = new File(
     [measurements.map(m => JSON.stringify(m)).join('\n')],
     'measurements.ndjson',
@@ -62,25 +63,11 @@ export const publish = async ({
   logger.log(`Measurements packaged in ${cid}`)
 
   // Call contract with CID
-  logger.log('Invoking ie.addMeasurements()...')
-  start = new Date()
-  const tx = await ieContract.addMeasurements(cid.toString())
-  logger.log('Waiting for the transaction receipt:', tx.hash)
-  const receipt = await pRetry(
-    () => tx.wait(
-      1, // confirmation(s)
-      120_000 // 2 minutes
-    ), {
-      onFailedAttempt: err => console.error(err),
-      shouldRetry: err => err.code !== 'CALL_EXCEPTION',
-      signal: AbortSignal.timeout(600_000), // 10-minute timeout
-      retries: 5 // 5 * 2 minutes = 10 minutes - another measure to enforce ~10-minute timeout
-    }
+  const signal = AbortSignal.timeout(600_000) // 10-minute timeout
+  const { roundIndex, ieAddMeasurementsDuration } = pTimeout(
+    commitMeasurements({ cid, ieContract, logger, signal }),
+    { signal }
   )
-  const log = ieContract.interface.parseLog(receipt.logs[0])
-  const roundIndex = log.args[1]
-  const ieAddMeasurementsDuration = new Date() - start
-  logger.log('Measurements added to round %s in %sms', roundIndex.toString(), ieAddMeasurementsDuration)
 
   const pgClient = await pgPool.connect()
   try {
@@ -126,4 +113,28 @@ export const publish = async ({
     )
     point.intField('add_measurements_duration_ms', ieAddMeasurementsDuration)
   })
+}
+
+const commitMeasurements = async ({ cid, ieContract, logger, signal }) => {
+  logger.log('Invoking ie.addMeasurements()...')
+  const start = new Date()
+  const tx = await ieContract.addMeasurements(cid.toString())
+  logger.log('Waiting for the transaction receipt:', tx.hash)
+  const receipt = await pRetry(
+    () => tx.wait(
+      1, // confirmation(s)
+      120_000 // 2 minutes
+    ), {
+      onFailedAttempt: err => console.error(err),
+      shouldRetry: err => err.code !== 'CALL_EXCEPTION',
+      signal,
+      retries: 5 // 5 * 2 minutes = 10 minutes - another measure to enforce ~10-minute timeout
+    }
+  )
+  const log = ieContract.interface.parseLog(receipt.logs[0])
+  const roundIndex = log.args[1]
+  const ieAddMeasurementsDuration = new Date() - start
+  logger.log('Measurements added to round %s in %sms', roundIndex.toString(), ieAddMeasurementsDuration)
+
+  return { roundIndex, ieAddMeasurementsDuration }
 }

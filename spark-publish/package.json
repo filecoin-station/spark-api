@@ -21,6 +21,7 @@
     "@flydotio/dockerfile": "^0.5.7",
     "mocha": "^10.4.0",
     "multiformats": "^13.1.0",
+    "p-timeout": "^6.1.2",
     "standard": "^17.1.0"
   },
   "standard": {
