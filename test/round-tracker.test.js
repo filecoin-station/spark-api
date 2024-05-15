@@ -7,6 +7,8 @@ import { createMeridianContract } from '../lib/ie-contract.js'
 
 const { DATABASE_URL } = process.env
 
+const TIMEOUT_WHEN_QUERYING_CHAIN = (process.env.CI ? 10 : 1) * 60_000
+
 describe('Round Tracker', () => {
   /** @type {pg.Pool} */
   let pgPool
@@ -208,7 +210,7 @@ describe('Round Tracker', () => {
 
   describe('getRoundStartEpoch', () => {
     it('returns a block number', async function () {
-      this.timeout(60_000)
+      this.timeout(TIMEOUT_WHEN_QUERYING_CHAIN)
       const contract = await createMeridianContract()
       const roundIndex = await contract.currentRoundIndex()
       const startEpoch = await getRoundStartEpoch(contract, roundIndex)
@@ -218,7 +220,7 @@ describe('Round Tracker', () => {
 
   describe('startRoundTracker', () => {
     it('detects the current round', async function () {
-      this.timeout(60_000)
+      this.timeout(TIMEOUT_WHEN_QUERYING_CHAIN)
       const { sparkRoundNumber, close } = await startRoundTracker(pgPool)
       close()
       assert.strictEqual(typeof sparkRoundNumber, 'bigint')
