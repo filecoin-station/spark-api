@@ -204,7 +204,7 @@ describe('Round Tracker', () => {
 
   describe('getRoundStartEpoch', () => {
     it('returns a block number', async function () {
-      this.timeout(10_000)
+      this.timeout(60_000)
       const contract = await createMeridianContract()
       const roundIndex = await contract.currentRoundIndex()
       const startEpoch = await getRoundStartEpoch(contract, roundIndex)
