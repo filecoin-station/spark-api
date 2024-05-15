@@ -1,3 +1,4 @@
+import '../lib/instrument.js'
 import Sentry from '@sentry/node'
 import assert from 'node:assert'
 import { newDelegatedEthAddress } from '@glif/filecoin-address'
@@ -17,12 +18,6 @@ const {
   W3UP_PRIVATE_KEY,
   W3UP_PROOF
 } = process.env
-
-Sentry.init({
-  dsn: 'https://b5bd47a165dcd801408bc14d9fcbc1c3@o1408530.ingest.sentry.io/4505861814878208',
-  environment: SENTRY_ENVIRONMENT,
-  tracesSampleRate: 0.1
-})
 
 assert(WALLET_SEED, 'WALLET_SEED required')
 assert(W3UP_PRIVATE_KEY, 'W3UP_PRIVATE_KEY required')

@@ -1,4 +1,6 @@
-import "./instrument";
+// Run `publish()` in a short lived script, to help with memory issues
+
+import '../lib/instrument.js'
 import { publish } from '../index.js'
 import pg from 'pg'
 import * as Client from '@web3-storage/w3up-client'

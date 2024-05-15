@@ -1,4 +1,4 @@
-import "./instrument";
+import '../lib/instrument.js'
 import http from 'node:http'
 import { once } from 'node:events'
 import { createHandler } from '../index.js'
