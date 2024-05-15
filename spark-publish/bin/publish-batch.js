@@ -1,6 +1,4 @@
-// Run `publish()` in a short lived script, to help with memory issues
-
-import Sentry from '@sentry/node'
+import "./instrument";
 import { publish } from '../index.js'
 import pg from 'pg'
 import * as Client from '@web3-storage/w3up-client'
@@ -26,12 +24,6 @@ const {
   W3UP_PRIVATE_KEY,
   W3UP_PROOF
 } = process.env
-
-Sentry.init({
-  dsn: 'https://b5bd47a165dcd801408bc14d9fcbc1c3@o1408530.ingest.sentry.io/4505861814878208',
-  environment: SENTRY_ENVIRONMENT,
-  tracesSampleRate: 0.1
-})
 
 assert(WALLET_SEED, 'WALLET_SEED required')
 assert(W3UP_PRIVATE_KEY, 'W3UP_PRIVATE_KEY required')
