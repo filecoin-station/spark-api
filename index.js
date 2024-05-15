@@ -172,7 +172,7 @@ const getMeasurement = async (req, res, client, measurementId) => {
 const getRoundDetails = async (req, res, client, roundParam) => {
   if (roundParam === 'current') {
     const { rows: [round] } = await client.query(`
-      SELECT meridianContractAddress, meridianRoundIndex FROM spark_rounds
+      SELECT meridian_address, meridian_round FROM spark_rounds
       ORDER BY id DESC
       LIMIT 1
     `)
