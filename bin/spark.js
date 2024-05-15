@@ -58,9 +58,10 @@ client.on('error', err => {
 })
 await migrate(client)
 
+console.log('Initializing round tracker...')
+const start = Date.now()
+
 try {
-  console.log('Initializing round tracker...')
-  const start = Date.now()
   const currentRound = await startRoundTracker(client)
   console.log(
     'Initialized round tracker in %sms. SPARK round number at service startup: %s',
