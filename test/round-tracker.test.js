@@ -1,8 +1,9 @@
 import assert from 'node:assert'
 import pg from 'pg'
-import { TASKS_PER_ROUND, mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
+import { TASKS_PER_ROUND, getRoundStartEpoch, mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
 import { migrate } from '../lib/migrate.js'
 import { assertApproximately } from './test-helpers.js'
+import { createMeridianContract } from '../lib/ie-contract.js'
 
 const { DATABASE_URL } = process.env
 
@@ -198,6 +199,16 @@ describe('Round Tracker', () => {
       const sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
       assert.deepStrictEqual(sparkRounds.map(r => r.id), ['1'])
       assert.strictEqual(sparkRounds[0].max_tasks_per_node, 15)
+    })
+  })
+
+  describe('getRoundStartEpoch', () => {
+    it('returns a block number', async function () {
+      this.timeout(60_000)
+      const contract = await createMeridianContract()
+      const roundIndex = await contract.currentRoundIndex()
+      const startEpoch = await getRoundStartEpoch(contract, roundIndex)
+      assert.strictEqual(typeof startEpoch, 'number')
     })
   })
 })
