@@ -7,7 +7,7 @@ import { mapRequestToInetGroup } from './lib/inet-grouping.js'
 import { satisfies } from 'compare-versions'
 import { ethAddressFromDelegated } from '@glif/filecoin-address'
 
-const handler = async (req, res, client, getCurrentRound, domain) => {
+const handler = async (req, res, client, domain) => {
   if (req.headers.host.split(':')[0] !== domain) {
     return redirect(res, `https://${domain}${req.url}`)
   }
@@ -19,13 +19,13 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
   } else if (segs[0] === 'retrievals' && req.method === 'GET') {
     assert.fail(410, 'This API endpoint is no longer supported.')
   } else if (segs[0] === 'measurements' && req.method === 'POST') {
-    await createMeasurement(req, res, client, getCurrentRound)
+    await createMeasurement(req, res, client)
   } else if (segs[0] === 'measurements' && req.method === 'GET') {
     await getMeasurement(req, res, client, Number(segs[1]))
   } else if (segs[0] === 'rounds' && segs[1] === 'meridian' && req.method === 'GET') {
     await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
-    await getRoundDetails(req, res, client, getCurrentRound, segs[1])
+    await getRoundDetails(req, res, client, segs[1])
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
   } else {
@@ -33,8 +33,7 @@ const handler = async (req, res, client, getCurrentRound, domain) => {
   }
 }
 
-const createMeasurement = async (req, res, client, getCurrentRound) => {
-  const { sparkRoundNumber } = getCurrentRound()
+const createMeasurement = async (req, res, client) => {
   const body = await getRawBody(req, { limit: '100kb' })
   const measurement = JSON.parse(body)
   validate(measurement, 'sparkVersion', { type: 'string', required: false })
@@ -104,9 +103,12 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
         provider_id,
         completed_at_round
       )
-      VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
-      )
+      SELECT
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+        id as completed_at_round
+      FROM spark_rounds
+      ORDER BY id DESC
+      LIMIT 1
       RETURNING id
     `, [
     measurement.sparkVersion,
@@ -128,8 +130,7 @@ const createMeasurement = async (req, res, client, getCurrentRound) => {
     measurement.carChecksum,
     measurement.indexerResult,
     measurement.minerId,
-    measurement.providerId,
-    sparkRoundNumber
+    measurement.providerId
   ])
   json(res, { id: rows[0].id })
 }
@@ -168,9 +169,16 @@ const getMeasurement = async (req, res, client, measurementId) => {
   })
 }
 
-const getRoundDetails = async (req, res, client, getCurrentRound, roundParam) => {
+const getRoundDetails = async (req, res, client, roundParam) => {
   if (roundParam === 'current') {
-    const { meridianContractAddress, meridianRoundIndex } = getCurrentRound()
+    const { rows: [round] } = await client.query(`
+      SELECT meridian_address, meridian_round FROM spark_rounds
+      ORDER BY id DESC
+      LIMIT 1
+    `)
+    assert(!!round, 'No rounds found in "spark_rounds" table.')
+    const meridianContractAddress = round.meridian_address
+    const meridianRoundIndex = BigInt(round.meridian_round)
     const addr = encodeURIComponent(meridianContractAddress)
     const idx = encodeURIComponent(meridianRoundIndex)
     const location = `/rounds/meridian/${addr}/${idx}`
@@ -305,13 +313,12 @@ export const inspectRequest = async (req, res) => {
 export const createHandler = async ({
   client,
   logger,
-  getCurrentRound,
   domain
 }) => {
   return (req, res) => {
     const start = new Date()
     logger.request(`${req.method} ${req.url} ...`)
-    handler(req, res, client, getCurrentRound, domain)
+    handler(req, res, client, domain)
       .catch(err => errorHandler(res, err, logger))
       .then(() => {
         logger.request(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)
