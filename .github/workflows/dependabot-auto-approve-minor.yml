@@ -15,6 +15,7 @@ jobs:
           - mocha
           - light-my-request
           - '@glif/filecoin-address'
+          - '@web3-storage'
     steps:
       - name: Dependabot metadata
         id: metadata
