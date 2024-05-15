@@ -19,7 +19,6 @@ import { writeClient } from '../lib/telemetry.js'
 
 const {
   DATABASE_URL,
-  SENTRY_ENVIRONMENT = 'development',
   WALLET_SEED,
   MAX_MEASUREMENTS_PER_ROUND = 1000,
   // See https://web3.storage/docs/how-to/upload/#bring-your-own-agent

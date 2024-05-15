@@ -1,5 +1,5 @@
 import { json } from 'http-responders'
-import Sentry from '@sentry/node'
+import * as Sentry from '@sentry/node'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'

@@ -3,9 +3,6 @@ import http from 'node:http'
 import { once } from 'node:events'
 import { createHandler } from '../index.js'
 import pg from 'pg'
-import fs from 'node:fs/promises'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { createRoundGetter } from '../lib/round-tracker.js'
 import { migrate } from '../lib/migrate.js'
 import assert from 'node:assert'
@@ -15,20 +12,8 @@ const {
   HOST = '127.0.0.1',
   DOMAIN = 'localhost',
   DATABASE_URL,
-  SENTRY_ENVIRONMENT = 'development',
   REQUEST_LOGGING = 'true'
 } = process.env
-
-const pkg = JSON.parse(
-  await fs.readFile(
-    join(
-      dirname(fileURLToPath(import.meta.url)),
-      '..',
-      'package.json'
-    ),
-    'utf8'
-  )
-)
 
 const client = new pg.Pool({
   connectionString: DATABASE_URL,

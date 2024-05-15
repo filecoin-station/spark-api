@@ -1,5 +1,5 @@
 import '../lib/instrument.js'
-import Sentry from '@sentry/node'
+import * as Sentry from '@sentry/node'
 import assert from 'node:assert'
 import { newDelegatedEthAddress } from '@glif/filecoin-address'
 import timers from 'node:timers/promises'
@@ -10,7 +10,6 @@ import { fileURLToPath } from 'node:url'
 import { rpcUrls } from '../ie-contract-config.js'
 
 const {
-  SENTRY_ENVIRONMENT = 'development',
   WALLET_SEED,
   MIN_ROUND_LENGTH_SECONDS = 60,
   MAX_MEASUREMENTS_PER_ROUND = 1000,
