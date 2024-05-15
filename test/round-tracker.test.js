@@ -1,6 +1,6 @@
 import assert from 'node:assert'
 import pg from 'pg'
-import { TASKS_PER_ROUND, getRoundStartEpoch, mapCurrentMeridianRoundToSparkRound } from '../lib/round-tracker.js'
+import { TASKS_PER_ROUND, getRoundStartEpoch, mapCurrentMeridianRoundToSparkRound, startRoundTracker } from '../lib/round-tracker.js'
 import { migrate } from '../lib/migrate.js'
 import { assertApproximately } from './test-helpers.js'
 import { createMeridianContract } from '../lib/ie-contract.js'
@@ -8,16 +8,20 @@ import { createMeridianContract } from '../lib/ie-contract.js'
 const { DATABASE_URL } = process.env
 
 describe('Round Tracker', () => {
+  /** @type {pg.Pool} */
+  let pgPool
+  /** @type {pg.PoolClient} */
   let pgClient
 
   before(async () => {
-    pgClient = new pg.Client({ connectionString: DATABASE_URL })
-    await pgClient.connect()
+    pgPool = new pg.Pool({ connectionString: DATABASE_URL })
+    pgClient = await pgPool.connect()
     await migrate(pgClient)
   })
 
   after(async () => {
-    await pgClient.end()
+    pgClient.release()
+    await pgPool.end()
   })
 
   beforeEach(async () => {
@@ -209,6 +213,15 @@ describe('Round Tracker', () => {
       const roundIndex = await contract.currentRoundIndex()
       const startEpoch = await getRoundStartEpoch(contract, roundIndex)
       assert.strictEqual(typeof startEpoch, 'number')
+    })
+  })
+
+  describe('startRoundTracker', () => {
+    it('detects the current round', async function () {
+      this.timeout(60_000)
+      const { sparkRoundNumber, close } = await startRoundTracker(pgPool)
+      close()
+      assert.strictEqual(typeof sparkRoundNumber, 'bigint')
     })
   })
 })
