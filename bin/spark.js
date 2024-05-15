@@ -6,9 +6,8 @@ import Sentry from '@sentry/node'
 import fs from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createRoundGetter } from '../lib/round-tracker.js'
+import { startRoundTracker } from '../lib/round-tracker.js'
 import { migrate } from '../lib/migrate.js'
-import assert from 'node:assert'
 
 const {
   PORT = 8080,
@@ -59,11 +58,20 @@ client.on('error', err => {
 })
 await migrate(client)
 
-const getCurrentRound = await createRoundGetter(client)
+console.log('Initializing round tracker...')
+const start = Date.now()
 
-const round = getCurrentRound()
-assert(!!round, 'cannot obtain the current Spark round number')
-console.log('SPARK round number at service startup:', round.sparkRoundNumber)
+try {
+  const currentRound = await startRoundTracker(client)
+  console.log(
+    'Initialized round tracker in %sms. SPARK round number at service startup: %s',
+    Date.now() - start,
+    currentRound.sparkRoundNumber
+  )
+} catch (err) {
+  console.error('Cannot obtain the current Spark round number:', err)
+  process.exit(1)
+}
 
 const logger = {
   error: console.error,
@@ -74,7 +82,6 @@ const logger = {
 const handler = await createHandler({
   client,
   logger,
-  getCurrentRound,
   domain: DOMAIN
 })
 const server = http.createServer(handler)
