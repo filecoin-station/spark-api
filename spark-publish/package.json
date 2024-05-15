@@ -15,13 +15,13 @@
     "@web3-storage/w3up-client": "^13.1.1",
     "ethers": "^6.10.0",
     "p-retry": "^6.2.0",
+    "p-timeout": "^6.1.2",
     "pg": "^8.11.5"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.7",
     "mocha": "^10.4.0",
     "multiformats": "^13.1.0",
-    "p-timeout": "^6.1.2",
     "standard": "^17.1.0"
   },
   "standard": {
