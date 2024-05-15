@@ -68,13 +68,6 @@ describe('Routes', () => {
         error: console.error,
         request () {}
       },
-      getCurrentRound () {
-        return {
-          sparkRoundNumber: currentSparkRoundNumber,
-          meridianContractAddress: '0x1a',
-          meridianRoundIndex: 123n
-        }
-      },
       domain: '127.0.0.1'
     })
     server = http.createServer(handler)
@@ -629,13 +622,6 @@ describe('Routes', () => {
             info () {},
             error: console.error,
             request () {}
-          },
-          getCurrentRound () {
-            return {
-              sparkRoundNumber: currentSparkRoundNumber,
-              meridianContractAddress: '0x1a',
-              meridianRoundIndex: 123n
-            }
           },
           domain: 'foobar'
         })

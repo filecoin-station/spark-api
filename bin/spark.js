@@ -1,41 +1,18 @@
+import '../lib/instrument.js'
 import http from 'node:http'
 import { once } from 'node:events'
 import { createHandler } from '../index.js'
 import pg from 'pg'
-import Sentry from '@sentry/node'
-import fs from 'node:fs/promises'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { createRoundGetter } from '../lib/round-tracker.js'
+import { startRoundTracker } from '../lib/round-tracker.js'
 import { migrate } from '../lib/migrate.js'
-import assert from 'node:assert'
 
 const {
   PORT = 8080,
   HOST = '127.0.0.1',
   DOMAIN = 'localhost',
   DATABASE_URL,
-  SENTRY_ENVIRONMENT = 'development',
   REQUEST_LOGGING = 'true'
 } = process.env
-
-const pkg = JSON.parse(
-  await fs.readFile(
-    join(
-      dirname(fileURLToPath(import.meta.url)),
-      '..',
-      'package.json'
-    ),
-    'utf8'
-  )
-)
-
-Sentry.init({
-  dsn: 'https://4a55431b256641f98f6a51651526831f@o1408530.ingest.sentry.io/4505199717122048',
-  release: pkg.version,
-  environment: SENTRY_ENVIRONMENT,
-  tracesSampleRate: 0.1
-})
 
 const client = new pg.Pool({
   connectionString: DATABASE_URL,
@@ -59,11 +36,20 @@ client.on('error', err => {
 })
 await migrate(client)
 
-const getCurrentRound = await createRoundGetter(client)
+console.log('Initializing round tracker...')
+const start = Date.now()
 
-const round = getCurrentRound()
-assert(!!round, 'cannot obtain the current Spark round number')
-console.log('SPARK round number at service startup:', round.sparkRoundNumber)
+try {
+  const currentRound = await startRoundTracker(client)
+  console.log(
+    'Initialized round tracker in %sms. SPARK round number at service startup: %s',
+    Date.now() - start,
+    currentRound.sparkRoundNumber
+  )
+} catch (err) {
+  console.error('Cannot obtain the current Spark round number:', err)
+  process.exit(1)
+}
 
 const logger = {
   error: console.error,
@@ -74,7 +60,6 @@ const logger = {
 const handler = await createHandler({
   client,
   logger,
-  getCurrentRound,
   domain: DOMAIN
 })
 const server = http.createServer(handler)
