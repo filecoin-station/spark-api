@@ -221,8 +221,9 @@ describe('Round Tracker', () => {
   describe('startRoundTracker', () => {
     it('detects the current round', async function () {
       this.timeout(TIMEOUT_WHEN_QUERYING_CHAIN)
-      const { sparkRoundNumber, close } = await startRoundTracker(pgPool)
-      close()
+      const controller = new AbortController()
+      const { sparkRoundNumber } = await startRoundTracker(pgPool, controller.signal)
+      signal.abort()
       assert.strictEqual(typeof sparkRoundNumber, 'bigint')
     })
   })
