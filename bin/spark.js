@@ -40,7 +40,7 @@ console.log('Initializing round tracker...')
 const start = Date.now()
 
 try {
-  const currentRound = await startRoundTracker(client)
+  const currentRound = await startRoundTracker({ pgPool: client })
   console.log(
     'Initialized round tracker in %sms. SPARK round number at service startup: %s',
     Date.now() - start,

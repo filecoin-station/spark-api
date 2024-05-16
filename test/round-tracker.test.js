@@ -1,9 +1,15 @@
 import assert from 'node:assert'
 import pg from 'pg'
-import { TASKS_PER_ROUND, getRoundStartEpoch, mapCurrentMeridianRoundToSparkRound, startRoundTracker } from '../lib/round-tracker.js'
+import {
+  TASKS_PER_ROUND,
+  getRoundStartEpoch,
+  mapCurrentMeridianRoundToSparkRound,
+  startRoundTracker
+} from '../lib/round-tracker.js'
 import { migrate } from '../lib/migrate.js'
 import { assertApproximately } from './test-helpers.js'
 import { createMeridianContract } from '../lib/ie-contract.js'
+import { afterEach, beforeEach } from 'mocha'
 
 const { DATABASE_URL } = process.env
 
@@ -30,6 +36,15 @@ describe('Round Tracker', () => {
     await pgClient.query('DELETE FROM meridian_contract_versions')
     await pgClient.query('DELETE FROM retrieval_tasks')
     await pgClient.query('DELETE FROM spark_rounds')
+  })
+
+  /** @type {AbortController} */
+  let testFinished
+  beforeEach(async () => {
+    testFinished = new AbortController()
+  })
+  afterEach(async () => {
+    testFinished.abort('test finished')
   })
 
   describe('mapCurrentMeridianRoundToSparkRound', () => {
@@ -221,8 +236,7 @@ describe('Round Tracker', () => {
   describe('startRoundTracker', () => {
     it('detects the current round', async function () {
       this.timeout(TIMEOUT_WHEN_QUERYING_CHAIN)
-      const { sparkRoundNumber, close } = await startRoundTracker(pgPool)
-      close()
+      const { sparkRoundNumber } = await startRoundTracker({ pgPool, signal: testFinished.signal })
       assert.strictEqual(typeof sparkRoundNumber, 'bigint')
     })
   })
