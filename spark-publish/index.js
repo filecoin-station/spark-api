@@ -65,7 +65,15 @@ export const publish = async ({
   // Call contract with CID
   const signal = AbortSignal.timeout(600_000) // 10-minute timeout
   const { roundIndex, ieAddMeasurementsDuration } = await pTimeout(
-    commitMeasurements({ cid, ieContract, logger, signal }),
+    pRetry(
+      () => commitMeasurements({ cid, ieContract, logger, signal }),
+      {
+        onFailedAttempt: err => console.error(err),
+        shouldRetry: err => err.code !== 'CALL_EXCEPTION',
+        signal,
+        retries: 5 // 5 * 2 minutes = 10 minutes - another measure to enforce ~10-minute timeout
+      }
+    ),
     { signal, milliseconds: Number.POSITIVE_INFINITY /* timeout is triggered by signal */ }
   )
 
@@ -120,16 +128,9 @@ const commitMeasurements = async ({ cid, ieContract, logger, signal }) => {
   const start = new Date()
   const tx = await ieContract.addMeasurements(cid.toString())
   logger.log('Waiting for the transaction receipt:', tx.hash)
-  const receipt = await pRetry(
-    () => tx.wait(
-      1, // confirmation(s)
-      120_000 // 2 minutes
-    ), {
-      onFailedAttempt: err => console.error(err),
-      shouldRetry: err => err.code !== 'CALL_EXCEPTION',
-      signal,
-      retries: 5 // 5 * 2 minutes = 10 minutes - another measure to enforce ~10-minute timeout
-    }
+  const receipt = await tx.wait(
+    1, // confirmation(s)
+    120_000 // 2 minutes
   )
   const log = ieContract.interface.parseLog(receipt.logs[0])
   const roundIndex = log.args[1]
