@@ -65,7 +65,14 @@ export const publish = async ({
   // Call contract with CID
   const signal = AbortSignal.timeout(600_000) // 10-minute timeout
   const { roundIndex, ieAddMeasurementsDuration } = await pTimeout(
-    commitMeasurements({ cid, ieContract, logger, signal }),
+    pRetry(
+      () => commitMeasurements({ cid, ieContract, logger, signal }),
+      {
+        onFailedAttempt: err => console.error(err),
+        signal,
+        retries: 5
+      }
+    ),
     { signal, milliseconds: Number.POSITIVE_INFINITY /* timeout is triggered by signal */ }
   )
 
