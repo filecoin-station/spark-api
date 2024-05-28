@@ -1,4 +1,9 @@
 app = "spark-publish"
 primary_region = "cdg"
+
+[env]
+  SENTRY_ENVIRONMENT="production"
+  MAX_MEASUREMENTS_PER_ROUND="100000"
+
 [deploy]
   strategy = "rolling"

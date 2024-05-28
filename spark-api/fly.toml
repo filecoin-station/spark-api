@@ -10,6 +10,8 @@ processes = []
   PORT = "8080"
   HOST = "0.0.0.0"
   SENTRY_ENVIRONMENT = "production"
+  DOMAIN = "api.filspark.com"
+  REQUEST_LOGGING = "false"
 
 [experimental]
   auto_rollback = true
