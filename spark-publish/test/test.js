@@ -4,7 +4,7 @@ import { CID } from 'multiformats/cid'
 import pg from 'pg'
 import * as telemetry from '../lib/telemetry.js'
 
-import { assertApproximately } from '../../test/test-helpers.js'
+import { assertApproximately } from '../../spark-api/test/test-helpers.js'
 
 const { DATABASE_URL } = process.env
 

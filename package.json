@@ -9,6 +9,8 @@
   "scripts": {
     "migrate": "node bin/migrate.js",
     "start": "node bin/spark.js",
+    "test:api": "mocha spark-api/test/**/*.js",
+    "test:publish": "mocha spark-publish/test/**/*.js",
     "test": "standard && mocha"
   },
   "devDependencies": {
