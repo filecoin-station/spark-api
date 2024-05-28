@@ -8,7 +8,8 @@
   "description": "API for SPARK",
   "scripts": {
     "migrate": "node bin/migrate.js",
-    "start": "node bin/spark.js",
+    "start:api": "node spark-api/bin/spark.js",
+    "start:publish": "node spark-publish/bin/spark-publish.js",
     "test:api": "mocha spark-api/test/**/*.js",
     "test:publish": "mocha spark-publish/test/**/*.js",
     "test": "standard && mocha"

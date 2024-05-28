@@ -89,13 +89,13 @@ docker run -d --name spark-db \
 Start the API service:
 
 ```bash
-npm start
+npm run start:api
 ```
 
 Run tests and linters:
 
 ```bash
-npm test
+npm run test:api
 ```
 
 ## Deployment
@@ -105,5 +105,5 @@ Pushes to `main` will be deployed automatically.
 Perform manual devops using [Fly.io](https://fly.io):
 
 ```bash
-$ fly deploy
+$ fly deploy spark-api
 ```
