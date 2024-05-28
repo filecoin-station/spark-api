@@ -15,7 +15,7 @@ after(async () => {
 })
 
 describe('spark-api database', () => {
-  it('can apply all migration scripts', async () => {
+  it('can apply migration scripts', async () => {
     await migrate(client)
   })
 
