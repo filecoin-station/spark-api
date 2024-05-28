@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npm test:api
+      - run: npm run test:api
 
   build-publish:
     runs-on: ubuntu-latest
