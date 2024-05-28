@@ -8,14 +8,10 @@ import { ed25519 } from '@ucanto/principal'
 import { CarReader } from '@ipld/car'
 import { importDAG } from '@ucanto/core/delegation'
 import { ethers } from 'ethers'
-import {
-  IE_CONTRACT_ABI,
-  IE_CONTRACT_ADDRESS,
-  RPC_URL,
-  GLIF_TOKEN
-} from '../ie-contract-config.js'
+import { RPC_URL, GLIF_TOKEN } from '../ie-contract-config.js'
 import assert from 'node:assert'
 import { writeClient } from '../lib/telemetry.js'
+import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 const {
   DATABASE_URL,
@@ -56,8 +52,8 @@ const provider = new ethers.JsonRpcProvider(
 )
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 const ieContract = new ethers.Contract(
-  IE_CONTRACT_ADDRESS,
-  IE_CONTRACT_ABI,
+  SparkImpactEvaluator.ADDRESS,
+  SparkImpactEvaluator.ABI,
   provider
 ).connect(signer)
 
