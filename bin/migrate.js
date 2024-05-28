@@ -1,4 +1,4 @@
-import { migrate } from '../migrations/index.js'
+import { migrate } from '../../migrations/index.js'
 import pg from 'pg'
 
 const { DATABASE_URL } = process.env

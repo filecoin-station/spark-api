@@ -1,5 +1,5 @@
 import { ethers } from 'ethers'
-import { RPC_URL, GLIF_TOKEN } from '../spark-publish/ie-contract-config.js'
+import { RPC_URL, GLIF_TOKEN } from '../../spark-publish/ie-contract-config.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 const fetchRequest = new ethers.FetchRequest(RPC_URL)

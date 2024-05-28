@@ -4,7 +4,7 @@ import { once } from 'node:events'
 import { createHandler } from '../index.js'
 import pg from 'pg'
 import { startRoundTracker } from '../lib/round-tracker.js'
-import { migrate } from '../migrations/index.js'
+import { migrate } from '../../migrations/index.js'
 
 const {
   PORT = 8080,

@@ -12,6 +12,7 @@
     "test": "standard && mocha"
   },
   "devDependencies": {
+    "@flydotio/dockerfile": "^0.5.7",
     "light-my-request": "^5.13.0",
     "mocha": "^10.4.0",
     "standard": "^17.1.0",
@@ -20,12 +21,20 @@
   "dependencies": {
     "@filecoin-station/spark-impact-evaluator": "^1.0.0",
     "@glif/filecoin-address": "^3.0.5",
+    "@influxdata/influxdb-client": "^1.33.2",
+    "@ipld/car": "^5.3.0",
     "@sentry/node": "^8.5.0",
+    "@ucanto/core": "^10.0.1",
+    "@ucanto/principal": "^9.0.1",
+    "@web3-storage/access": "^18.3.2",
+    "@web3-storage/w3up-client": "^13.1.1",
     "compare-versions": "^6.1.0",
     "ethers": "^6.12.1",
     "http-assert": "^1.5.0",
     "http-responders": "^2.0.2",
     "multiformats": "^13.1.0",
+    "p-retry": "^6.2.0",
+    "p-timeout": "^6.1.2",
     "pg": "^8.11.5",
     "postgrator": "^7.2.0",
     "raw-body": "^2.5.2"
