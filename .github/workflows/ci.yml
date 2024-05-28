@@ -76,25 +76,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build the base Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          cache-from: type=registry,ref=ghcr.io/filecoin-station/core
-          cache-to: type=inline
-          tags: spark-api-base
-
       - name: Build spark-api Docker image
         uses: docker/build-push-action@v5
         with:
-          context: spark-api
+          context: .
+          build-args: "SERVICE=api"
           cache-from: type=registry,ref=ghcr.io/filecoin-station/core
           cache-to: type=inline
 
       - name: Build spark-publish Docker image
         uses: docker/build-push-action@v5
         with:
-          context: spark-publish
+          context: .
+          build-args: "SERVICE=publish"
           cache-from: type=registry,ref=ghcr.io/filecoin-station/core
           cache-to: type=inline
 

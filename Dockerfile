@@ -37,3 +37,13 @@ FROM base
 
 # Copy built application
 COPY --from=build /app /app
+
+# Set to `publish` or `api`
+# This argument controls what npm script is executed as the CMD.
+ARG SERVICE
+
+# ARGs are not preserved at runtime, we need to store the value
+# as a default value of an ENV var
+ENV SCRIPT="start:${SERVICE}"
+
+CMD npm run ${SCRIPT}

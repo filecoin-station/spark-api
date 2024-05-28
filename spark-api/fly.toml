@@ -13,6 +13,9 @@ processes = []
   DOMAIN = "api.filspark.com"
   REQUEST_LOGGING = "false"
 
+[build.args]
+  SERVICE="api"
+
 [experimental]
   auto_rollback = true
 
