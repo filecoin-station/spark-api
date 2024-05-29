@@ -51,6 +51,7 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      GLIF_TOKEN: ${{ secrets.GLIF_TOKEN }}
       NPM_CONFIG_WORKSPACE: spark-api
     steps:
       - uses: actions/checkout@v4
