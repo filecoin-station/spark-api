@@ -89,13 +89,14 @@ docker run -d --name spark-db \
 Start the API service:
 
 ```bash
-npm run start:api
+npm start --workspace spark-api
 ```
 
 Run tests and linters:
 
 ```bash
-npm run test:api
+npm test --workspace spark-api
+npm run lint --workspace spark-api
 ```
 
 ## Deployment

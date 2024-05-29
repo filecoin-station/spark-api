@@ -105,7 +105,7 @@ jobs:
 
   deploy-api:
     if: github.ref == 'refs/heads/main'
-    needs: [build-api, build-publish, docker-build, docker-build]
+    needs: [build-api, build-publish, docker-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -134,7 +134,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   deploy-publish:
     if: github.ref == 'refs/heads/main'
-    needs: [build-api, build-publish, docker-build, docker-build]
+    needs: [build-api, build-publish, docker-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
