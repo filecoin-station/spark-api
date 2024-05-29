@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.7",
+    "mocha": "^10.4.0",
     "multiformats": "^13.1.0"
   }
 }

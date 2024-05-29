@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "light-my-request": "^5.13.0",
+    "mocha": "^10.4.0",
     "varint": "^6.0.0"
   },
   "dependencies": {
