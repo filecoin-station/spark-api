@@ -6,5 +6,19 @@
   "workspaces": [
     "spark-api",
     "spark-publish"
-  ]
+  ],
+  "scripts": {
+    "migrate": "node bin/migrate.js",
+    "lint": "standard",
+    "test": "npm run lint && npm test --workspaces"
+  },
+  "devDependencies": {
+    "mocha": "^10.4.0",
+    "standard": "^17.1.0"
+  },
+  "standard": {
+    "env": [
+      "mocha"
+    ]
+  }
 }
