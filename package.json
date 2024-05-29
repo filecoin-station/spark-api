@@ -1,4 +1,5 @@
 {
+  "name": "@filecoin-station/spark-api-monorepo",
   "private": true,
   "license": "MIT",
   "repository": "filecoin-station/spark-api",
