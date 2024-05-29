@@ -16,6 +16,7 @@ jobs:
           - light-my-request
           - '@glif/filecoin-address'
           - '@web3-storage'
+          - '@filecoin-station/spark-impact-evaluator'
     steps:
       - name: Dependabot metadata
         id: metadata
