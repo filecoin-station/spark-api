@@ -8,6 +8,7 @@ updates:
       interval: "daily"
       time: "09:00"
       timezone: "Europe/Berlin"
+    versioning-strategy: increase
     commit-message:
       prefix: "deps"
       prefix-development: "deps(dev)"
