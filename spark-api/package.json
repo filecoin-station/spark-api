@@ -8,11 +8,13 @@
   "description": "API for SPARK",
   "scripts": {
     "start": "node bin/spark.js",
+    "lint": "standard",
     "test": "mocha"
   },
   "devDependencies": {
     "light-my-request": "^5.13.0",
     "mocha": "^10.4.0",
+    "standard": "^17.1.0",
     "varint": "^6.0.0"
   },
   "dependencies": {
@@ -27,5 +29,10 @@
     "pg": "^8.11.5",
     "postgrator": "^7.2.0",
     "raw-body": "^2.5.2"
+  },
+  "standard": {
+    "env": [
+      "mocha"
+    ]
   }
 }

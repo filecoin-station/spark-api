@@ -2,6 +2,7 @@
   "type": "module",
   "scripts": {
     "start": "node bin/spark-publish.js",
+    "lint": "standard",
     "test": "mocha"
   },
   "dependencies": {
@@ -22,6 +23,12 @@
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.7",
     "mocha": "^10.4.0",
-    "multiformats": "^13.1.0"
+    "multiformats": "^13.1.0",
+    "standard": "^17.1.0"
+  },
+  "standard": {
+    "env": [
+      "mocha"
+    ]
   }
 }
