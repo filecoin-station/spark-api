@@ -87,19 +87,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build spark-api Docker image
+      - name: Build monorepo Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          build-args: "SERVICE=api"
-          cache-from: type=registry,ref=ghcr.io/filecoin-station/core
-          cache-to: type=inline
-
-      - name: Build spark-publish Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          build-args: "SERVICE=publish"
           cache-from: type=registry,ref=ghcr.io/filecoin-station/core
           cache-to: type=inline
 

@@ -45,11 +45,7 @@ FROM base
 COPY --from=build /app /app
 
 # Set to `publish` or `api`
-# This argument controls what npm script is executed as the CMD.
-ARG SERVICE
+# This argument controls the value passed to npm start --workspace parameter
+ENV SERVICE=""
 
-# ARGs are not preserved at runtime, we need to store the value
-# as a default value of an ENV var
-ENV WORKSPACE="${SERVICE}"
-
-CMD npm start --workspace ${WORKSPACE}
+CMD npm start --workspace ${SERVICE}
