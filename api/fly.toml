@@ -12,8 +12,6 @@ processes = []
   SENTRY_ENVIRONMENT = "production"
   DOMAIN = "api.filspark.com"
   REQUEST_LOGGING = "false"
-
-[build.args]
   SERVICE="api"
 
 [experimental]
