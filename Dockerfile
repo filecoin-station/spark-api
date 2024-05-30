@@ -26,7 +26,13 @@ RUN apt-get update -qq && \
 # to install all modules: "npm install --production=false".
 # Ref: https://docs.npmjs.com/cli/v9/commands/npm-install#description
 COPY --link package-lock.json package.json ./
-RUN npm ci
+
+# We cannot use a wildcard until `COPY --parents` is stabilised
+# See https://docs.docker.com/reference/dockerfile/#copy---parents
+COPY --link spark-api/package.json ./spark-api/
+COPY --link spark-publish/package.json ./spark-publish/
+
+RUN npm ci --workspaces
 
 # Copy application code
 COPY --link . .
@@ -44,6 +50,6 @@ ARG SERVICE
 
 # ARGs are not preserved at runtime, we need to store the value
 # as a default value of an ENV var
-ENV SCRIPT="start:${SERVICE}"
+ENV WORKSPACE="spark-${SERVICE}"
 
-CMD npm run ${SCRIPT}
+CMD npm start --workspace ${WORKSPACE}

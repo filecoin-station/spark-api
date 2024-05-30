@@ -3,11 +3,11 @@ updates:
   - package-ecosystem: "npm"
     directories:
       - "/"
-      - "/spark-publish"
     schedule:
       interval: "daily"
       time: "09:00"
       timezone: "Europe/Berlin"
+    versioning-strategy: increase
     commit-message:
       prefix: "deps"
       prefix-development: "deps(dev)"
