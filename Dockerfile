@@ -29,8 +29,8 @@ COPY --link package-lock.json package.json ./
 
 # We cannot use a wildcard until `COPY --parents` is stabilised
 # See https://docs.docker.com/reference/dockerfile/#copy---parents
-COPY --link spark-api/package.json ./spark-api/
-COPY --link spark-publish/package.json ./spark-publish/
+COPY --link api/package.json ./api/
+COPY --link publish/package.json ./publish/
 
 RUN npm ci --workspaces
 
@@ -50,6 +50,6 @@ ARG SERVICE
 
 # ARGs are not preserved at runtime, we need to store the value
 # as a default value of an ENV var
-ENV WORKSPACE="spark-${SERVICE}"
+ENV WORKSPACE="${SERVICE}"
 
 CMD npm start --workspace ${WORKSPACE}

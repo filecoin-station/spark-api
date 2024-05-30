@@ -24,7 +24,7 @@ jobs:
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
       GLIF_TOKEN: ${{ secrets.GLIF_TOKEN }}
-      NPM_CONFIG_WORKSPACE: spark-api
+      NPM_CONFIG_WORKSPACE: api
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -51,7 +51,7 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
-      NPM_CONFIG_WORKSPACE: spark-publish
+      NPM_CONFIG_WORKSPACE: publish
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -110,7 +110,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: cd spark-api && flyctl deploy --remote-only
+      - run: cd api && flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       - if: failure()
@@ -139,7 +139,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: cd spark-publish && flyctl deploy --remote-only
+      - run: cd publish && flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PUBLISH }}
       - if: failure()

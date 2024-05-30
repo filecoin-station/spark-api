@@ -5,8 +5,8 @@
   "repository": "filecoin-station/spark-api",
   "type": "module",
   "workspaces": [
-    "spark-api",
-    "spark-publish"
+    "api",
+    "publish"
   ],
   "scripts": {
     "migrate": "node bin/migrate.js",
