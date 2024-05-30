@@ -10,6 +10,7 @@ const pkg = JSON.parse(
     join(
       dirname(fileURLToPath(import.meta.url)),
       '..',
+      '..',
       'package.json'
     ),
     'utf8'

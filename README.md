@@ -84,18 +84,19 @@ docker run -d --name spark-db \
   postgres
 ```
 
-### `spark-api`
+### `api`
 
 Start the API service:
 
 ```bash
-npm start
+npm start --workspace api
 ```
 
 Run tests and linters:
 
 ```bash
-npm test
+npm test --workspace api
+npm run lint --workspace api
 ```
 
 ## Deployment
@@ -105,5 +106,5 @@ Pushes to `main` will be deployed automatically.
 Perform manual devops using [Fly.io](https://fly.io):
 
 ```bash
-$ fly deploy
+$ fly deploy api
 ```

@@ -24,6 +24,7 @@ jobs:
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
       GLIF_TOKEN: ${{ secrets.GLIF_TOKEN }}
+      NPM_CONFIG_WORKSPACE: api
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -50,17 +51,27 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      NPM_CONFIG_WORKSPACE: publish
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm ci
-      - run: npm run migrate
-      - run: cd spark-publish && npm ci
-      - run: cd spark-publish && npm test
+      - run: node bin/migrate.js
+      - run: npm test
 
-  docker-build-api:
+  lint-all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run lint
+
+  docker-build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -76,44 +87,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker image
+      - name: Build monorepo Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           cache-from: type=registry,ref=ghcr.io/filecoin-station/core
           cache-to: type=inline
 
-  docker-build-publish:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
-    env:
-      REGISTRY: ghcr.io
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: spark-publish
-          cache-from: type=registry,ref=ghcr.io/filecoin-station/core
-          cache-to: type=inline
-
   deploy-api:
     if: github.ref == 'refs/heads/main'
-    needs: [build-api, build-publish, docker-build-api, docker-build-publish]
+    needs: [build-api, build-publish, docker-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
+      - run: flyctl deploy --remote-only -c api/fly.toml
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       - if: failure()
@@ -137,12 +125,12 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   deploy-publish:
     if: github.ref == 'refs/heads/main'
-    needs: [build-api, build-publish, docker-build-api, docker-build-publish]
+    needs: [build-api, build-publish, docker-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: cd spark-publish && flyctl deploy --remote-only
+      - run: flyctl deploy --remote-only -c publish/fly.toml
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PUBLISH }}
       - if: failure()

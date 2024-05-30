@@ -1,4 +1,0 @@
-app = "spark-publish"
-primary_region = "cdg"
-[deploy]
-  strategy = "rolling"

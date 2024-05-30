@@ -1,0 +1,38 @@
+{
+  "name": "@filecoin-station/spark-api",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": "filecoin-station/spark-api",
+  "type": "module",
+  "description": "API for SPARK",
+  "scripts": {
+    "start": "node bin/spark.js",
+    "lint": "standard",
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "light-my-request": "^5.13.0",
+    "mocha": "^10.4.0",
+    "standard": "^17.1.0",
+    "varint": "^6.0.0"
+  },
+  "dependencies": {
+    "@filecoin-station/spark-impact-evaluator": "^1.1.1",
+    "@glif/filecoin-address": "^3.0.5",
+    "@sentry/node": "^8.7.0",
+    "compare-versions": "^6.1.0",
+    "ethers": "^6.12.1",
+    "http-assert": "^1.5.0",
+    "http-responders": "^2.0.2",
+    "multiformats": "^13.1.0",
+    "pg": "^8.11.5",
+    "postgrator": "^7.2.0",
+    "raw-body": "^2.5.2"
+  },
+  "standard": {
+    "env": [
+      "mocha"
+    ]
+  }
+}

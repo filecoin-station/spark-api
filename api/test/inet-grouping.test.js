@@ -3,7 +3,7 @@ import { setTimeout } from 'node:timers/promises'
 import pg from 'pg'
 import { mapRequestToInetGroup, mapRequestToSubnet, mapSubnetToInetGroup } from '../lib/inet-grouping.js'
 import { Request as FakeRequest } from 'light-my-request/lib/request.js'
-import { migrate } from '../lib/migrate.js'
+import { migrate } from '../../migrations/index.js'
 
 const { DATABASE_URL } = process.env
 

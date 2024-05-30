@@ -6,8 +6,8 @@ import {
   mapCurrentMeridianRoundToSparkRound,
   startRoundTracker
 } from '../lib/round-tracker.js'
-import { migrate } from '../lib/migrate.js'
-import { assertApproximately } from './test-helpers.js'
+import { migrate } from '../../migrations/index.js'
+import { assertApproximately } from '../../test-helpers/assert.js'
 import { createMeridianContract } from '../lib/ie-contract.js'
 import { afterEach, beforeEach } from 'mocha'
 
