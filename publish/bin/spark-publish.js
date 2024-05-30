@@ -7,7 +7,7 @@ import { ethers } from 'ethers'
 import { spawn } from 'node:child_process'
 import { once } from 'events'
 import { fileURLToPath } from 'node:url'
-import { rpcUrls } from '../ie-contract-config.js'
+import { rpcUrls } from '../../common/ie-contract-config.js'
 
 const {
   WALLET_SEED,
