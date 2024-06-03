@@ -17,6 +17,7 @@ jobs:
           - '@glif/filecoin-address'
           - '@web3-storage'
           - '@filecoin-station/spark-impact-evaluator'
+          - ethers
     steps:
       - name: Dependabot metadata
         id: metadata
