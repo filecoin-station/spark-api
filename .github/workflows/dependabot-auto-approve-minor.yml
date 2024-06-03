@@ -18,6 +18,7 @@ jobs:
           - '@web3-storage'
           - '@filecoin-station/spark-impact-evaluator'
           - ethers
+          - multiformats
     steps:
       - name: Dependabot metadata
         id: metadata
