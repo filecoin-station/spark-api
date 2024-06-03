@@ -19,6 +19,7 @@ jobs:
           - '@filecoin-station/spark-impact-evaluator'
           - ethers
           - multiformats
+          - '@ipld/car'
     steps:
       - name: Dependabot metadata
         id: metadata
