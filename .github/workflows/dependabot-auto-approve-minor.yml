@@ -20,6 +20,7 @@ jobs:
           - ethers
           - multiformats
           - '@ipld/car'
+          - pg
     steps:
       - name: Dependabot metadata
         id: metadata
