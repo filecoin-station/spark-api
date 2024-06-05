@@ -1,5 +1,8 @@
 import { base64url } from 'multiformats/bases/base64'
 
+import { record } from './telemetry.js'
+
+
 // See https://stackoverflow.com/a/36760050/69868
 const IPV4_REGEX = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$/
 
@@ -102,4 +105,34 @@ export const mapRequestToSubnet = (req) => {
   addr = addr.slice(0, addr.lastIndexOf('.')) + '.0/24'
 
   return addr
+}
+
+export const logNetworkInfo = async (pgClient, req, station_id, inet_group) => {
+  // Update the station_id's network_info_update_history row if it's older than 10 minutes
+  const { rows } = await pgClient.query(`
+    INSERT INTO network_info_update_history (station_id, updated_at)
+    VALUES ($1, NOW())
+    ON CONFLICT (station_id) DO UPDATE
+    SET updated_at = NOW()
+    WHERE network_info.updated_at < NOW() - INTERVAL '10 minutes'
+    RETURNING station_id
+  `, [station_id])
+
+  // Don't record to InfluxDB if we didn't update the row
+  if (rows.length === 0) return
+
+  record('network_info', point => {
+    point.tag('station_id', station_id)
+    point.tag('inet_group', inet_group)
+
+    point.tag('cf-ipcity', req.headers['cf-ipcity'])
+    point.tag('cf-ipcountry', req.headers['cf-ipcountry'])
+    point.tag('cf-ipcontinent', req.headers['cf-ipregion'])
+    point.tag('cf-iplongitude', req.headers['cf-iplongitude'])
+    point.tag('cf-iplatitude', req.headers['cf-iplatitude'])
+    point.tag('cf-region', req.headers['cf-region'])
+    point.tag('cf-region-code', req.headers['cf-region-code'])
+    point.tag('cf-timezone', req.headers['cf-timezone'])
+    point.timestamp(new Date())
+  })
 }

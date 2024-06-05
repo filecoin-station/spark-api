@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/node'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'
-import { mapRequestToInetGroup } from './lib/inet-grouping.js'
+import { mapRequestToInetGroup, logNetworkInfo } from './lib/network-management.js'
 import { satisfies } from 'compare-versions'
 import { ethAddressFromDelegated } from '@glif/filecoin-address'
 
@@ -78,6 +78,7 @@ const createMeasurement = async (req, res, client) => {
   assert(measurement.stationId.match(/^[0-9a-fA-F]{88}$/), 400, 'Invalid Station ID')
 
   const inetGroup = await mapRequestToInetGroup(client, req)
+  logNetworkInfo(client, req, measurement.stationId, inetGroup)
 
   const { rows } = await client.query(`
       INSERT INTO measurements (
