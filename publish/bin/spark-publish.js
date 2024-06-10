@@ -7,7 +7,6 @@ import { ethers } from 'ethers'
 import { spawn } from 'node:child_process'
 import { once } from 'events'
 import { fileURLToPath } from 'node:url'
-import { rpcUrls } from '../../common/ie-contract-config.js'
 
 const {
   WALLET_SEED,
@@ -49,8 +48,7 @@ while (true) {
         MAX_MEASUREMENTS_PER_ROUND,
         WALLET_SEED,
         W3UP_PRIVATE_KEY,
-        W3UP_PROOF,
-        RPC_URLS: rpcUrls[rpcUrlIndex % rpcUrls.length]
+        W3UP_PROOF
       }
     }
   )
