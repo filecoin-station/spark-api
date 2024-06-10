@@ -5,7 +5,7 @@ import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 const provider = new ethers.FallbackProvider(rpcUrls.map(rpcUrl => {
   const fetchRequest = new ethers.FetchRequest(rpcUrl)
   fetchRequest.setHeader('Authorization', `Bearer ${GLIF_TOKEN}`)
-  return ethers.JsonRpcProvider(fetchRequest, null, { polling: true })
+  return new ethers.JsonRpcProvider(fetchRequest, null, { polling: true })
 }))
 
 // Uncomment for troubleshooting
