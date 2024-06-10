@@ -31,8 +31,6 @@ console.log(
   newDelegatedEthAddress(signer.address, 'f').toString()
 )
 
-let rpcUrlIndex = 0
-
 while (true) {
   const lastStart = new Date()
   const ps = spawn(
@@ -58,7 +56,6 @@ while (true) {
   if (code !== 0) {
     console.error(`Bad exit code: ${code}`)
     Sentry.captureMessage(`Bad exit code: ${code}`)
-    rpcUrlIndex++
   }
   const dt = new Date() - lastStart
   console.log(`Done. This iteration took ${dt}ms.`)

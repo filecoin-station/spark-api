@@ -8,11 +8,10 @@ import { ed25519 } from '@ucanto/principal'
 import { CarReader } from '@ipld/car'
 import { importDAG } from '@ucanto/core/delegation'
 import { ethers } from 'ethers'
-import { GLIF_TOKEN } from '../../common/ie-contract-config.js'
+import { GLIF_TOKEN, rpcUrls } from '../../common/ie-contract-config.js'
 import assert from 'node:assert'
 import { writeClient } from '../lib/telemetry.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
-import { rpcUrls } from '../../common/ie-contract-config.js'
 
 const {
   DATABASE_URL,
@@ -47,7 +46,7 @@ await web3Storage.setCurrentSpace(space.did())
 const provider = new ethers.FallbackProvider(rpcUrls.map(rpcUrl => {
   const fetchRequest = new ethers.FetchRequest(rpcUrl)
   fetchRequest.setHeader('Authorization', `Bearer ${GLIF_TOKEN}`)
-  return JsonRpcProvider(fetchRequest)
+  return ethers.JsonRpcProvider(fetchRequest)
 }))
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 const ieContract = new ethers.Contract(
