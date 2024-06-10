@@ -1,12 +1,12 @@
 import { ethers } from 'ethers'
-import { RPC_URL, GLIF_TOKEN } from '../../common/ie-contract-config.js'
+import { rpcUrls, GLIF_TOKEN } from '../../common/ie-contract-config.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
-const fetchRequest = new ethers.FetchRequest(RPC_URL)
-fetchRequest.setHeader('Authorization', `Bearer ${GLIF_TOKEN}`)
-const provider = new ethers.JsonRpcProvider(fetchRequest, undefined, {
-  polling: true
-})
+const provider = new ethers.FallbackProvider(rpcUrls.map(rpcUrl => {
+  const fetchRequest = new ethers.FetchRequest(rpcUrl)
+  fetchRequest.setHeader('Authorization', `Bearer ${GLIF_TOKEN}`)
+  return new ethers.JsonRpcProvider(fetchRequest, null, { polling: true })
+}))
 
 // Uncomment for troubleshooting
 // provider.on('debug', d => console.log('[ethers:debug %s] %s %o', new Date().toISOString().split('T')[1], d.action, d.payload ?? d.result))

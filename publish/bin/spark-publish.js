@@ -7,7 +7,6 @@ import { ethers } from 'ethers'
 import { spawn } from 'node:child_process'
 import { once } from 'events'
 import { fileURLToPath } from 'node:url'
-import { rpcUrls } from '../../common/ie-contract-config.js'
 
 const {
   WALLET_SEED,
@@ -32,8 +31,6 @@ console.log(
   newDelegatedEthAddress(signer.address, 'f').toString()
 )
 
-let rpcUrlIndex = 0
-
 while (true) {
   const lastStart = new Date()
   const ps = spawn(
@@ -49,8 +46,7 @@ while (true) {
         MAX_MEASUREMENTS_PER_ROUND,
         WALLET_SEED,
         W3UP_PRIVATE_KEY,
-        W3UP_PROOF,
-        RPC_URLS: rpcUrls[rpcUrlIndex % rpcUrls.length]
+        W3UP_PROOF
       }
     }
   )
@@ -60,7 +56,6 @@ while (true) {
   if (code !== 0) {
     console.error(`Bad exit code: ${code}`)
     Sentry.captureMessage(`Bad exit code: ${code}`)
-    rpcUrlIndex++
   }
   const dt = new Date() - lastStart
   console.log(`Done. This iteration took ${dt}ms.`)
