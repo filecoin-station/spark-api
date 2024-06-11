@@ -22,3 +22,7 @@ export const record = (name, fn) => {
 }
 
 export const close = () => writeClient.close()
+
+export {
+  Point
+}

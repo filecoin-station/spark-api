@@ -1,4 +1,6 @@
 CREATE TABLE network_info_update_history (
-    station_id TEXT PRIMARY KEY,
-    updated_at TIMESTAMPTZ NOT NULL
+    day DATE NOT NULL,
+    station_id TEXT NOT NULL,
+    PRIMARY KEY (day, station_id)
 );
+CREATE INDEX network_info_update_history_day_idx ON network_info_update_history (day);

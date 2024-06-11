@@ -2,6 +2,7 @@
 
 import pRetry from 'p-retry'
 import pTimeout from 'p-timeout'
+import { record } from '../common/telemetry.js'
 
 export const publish = async ({
   client: pgPool,

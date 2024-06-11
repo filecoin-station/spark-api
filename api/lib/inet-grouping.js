@@ -1,7 +1,5 @@
 import { base64url } from 'multiformats/bases/base64'
 
-import { record } from './telemetry.js'
-
 // See https://stackoverflow.com/a/36760050/69868
 const IPV4_REGEX = /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$/
 
@@ -106,32 +104,41 @@ export const mapRequestToSubnet = (req) => {
   return addr
 }
 
-export const logNetworkInfo = async (pgClient, req, stationId, inetGroup) => {
-  // Update the station_id's network_info_update_history row if it's older than 10 minutes
+/**
+ * @param {import('pg').Client} pgClient
+ * @param {import('node:http').IncomingMessage} req
+ * @param {string} stationId
+ * @param {string} inetGroup
+ * @param {function} recordTelemetryFn
+ */
+export const logNetworkInfo = async (pgClient, headers, stationId, inetGroup, recordTelemetryFn) => {
   const { rows } = await pgClient.query(`
-    INSERT INTO network_info_update_history (station_id, updated_at)
-    VALUES ($1, NOW())
-    ON CONFLICT (station_id) DO UPDATE
-    SET updated_at = NOW()
-    WHERE network_info.updated_at < NOW() - INTERVAL '10 minutes'
+    INSERT INTO network_info_update_history (day, station_id)
+    VALUES (now(), $1)
+    ON CONFLICT (day, station_id) DO NOTHING
     RETURNING station_id
   `, [stationId])
 
-  // Don't record to InfluxDB if we didn't update the row
+  // Don't record to InfluxDB or delete the row if we didn't write the row
   if (rows.length === 0) return
 
-  record('network_info', point => {
-    point.tag('station_id', stationId)
-    point.tag('inet_group', inetGroup)
+  // Empty the table of every day before today
+  await pgClient.query(`
+    DELETE FROM network_info_update_history
+    WHERE day < NOW() - INTERVAL '1 day'
+  `)
 
-    point.tag('cf-ipcity', req.headers['cf-ipcity'])
-    point.tag('cf-ipcountry', req.headers['cf-ipcountry'])
-    point.tag('cf-ipcontinent', req.headers['cf-ipregion'])
-    point.tag('cf-iplongitude', req.headers['cf-iplongitude'])
-    point.tag('cf-iplatitude', req.headers['cf-iplatitude'])
-    point.tag('cf-region', req.headers['cf-region'])
-    point.tag('cf-region-code', req.headers['cf-region-code'])
-    point.tag('cf-timezone', req.headers['cf-timezone'])
-    point.timestamp(new Date())
+  recordTelemetryFn('network-info', point => {
+    point.stringField('station_id', stationId)
+    point.stringField('inet_group', inetGroup)
+
+    point.stringField('cf-ipcity', headers['cf-ipcity'])
+    point.stringField('cf-ipcountry', headers['cf-ipcountry'])
+    point.stringField('cf-ipcontinent', headers['cf-ipcontinent'])
+    point.stringField('cf-iplongitude', headers['cf-iplongitude'])
+    point.stringField('cf-iplatitude', headers['cf-iplatitude'])
+    point.stringField('cf-region', headers['cf-region'])
+    point.stringField('cf-region-code', headers['cf-region-code'])
+    point.stringField('cf-timezone', headers['cf-timezone'])
   })
 }
