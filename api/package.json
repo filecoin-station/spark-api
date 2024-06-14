@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@filecoin-station/spark-impact-evaluator": "^1.1.1",
-    "@glif/filecoin-address": "^3.0.5",
+    "@glif/filecoin-address": "^3.0.6",
     "@sentry/node": "^8.9.2",
     "compare-versions": "^6.1.0",
     "ethers": "^6.13.0",
