@@ -17,7 +17,7 @@ const {
   DATABASE_URL,
   WALLET_SEED,
   MAX_MEASUREMENTS_PER_ROUND = 1000,
-  // See https://web3.storage/docs/how-to/upload/#bring-your-own-agent
+  // See https://web3.storage/docs/how-to/upload/#bring-your-own-delegations
   W3UP_PRIVATE_KEY,
   W3UP_PROOF
 } = process.env
