@@ -5,24 +5,36 @@ const influx = new InfluxDB({
   // spark-publish-write
   token: 'Zkqa_s7mI0W_WKI6DUmu-iRnQkCvwNaQfbPK_zT7I6iYYaC2C1kokdlhO2jb4tjRcAJQHQXAGnrdD3vqlMZ63g=='
 })
-export const writeClient = influx.getWriteApi(
+const publishWriteClient = influx.getWriteApi(
   'Filecoin Station', // org
   'spark-publish', // bucket
   'ns' // precision
 )
 
+const apiWriteClient = influx.getWriteApi(
+  'Filecoin Station', // org
+  'spark-api', // bucket
+  'ns' // precision
+)
+
 setInterval(() => {
-  writeClient.flush().catch(console.error)
+  publishWriteClient.flush().catch(console.error)
+  apiWriteClient.flush().catch(console.error)
 }, 10_000).unref()
 
-export const record = (name, fn) => {
+const recordFn = (client, name, fn) => {
   const point = new Point(name)
   fn(point)
-  writeClient.writePoint(point)
+  client.writePoint(point)
 }
 
-export const close = () => writeClient.close()
+const recordPublishTelemetry = (name, fn) => recordFn(publishWriteClient, name, fn)
+const recordApiTelemetry = (name, fn) => recordFn(apiWriteClient, name, fn)
 
 export {
-  Point
+  Point,
+  publishWriteClient,
+  apiWriteClient,
+  recordPublishTelemetry,
+  recordApiTelemetry
 }
