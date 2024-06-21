@@ -1,11 +1,7 @@
 import assert from 'node:assert'
 import { setTimeout } from 'node:timers/promises'
 import pg from 'pg'
-import {
-  mapRequestToInetGroup,
-  mapRequestToSubnet,
-  mapSubnetToInetGroup
-} from '../lib/inet-grouping.js'
+import { mapRequestToInetGroup, mapRequestToSubnet, mapSubnetToInetGroup } from '../lib/inet-grouping.js'
 import { Request as FakeRequest } from 'light-my-request/lib/request.js'
 import { migrate } from '../../migrations/index.js'
 
