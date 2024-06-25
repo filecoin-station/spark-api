@@ -36,6 +36,7 @@ describe('logNetworkInfo', () => {
   it('should record new network info if not present for the day', async () => {
     await logNetworkInfo(headers1, 'station-id1', recordTelemetry)
     await logNetworkInfo(headers2, 'station-id2', recordTelemetry)
+    // another request from a Station ID we have already seen today
     await logNetworkInfo(headers3, 'station-id1', recordTelemetry)
 
     const expectedFields1 = {}
@@ -47,10 +48,12 @@ describe('logNetworkInfo', () => {
       expectedFields2[key] = `"${headers2[key]}"`
     }
 
-    assert.strictEqual(telemetry.length, 2)
-    assert.strictEqual(telemetry[0].name, 'network-info')
-    assert.deepStrictEqual(telemetry[0].fields, expectedFields1)
-    assert.strictEqual(telemetry[1].name, 'network-info')
-    assert.deepStrictEqual(telemetry[1].fields, expectedFields2)
+    assert.deepStrictEqual(
+      telemetry.map(p => ({ _point: p.name, ...p.fields })),
+      [
+        { _point: 'network-info', ...expectedFields1 },
+        { _point: 'network-info', ...expectedFields2 }
+      ]
+    )
   })
 })
