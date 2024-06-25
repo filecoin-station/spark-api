@@ -11,15 +11,15 @@ const publishWriteClient = influx.getWriteApi(
   'ns' // precision
 )
 
-const apiWriteClient = influx.getWriteApi(
+const networkInfoWriteClient = influx.getWriteApi(
   'Filecoin Station', // org
-  'spark-api', // bucket
-  'ns' // precision
+  'spark-network-info', // bucket
+  's' // precision
 )
 
 setInterval(() => {
   publishWriteClient.flush().catch(console.error)
-  apiWriteClient.flush().catch(console.error)
+  networkInfoWriteClient.flush().catch(console.error)
 }, 10_000).unref()
 
 const recordFn = (client, name, fn) => {
@@ -29,12 +29,12 @@ const recordFn = (client, name, fn) => {
 }
 
 const recordPublishTelemetry = (name, fn) => recordFn(publishWriteClient, name, fn)
-const recordApiTelemetry = (name, fn) => recordFn(apiWriteClient, name, fn)
+const recordNetworkInfoTelemetry = (name, fn) => recordFn(networkInfoWriteClient, name, fn)
 
 export {
   Point,
   publishWriteClient,
-  apiWriteClient,
+  networkInfoWriteClient,
   recordPublishTelemetry,
-  recordApiTelemetry
+  recordNetworkInfoTelemetry
 }
