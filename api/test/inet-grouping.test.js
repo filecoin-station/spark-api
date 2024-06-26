@@ -8,6 +8,7 @@ import { migrate } from '../../migrations/index.js'
 const { DATABASE_URL } = process.env
 
 let pgClient
+
 before(async () => {
   pgClient = new pg.Client({ connectionString: DATABASE_URL })
   await pgClient.connect()

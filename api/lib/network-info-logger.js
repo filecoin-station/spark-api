@@ -4,15 +4,14 @@ setInterval(() => { stationIdsSeen.clear() }, 1000 * 60 * 60 * 24) // clear ever
 /**
  * @param {import('node:http').IncomingMessage} req
  * @param {string} stationId
- * @param {string} inetGroup
- * @param {function} recordTelemetryFn
+ * @param {import('../../common/typings.js').RecordTelemetryFn} recordTelemetry
  */
-export const logNetworkInfo = async (headers, stationId, recordTelemetryFn) => {
+export const logNetworkInfo = async (headers, stationId, recordTelemetry) => {
   try {
     if (stationIdsSeen.has(stationId)) return
 
     stationIdsSeen.add(stationId)
-    recordTelemetryFn('network-info', point => {
+    recordTelemetry('network-info', point => {
       point.stringField('cf-ipcity', headers['cf-ipcity'])
       point.stringField('cf-ipcountry', headers['cf-ipcountry'])
       point.stringField('cf-ipcontinent', headers['cf-ipcontinent'])
