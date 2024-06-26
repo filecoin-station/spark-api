@@ -15,10 +15,14 @@ setInterval(() => {
   writeClient.flush().catch(console.error)
 }, 10_000).unref()
 
-export const record = (name, fn) => {
+export const recordTelemetry = (name, fn) => {
   const point = new Point(name)
   fn(point)
   writeClient.writePoint(point)
 }
 
 export const close = () => writeClient.close()
+
+export {
+  Point
+}
