@@ -1,4 +1,5 @@
 export * from './platform-test-helpers.js'
+export * from '../../test-helpers/assert.js'
 
 /**
  * @param {import('pg').Client} client

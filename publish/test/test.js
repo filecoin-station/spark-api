@@ -3,8 +3,8 @@ import assert from 'node:assert'
 import { CID } from 'multiformats/cid'
 import pg from 'pg'
 
-import { assertApproximately } from '../../test-helpers/assert.js'
 import {
+  assertApproximately,
   DATABASE_URL,
   createTelemetryRecorderStub,
   insertMeasurement,
