@@ -1,19 +1,8 @@
 import assert from 'node:assert'
-import { Point } from '../../common/telemetry.js'
+import { createTelemetryRecorderStub } from '../../test-helpers/platform-test-helpers.js'
 import { logNetworkInfo } from '../lib/network-info-logger.js'
 
-const telemetry = []
-const recordTelemetry = (measurementName, fn) => {
-  const point = new Point(measurementName)
-  fn(point)
-  telemetry.push(point)
-}
-
 describe('logNetworkInfo', () => {
-  beforeEach(async () => {
-    telemetry.splice(0)
-  })
-
   const headers1 = {
     'cf-ipcity': 'city1',
     'cf-ipcountry': 'country1',
@@ -34,6 +23,8 @@ describe('logNetworkInfo', () => {
   }
 
   it('should record new network info if not present for the day', async () => {
+    const { recordTelemetry, telemetry } = createTelemetryRecorderStub()
+
     await logNetworkInfo(headers1, 'station-id1', recordTelemetry)
     await logNetworkInfo(headers2, 'station-id2', recordTelemetry)
     // another request from a Station ID we have already seen today

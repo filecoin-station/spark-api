@@ -2,7 +2,6 @@
 
 import pRetry from 'p-retry'
 import pTimeout from 'p-timeout'
-import { recordPublishTelemetry } from '../common/telemetry.js'
 
 export const publish = async ({
   client: pgPool,
@@ -111,7 +110,7 @@ export const publish = async ({
 
   logger.log('Done!')
 
-  recordPublishTelemetry('publish', point => {
+  recordTelemetry('publish', point => {
     point.intField('round_index', roundIndex)
     point.intField('measurements', measurements.length)
     point.floatField('load', totalCount / maxMeasurements)

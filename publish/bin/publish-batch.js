@@ -10,7 +10,7 @@ import { importDAG } from '@ucanto/core/delegation'
 import { ethers } from 'ethers'
 import { GLIF_TOKEN, rpcUrls } from '../../common/ie-contract-config.js'
 import assert from 'node:assert'
-import { publishWriteClient } from '../../common/telemetry.js'
+import { recordPublishTelemetry, publishWriteClient } from '../../common/telemetry.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 const {
@@ -60,7 +60,7 @@ try {
     client,
     web3Storage,
     ieContract,
-    recordTelemetry,
+    recordPublishTelemetry,
     maxMeasurements: MAX_MEASUREMENTS_PER_ROUND
   })
 } finally {
