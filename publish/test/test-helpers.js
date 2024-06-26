@@ -1,4 +1,4 @@
-export * from './platform-test-helpers.js'
+export * from '../../test-helpers/platform-test-helpers.js'
 export * from '../../test-helpers/assert.js'
 
 /**
