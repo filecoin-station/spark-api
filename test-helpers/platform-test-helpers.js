@@ -1,7 +1,7 @@
 // This file is shared with voyager-api/voyager-publish
 // Helpers in this file must not have anything project-specific like measurement fields
 
-import { Point } from '../lib/telemetry.js'
+import { Point } from '../publish/lib/telemetry.js'
 
 export const { DATABASE_URL } = process.env
 
