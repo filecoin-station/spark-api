@@ -60,7 +60,7 @@ try {
     client,
     web3Storage,
     ieContract,
-    recordPublishTelemetry,
+    recordTelemetry: recordPublishTelemetry,
     maxMeasurements: MAX_MEASUREMENTS_PER_ROUND
   })
 } finally {

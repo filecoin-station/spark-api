@@ -32,7 +32,6 @@ const recordPublishTelemetry = (name, fn) => recordFn(publishWriteClient, name, 
 const recordNetworkInfoTelemetry = (name, fn) => recordFn(networkInfoWriteClient, name, fn)
 
 export {
-  Point,
   publishWriteClient,
   networkInfoWriteClient,
   recordPublishTelemetry,

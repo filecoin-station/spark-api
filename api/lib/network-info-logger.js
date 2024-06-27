@@ -1,5 +1,8 @@
 const stationIdsSeen = new Set()
-setInterval(() => { stationIdsSeen.clear() }, 1000 * 60 * 60 * 24) // clear every day
+
+export const clearNetworkInfoStationIdsSeen = () => {
+  stationIdsSeen.clear()
+}
 
 /**
  * @param {import('node:http').IncomingMessage} req
