@@ -4,6 +4,8 @@ import getRawBody from 'raw-body'
 import assert from 'http-assert'
 import { validate } from './lib/validate.js'
 import { mapRequestToInetGroup } from './lib/inet-grouping.js'
+import { logNetworkInfo } from './lib/network-info-logger.js'
+import { recordNetworkInfoTelemetry } from '../common/telemetry.js'
 import { satisfies } from 'compare-versions'
 import { ethAddressFromDelegated } from '@glif/filecoin-address'
 
@@ -78,6 +80,7 @@ const createMeasurement = async (req, res, client) => {
   assert(measurement.stationId.match(/^[0-9a-fA-F]{88}$/), 400, 'Invalid Station ID')
 
   const inetGroup = await mapRequestToInetGroup(client, req)
+  logNetworkInfo(req.headers, measurement.stationId, recordNetworkInfoTelemetry)
 
   const { rows } = await client.query(`
       INSERT INTO measurements (

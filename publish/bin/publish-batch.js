@@ -10,7 +10,7 @@ import { importDAG } from '@ucanto/core/delegation'
 import { ethers } from 'ethers'
 import { GLIF_TOKEN, rpcUrls } from '../../common/ie-contract-config.js'
 import assert from 'node:assert'
-import { recordTelemetry, writeClient } from '../lib/telemetry.js'
+import { recordPublishTelemetry, publishWriteClient } from '../../common/telemetry.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 const {
@@ -60,13 +60,13 @@ try {
     client,
     web3Storage,
     ieContract,
-    recordTelemetry,
+    recordTelemetry: recordPublishTelemetry,
     maxMeasurements: MAX_MEASUREMENTS_PER_ROUND
   })
 } finally {
   // Ensure telemetry has been submitted before exiting
   try {
-    await writeClient.flush()
+    await publishWriteClient.flush()
   } catch (err) {
     console.error(err)
   }

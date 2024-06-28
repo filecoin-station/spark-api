@@ -5,6 +5,7 @@ import { createHandler } from '../index.js'
 import pg from 'pg'
 import { startRoundTracker } from '../lib/round-tracker.js'
 import { migrate } from '../../migrations/index.js'
+import { clearNetworkInfoStationIdsSeen } from '../lib/network-info-logger.js'
 
 const {
   PORT = 8080,
@@ -50,6 +51,9 @@ try {
   console.error('Cannot obtain the current Spark round number:', err)
   process.exit(1)
 }
+
+// Clear the station IDs seen by the network info logger every 24 hours
+setInterval(clearNetworkInfoStationIdsSeen, 1000 * 60 * 60 * 24)
 
 const logger = {
   error: console.error,
