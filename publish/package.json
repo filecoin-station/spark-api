@@ -10,7 +10,7 @@
     "@glif/filecoin-address": "^3.0.7",
     "@influxdata/influxdb-client": "^1.33.2",
     "@ipld/car": "^5.3.2",
-    "@sentry/node": "^8.14.0",
+    "@sentry/node": "^8.15.0",
     "@ucanto/core": "^10.0.1",
     "@ucanto/principal": "^9.0.1",
     "@web3-storage/access": "^20.0.0",
