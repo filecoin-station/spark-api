@@ -41,7 +41,7 @@ const createMeasurement = async (req, res, client) => {
   validate(measurement, 'sparkVersion', { type: 'string', required: false })
   validate(measurement, 'zinniaVersion', { type: 'string', required: false })
   assert(
-    typeof measurement.sparkVersion === 'string' && satisfies(measurement.sparkVersion, '>=1.9.0'),
+    typeof measurement.sparkVersion === 'string' && satisfies(measurement.sparkVersion, '>=1.13.0'),
     410, 'OUTDATED CLIENT'
   )
 
