@@ -21,6 +21,7 @@ jobs:
           - multiformats
           - '@ipld/car'
           - pg
+          - compare-versions
     steps:
       - name: Dependabot metadata
         id: metadata
