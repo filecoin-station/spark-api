@@ -127,17 +127,7 @@ const commitMeasurements = async ({ cid, ieContract, logger, signal }) => {
   const start = new Date()
   const tx = await ieContract.addMeasurements(cid.toString())
   logger.log('Waiting for the transaction receipt:', tx.hash)
-  const receipt = await pRetry(
-    () => tx.wait(
-      1, // confirmation(s)
-      600_000 // 10 minutes
-    ), {
-      onFailedAttempt: err => console.error(err),
-      shouldRetry: err => err.code !== 'CALL_EXCEPTION',
-      signal,
-      retries: 1
-    }
-  )
+  const receipt = await tx.wait()
   const log = ieContract.interface.parseLog(receipt.logs[0])
   const roundIndex = log.args[1]
   const ieAddMeasurementsDuration = new Date() - start
