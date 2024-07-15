@@ -21,7 +21,7 @@
     "pg": "^8.12.0"
   },
   "devDependencies": {
-    "@flydotio/dockerfile": "^0.5.7",
+    "@flydotio/dockerfile": "^0.5.8",
     "mocha": "^10.6.0",
     "multiformats": "^13.1.3",
     "postgrator": "^7.2.0",
