@@ -63,17 +63,14 @@ export const publish = async ({
   logger.log(`Measurements packaged in ${cid}`)
 
   // Call contract with CID
-  const signal = AbortSignal.timeout(600_000) // 10-minute timeout
   const { roundIndex, ieAddMeasurementsDuration } = await pTimeout(
     pRetry(
-      () => commitMeasurements({ cid, ieContract, logger, signal }),
+      () => commitMeasurements({ cid, ieContract, logger }),
       {
         onFailedAttempt: err => console.error(err),
-        signal,
         retries: 5
       }
-    ),
-    { signal, milliseconds: Number.POSITIVE_INFINITY /* timeout is triggered by signal */ }
+    )
   )
 
   const pgClient = await pgPool.connect()
@@ -122,7 +119,7 @@ export const publish = async ({
   })
 }
 
-const commitMeasurements = async ({ cid, ieContract, logger, signal }) => {
+const commitMeasurements = async ({ cid, ieContract, logger }) => {
   logger.log('Invoking ie.addMeasurements()...')
   const start = new Date()
   const tx = await ieContract.addMeasurements(cid.toString())
