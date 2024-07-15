@@ -63,14 +63,12 @@ export const publish = async ({
   logger.log(`Measurements packaged in ${cid}`)
 
   // Call contract with CID
-  const { roundIndex, ieAddMeasurementsDuration } = await pTimeout(
-    pRetry(
-      () => commitMeasurements({ cid, ieContract, logger }),
-      {
-        onFailedAttempt: err => console.error(err),
-        retries: 5
-      }
-    )
+  const { roundIndex, ieAddMeasurementsDuration } = await pRetry(
+    () => commitMeasurements({ cid, ieContract, logger }),
+    {
+      onFailedAttempt: err => console.error(err),
+      retries: 5
+    }
   )
 
   const pgClient = await pgPool.connect()
