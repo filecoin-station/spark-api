@@ -130,12 +130,12 @@ const commitMeasurements = async ({ cid, ieContract, logger, signal }) => {
   const receipt = await pRetry(
     () => tx.wait(
       1, // confirmation(s)
-      300_000 // 5 minutes
+      600_000 // 10 minutes
     ), {
       onFailedAttempt: err => console.error(err),
       shouldRetry: err => err.code !== 'CALL_EXCEPTION',
       signal,
-      retries: 2 // 2 * 5 minutes = 10 minutes - another measure to enforce ~10-minute timeout
+      retries: 1
     }
   )
   const log = ieContract.interface.parseLog(receipt.logs[0])
