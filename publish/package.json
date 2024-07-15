@@ -17,7 +17,6 @@
     "@web3-storage/w3up-client": "^15.0.0",
     "ethers": "^6.13.1",
     "p-retry": "^6.2.0",
-    "p-timeout": "^6.1.2",
     "pg": "^8.12.0"
   },
   "devDependencies": {

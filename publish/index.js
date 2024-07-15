@@ -1,7 +1,6 @@
 /* global File */
 
 import pRetry from 'p-retry'
-import pTimeout from 'p-timeout'
 
 export const publish = async ({
   client: pgPool,
