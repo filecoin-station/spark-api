@@ -26,7 +26,7 @@
     "ethers": "^6.13.1",
     "http-assert": "^1.5.0",
     "http-responders": "^2.0.2",
-    "multiformats": "^13.1.3",
+    "multiformats": "^13.2.0",
     "pg": "^8.12.0",
     "postgrator": "^7.2.0",
     "raw-body": "^2.5.2"
