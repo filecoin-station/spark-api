@@ -29,7 +29,7 @@
     "multiformats": "^13.2.1",
     "pg": "^8.12.0",
     "postgrator": "^7.2.0",
-    "raw-body": "^2.5.2"
+    "raw-body": "^3.0.0"
   },
   "standard": {
     "env": [
