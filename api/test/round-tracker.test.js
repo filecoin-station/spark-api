@@ -214,7 +214,8 @@ describe('Round Tracker', () => {
         meridianContractAddress,
         meridianRoundIndex,
         roundStartEpoch,
-        pgClient
+        pgClient,
+        useDynamicTaskCount: false
       })
       assert.strictEqual(sparkRoundNumber, 1n)
       const sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
