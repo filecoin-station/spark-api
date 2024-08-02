@@ -11,8 +11,12 @@ import { createMeridianContract } from './ie-contract.js'
 // We will need to tweak this value based on measurements; that's why I put it here as a constant.
 export const TASKS_PER_ROUND = 1000
 
-// How many tasks is each SPARK checker node expected to complete every round (at most).
-export const MAX_TASKS_PER_NODE = 15
+// Tweak this to control the network's overall task count.
+export const MAX_TASKS_EXECUTED_PER_ROUND = 500_000
+
+// Baseline value for how many tasks each SPARK checker node is expected to complete every round (at most).
+// The actual value will be set dynamically based on MAX_TASKS_EXECUTED_PER_ROUND, the number of active nodes and tasks executed in the previous round.
+export const BASELINE_MAX_TASKS_PER_NODE = 15
 
 /** @typedef {Awaited<ReturnType<import('./ie-contract.js').createMeridianContract>>} MeridianContract */
 
@@ -245,10 +249,28 @@ export async function maybeCreateSparkRound (pgClient, {
     meridianContractAddress,
     meridianRoundIndex,
     roundStartEpoch,
-    MAX_TASKS_PER_NODE
+    DEFAULT_MAX_TASKS_PER_NODE
   ])
 
   if (rowCount) {
+    try {
+      const res = await fetch('https://stats.filspark.com/stations/daily')
+      const [{ station_id_count: stationIdCount }] = await res.json()
+      if (stationIdCount === 0) {
+        throw new Error('No active stations found')
+      }
+      await pgClient.query(`
+        UPDATE spark_rounds
+        SET max_tasks_per_node = $1
+        WHERE id = $2  
+      `, [
+        Math.floor(MAX_TASKS_EXECUTED_PER_ROUND / stationIdCount),
+        sparkRoundNumber
+      ])
+    } catch (err) {
+      console.error(err)
+    }
+
     // We created a new SPARK round. Let's define retrieval tasks for this new round.
     // This is a short- to medium-term solution until we move to fully decentralized tasking
     await defineTasksForRound(pgClient, sparkRoundNumber)
