@@ -59,7 +59,8 @@ describe('Routes', () => {
       sparkRoundNumber: currentSparkRoundNumber,
       meridianContractAddress: '0x1a',
       meridianRoundIndex: 123n,
-      roundStartEpoch: 321n
+      roundStartEpoch: 321n,
+      useDynamicTaskCount: false
     })
     const handler = await createHandler({
       client,
@@ -527,7 +528,8 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        useDynamicTaskCount: false
       })
     })
 
@@ -568,7 +570,8 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        useDynamicTaskCount: false
       })
     })
 

@@ -237,7 +237,8 @@ export async function maybeCreateSparkRound (pgClient, {
   sparkRoundNumber,
   meridianContractAddress,
   meridianRoundIndex,
-  roundStartEpoch
+  roundStartEpoch,
+  useDynamicTaskCount = true
 }) {
   const { rowCount } = await pgClient.query(`
     INSERT INTO spark_rounds
@@ -253,22 +254,24 @@ export async function maybeCreateSparkRound (pgClient, {
   ])
 
   if (rowCount) {
-    try {
-      const res = await fetch('https://stats.filspark.com/stations/daily')
-      const [{ station_id_count: stationIdCount }] = await res.json()
-      if (stationIdCount === 0) {
-        throw new Error('No active stations found')
+    if (useDynamicTaskCount) {
+      try {
+        const res = await fetch('https://stats.filspark.com/stations/daily')
+        const [{ station_id_count: stationIdCount }] = await res.json()
+        if (stationIdCount === 0) {
+          throw new Error('No active stations found')
+        }
+        await pgClient.query(`
+          UPDATE spark_rounds
+          SET max_tasks_per_node = $1
+          WHERE id = $2  
+        `, [
+          Math.floor(MAX_TASKS_EXECUTED_PER_ROUND / stationIdCount),
+          sparkRoundNumber
+        ])
+      } catch (err) {
+        console.error(err)
       }
-      await pgClient.query(`
-        UPDATE spark_rounds
-        SET max_tasks_per_node = $1
-        WHERE id = $2  
-      `, [
-        Math.floor(MAX_TASKS_EXECUTED_PER_ROUND / stationIdCount),
-        sparkRoundNumber
-      ])
-    } catch (err) {
-      console.error(err)
     }
 
     // We created a new SPARK round. Let's define retrieval tasks for this new round.
