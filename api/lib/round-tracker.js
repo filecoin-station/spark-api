@@ -15,7 +15,7 @@ export const TASKS_PER_ROUND = 1000
 export const MAX_TASKS_EXECUTED_PER_ROUND = 500_000
 
 // Baseline value for how many tasks each SPARK checker node is expected to complete every round (at most).
-// The actual value will be set dynamically based on MAX_TASKS_EXECUTED_PER_ROUND, the number of active nodes and tasks executed in the previous round.
+// The actual value will be set dynamically based on MAX_TASKS_EXECUTED_PER_ROUND and the number of active nodes.
 export const BASELINE_MAX_TASKS_PER_NODE = 15
 
 /** @typedef {Awaited<ReturnType<import('./ie-contract.js').createMeridianContract>>} MeridianContract */
