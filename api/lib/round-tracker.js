@@ -173,7 +173,8 @@ export async function mapCurrentMeridianRoundToSparkRound ({
   meridianContractAddress,
   meridianRoundIndex,
   roundStartEpoch,
-  pgClient
+  pgClient,
+  useDynamicTaskCount = true
 }) {
   let sparkRoundNumber
 
@@ -227,7 +228,8 @@ export async function mapCurrentMeridianRoundToSparkRound ({
     sparkRoundNumber,
     meridianContractAddress,
     meridianRoundIndex,
-    roundStartEpoch
+    roundStartEpoch,
+    useDynamicTaskCount
   })
 
   return sparkRoundNumber

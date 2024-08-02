@@ -455,7 +455,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xOLD',
         meridianRoundIndex: 10n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        useDynamicTaskCount: false
       })
       assert.strictEqual(num, 1n)
 
@@ -464,7 +465,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 120n,
-        roundStartEpoch: 621n
+        roundStartEpoch: 621n,
+        useDynamicTaskCount: false
       })
       assert.strictEqual(num, 2n)
 
@@ -473,7 +475,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 121n,
-        roundStartEpoch: 921n
+        roundStartEpoch: 921n,
+        useDynamicTaskCount: false
       })
       assert.strictEqual(num, 3n)
     })
