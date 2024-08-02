@@ -249,7 +249,7 @@ export async function maybeCreateSparkRound (pgClient, {
     meridianContractAddress,
     meridianRoundIndex,
     roundStartEpoch,
-    DEFAULT_MAX_TASKS_PER_NODE
+    BASELINE_MAX_TASKS_PER_NODE
   ])
 
   if (rowCount) {
