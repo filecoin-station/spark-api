@@ -24,8 +24,8 @@ describe('spark-api database', () => {
     await client.query('DELETE FROM retrievable_deals WHERE cid = $1', [DUMMY_CID])
 
     await client.query(`
-      INSERT INTO retrievable_deals (cid, miner_id, expires_at)
-      VALUES ($1, $2, $3), ($1, $4, $3)
+      INSERT INTO retrievable_deals (cid, miner_id, client_id, expires_at)
+      VALUES ($1, $2, 'f099', $3), ($1, $4, 'f099', $3)
     `, [
       DUMMY_CID,
       'f010',
