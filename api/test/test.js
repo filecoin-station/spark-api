@@ -444,7 +444,7 @@ describe('Routes', () => {
     })
   })
 
-  describe('GET /round/meridian/:address/:round', () => {
+  describe('GET /rounds/meridian/:address/:round', () => {
     before(async () => {
       await client.query('DELETE FROM meridian_contract_versions')
       await client.query('DELETE FROM spark_rounds')
@@ -492,6 +492,8 @@ describe('Routes', () => {
       for (const task of retrievalTasks) {
         assert.equal(typeof task.cid, 'string', 'all tasks have "cid"')
         assert.equal(typeof task.minerId, 'string', 'all tasks have "minerId"')
+        assert(Array.isArray(task.clients), 'all tasks have "clients" array')
+        assert(task.clients.length > 0, 'all tasks have at least one item in "clients"')
       }
     })
 
@@ -554,6 +556,9 @@ describe('Routes', () => {
 
       for (const t of body.retrievalTasks) {
         assert.strictEqual(typeof t.cid, 'string')
+        assert.equal(typeof t.minerId, 'string', 'all tasks have "minerId"')
+        assert(Array.isArray(t.clients), 'all tasks have "clients" array')
+        assert(t.clients.length > 0, 'all tasks have at least one item in "clients"')
         assert.strictEqual(t.providerAddress, undefined)
         assert.strictEqual(t.protocol, undefined)
       }
