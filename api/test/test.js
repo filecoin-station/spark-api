@@ -646,4 +646,70 @@ describe('Routes', () => {
       }
     })
   })
+
+  describe('/retrievable-deals', () => {
+    before(async () => {
+      // TODO: add expired deals
+      await client.query(`
+        INSERT INTO retrievable_deals (cid, miner_id, client_id, expires_at)
+        VALUES
+        ('bafyone', 'f0210', 'f0800', '2100-01-01'),
+
+        ('bafyone', 'f0220', 'f0800', '2100-01-01'),
+        ('bafytwo', 'f0220', 'f0810', '2100-01-01'),
+
+        ('bafyone', 'f0230', 'f0800', '2100-01-01'),
+        ('bafytwo', 'f0230', 'f0800', '2100-01-01'),
+        ('bafythree', 'f0230', 'f0810', '2100-01-01'),
+        ('bafyfour', 'f0230', 'f0820', '2100-01-01'),
+
+        ('bafyexpired', 'f0230', 'f0800', '2020-01-01')
+
+        ON CONFLICT DO NOTHING
+      `)
+    })
+    describe('GET /retrievable-deals/miner/{minerId}', () => {
+      it('returns deal counts grouped by client id', async () => {
+        const res = await fetch(`${spark}/retrievable-deals/miner/f0230`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        const body = await res.json()
+        assert.deepStrictEqual(body, [
+          { clientId: 'f0800', dealCount: 2 },
+          { clientId: 'f0820', dealCount: 2 },
+          { clientId: 'f0810', dealCount: 1 }
+        ])
+      })
+
+      it('returns an empty array for miners with no deals in our DB', async () => {
+        const res = await fetch(`${spark}/retrievable-deals/miner/f000`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        const body = await res.json()
+        assert.deepStrictEqual(body, [])
+      })
+    })
+
+    describe('GET /retrievable-deals/client/{clientId}', () => {
+      it('returns deal counts grouped by miner id', async () => {
+        const res = await fetch(`${spark}/retrievable-deals/client/f0800`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        const body = await res.json()
+        assert.deepStrictEqual(body, [
+          { minerId: 'f0230', dealCount: 2 },
+          { minerId: 'f0210', dealCount: 1 },
+          { minerId: 'f0220', dealCount: 1 }
+        ])
+      })
+
+      it('returns an empty array for miners with no deals in our DB', async () => {
+        const res = await fetch(`${spark}/retrievable-deals/client/f000`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        const body = await res.json()
+        assert.deepStrictEqual(body, [])
+      })
+    })
+  })
 })

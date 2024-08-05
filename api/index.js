@@ -28,6 +28,10 @@ const handler = async (req, res, client, domain) => {
     await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
     await getRoundDetails(req, res, client, segs[1])
+  } else if (segs[0] === 'retrievable-deals' && segs[1] === 'miner' && req.method === 'GET') {
+    await getRetrievableDealsForMiner(req, res, client, segs[2])
+  } else if (segs[0] === 'retrievable-deals' && segs[1] === 'client' && req.method === 'GET') {
+    await getRetrievableDealsForClient(req, res, client, segs[2])
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
   } else {
@@ -302,6 +306,42 @@ const redirect = (res, location) => {
   res.statusCode = 301
   res.setHeader('location', location)
   res.end()
+}
+
+const getRetrievableDealsForMiner = async (_req, res, client, minerId) => {
+  const { rows } = await client.query(`
+    SELECT client_id, COUNT(cid)::INTEGER as deal_count FROM retrievable_deals
+    WHERE miner_id = $1 AND expires_at > now()
+    GROUP BY client_id
+    ORDER BY deal_count DESC, client_id ASC
+    `, [
+    minerId
+  ])
+  // Cache the response for 6 hours
+  res.setHeader('cache-control', `max-age=${6 * 3600}`)
+  const body = rows.map(
+    // eslint-disable-next-line camelcase
+    ({ client_id, deal_count }) => ({ clientId: client_id, dealCount: deal_count })
+  )
+  json(res, body)
+}
+
+const getRetrievableDealsForClient = async (_req, res, client, clientId) => {
+  const { rows } = await client.query(`
+    SELECT miner_id, COUNT(cid)::INTEGER as deal_count FROM retrievable_deals
+    WHERE client_id = $1 AND expires_at > now()
+    GROUP BY miner_id
+    ORDER BY deal_count DESC, miner_id ASC
+    `, [
+    clientId
+  ])
+  // Cache the response for 6 hours
+  res.setHeader('cache-control', `max-age=${6 * 3600}`)
+  const body = rows.map(
+    // eslint-disable-next-line camelcase
+    ({ miner_id, deal_count }) => ({ minerId: miner_id, dealCount: deal_count })
+  )
+  json(res, body)
 }
 
 export const inspectRequest = async (req, res) => {
