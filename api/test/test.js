@@ -676,8 +676,8 @@ describe('Routes', () => {
         const body = await res.json()
         assert.deepStrictEqual(body, [
           { clientId: 'f0800', dealCount: 2 },
-          { clientId: 'f0820', dealCount: 2 },
-          { clientId: 'f0810', dealCount: 1 }
+          { clientId: 'f0810', dealCount: 1 },
+          { clientId: 'f0820', dealCount: 1 }
         ])
       })
 
