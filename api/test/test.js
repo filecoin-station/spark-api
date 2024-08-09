@@ -7,7 +7,7 @@ import {
   TASKS_PER_ROUND,
   maybeCreateSparkRound,
   mapCurrentMeridianRoundToSparkRound,
-  MAX_TASKS_PER_NODE
+  BASELINE_MAX_TASKS_PER_NODE
 } from '../lib/round-tracker.js'
 import { delegatedFromEthAddress } from '@glif/filecoin-address'
 
@@ -59,7 +59,8 @@ describe('Routes', () => {
       sparkRoundNumber: currentSparkRoundNumber,
       meridianContractAddress: '0x1a',
       meridianRoundIndex: 123n,
-      roundStartEpoch: 321n
+      roundStartEpoch: 321n,
+      useDynamicTaskCount: false
     })
     const handler = await createHandler({
       client,
@@ -454,7 +455,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xOLD',
         meridianRoundIndex: 10n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        useDynamicTaskCount: false
       })
       assert.strictEqual(num, 1n)
 
@@ -463,7 +465,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 120n,
-        roundStartEpoch: 621n
+        roundStartEpoch: 621n,
+        useDynamicTaskCount: false
       })
       assert.strictEqual(num, 2n)
 
@@ -472,7 +475,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 121n,
-        roundStartEpoch: 921n
+        roundStartEpoch: 921n,
+        useDynamicTaskCount: false
       })
       assert.strictEqual(num, 3n)
     })
@@ -484,7 +488,7 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(details, {
         roundId: '2',
-        maxTasksPerNode: MAX_TASKS_PER_NODE,
+        maxTasksPerNode: BASELINE_MAX_TASKS_PER_NODE,
         startEpoch: '621'
       })
       assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
@@ -504,7 +508,7 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(details, {
         roundId: '1',
-        maxTasksPerNode: MAX_TASKS_PER_NODE,
+        maxTasksPerNode: BASELINE_MAX_TASKS_PER_NODE,
         startEpoch: '321'
       })
       assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
@@ -529,7 +533,8 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        useDynamicTaskCount: false
       })
     })
 
@@ -573,7 +578,8 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        useDynamicTaskCount: false
       })
     })
 
