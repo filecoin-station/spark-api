@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "light-my-request": "^5.13.0",
-    "mocha": "^10.7.0",
+    "mocha": "^10.7.3",
     "standard": "^17.1.0",
     "varint": "^6.0.0"
   },
