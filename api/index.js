@@ -12,7 +12,7 @@ import { redirect, status } from 'http-responders'
 
 const handler = async (req, res, client, domain) => {
   if (req.headers.host.split(':')[0] !== domain) {
-    return redirect(res, `https://${domain}${req.url}`, 301)
+    return redirect(req, res, `https://${domain}${req.url}`, 301)
   }
   const segs = req.url.split('/').filter(Boolean)
   if (segs[0] === 'retrievals' && req.method === 'POST') {
