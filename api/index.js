@@ -192,7 +192,7 @@ const getRoundDetails = async (req, res, client, roundParam) => {
     // afford to call it frequently
     res.setHeader('cache-control', 'max-age=1')
 
-    redirect(res, location)
+    redirect(req, res, location)
     return
   }
 
