@@ -1,4 +1,4 @@
-import { json } from 'http-responders'
+import { json, redirect, status } from 'http-responders'
 import * as Sentry from '@sentry/node'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
@@ -8,7 +8,6 @@ import { logNetworkInfo } from './lib/network-info-logger.js'
 import { recordNetworkInfoTelemetry } from '../common/telemetry.js'
 import { satisfies } from 'compare-versions'
 import { ethAddressFromDelegated } from '@glif/filecoin-address'
-import { redirect, status } from 'http-responders'
 
 const handler = async (req, res, client, domain) => {
   if (req.headers.host.split(':')[0] !== domain) {
@@ -204,7 +203,7 @@ const getRoundDetails = async (req, res, client, roundParam) => {
 const replyWithDetailsForRoundNumber = async (res, client, roundNumber) => {
   const { rows: [round] } = await client.query('SELECT * FROM spark_rounds WHERE id = $1', [roundNumber])
   if (!round) {
-    return notFound(res)
+    return status(res, 404)
   }
 
   const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [round.id])
