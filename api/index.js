@@ -235,7 +235,7 @@ const getMeridianRoundDetails = async (_req, res, client, meridianAddress, merid
     // IMPORTANT: This response must not be cached for too long to handle the case when the client
     // requested details of a future round.
     res.setHeader('cache-control', 'max-age=60')
-    return notFound(res)
+    return status(res, 404)
   }
 
   const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [round.id])
