@@ -8,10 +8,11 @@ import { logNetworkInfo } from './lib/network-info-logger.js'
 import { recordNetworkInfoTelemetry } from '../common/telemetry.js'
 import { satisfies } from 'compare-versions'
 import { ethAddressFromDelegated } from '@glif/filecoin-address'
+import { redirect, status } from 'http-responders'
 
 const handler = async (req, res, client, domain) => {
   if (req.headers.host.split(':')[0] !== domain) {
-    return redirect(res, `https://${domain}${req.url}`)
+    return redirect(res, `https://${domain}${req.url}`, 301)
   }
   const segs = req.url.split('/').filter(Boolean)
   if (segs[0] === 'retrievals' && req.method === 'POST') {
@@ -31,7 +32,7 @@ const handler = async (req, res, client, domain) => {
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
   } else {
-    notFound(res)
+    status(res, 404)
   }
 }
 
@@ -185,17 +186,13 @@ const getRoundDetails = async (req, res, client, roundParam) => {
     const addr = encodeURIComponent(meridianContractAddress)
     const idx = encodeURIComponent(meridianRoundIndex)
     const location = `/rounds/meridian/${addr}/${idx}`
-    res.setHeader('location', location)
 
     // Cache the location of the current round for a short time to ensure clients learn quickly
     // about a new round when it starts. Also, this endpoint is cheap to execute, so we can
     // afford to call it frequently
     res.setHeader('cache-control', 'max-age=1')
 
-    // Temporary redirect, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/302
-    res.statusCode = 302
-    res.end(location)
-
+    redirect(res, location)
     return
   }
 
@@ -284,24 +281,12 @@ const errorHandler = (res, err, logger) => {
     res.end(err.message)
   } else {
     logger.error(err)
-    res.statusCode = 500
-    res.end('Internal Server Error')
+    status(res, 500)
   }
 
   if (res.statusCode >= 500) {
     Sentry.captureException(err)
   }
-}
-
-const notFound = (res) => {
-  res.statusCode = 404
-  res.end('Not Found')
-}
-
-const redirect = (res, location) => {
-  res.statusCode = 301
-  res.setHeader('location', location)
-  res.end()
 }
 
 export const inspectRequest = async (req, res) => {
