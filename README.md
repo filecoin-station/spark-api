@@ -58,7 +58,7 @@ Response:
 OK
 ```
 
-### `GET /miner/:id/deals/eligible/summary`
+### `GET /miner/:minerId/deals/eligible/summary`
 
 Parameters:
 - `minerId` - a miner id like `f0814049`
@@ -78,7 +78,7 @@ Number of deals grouped by client IDs.
 }
 ```
 
-### `GET /client/:id/deals/eligible/summary`
+### `GET /client/:clientId/deals/eligible/summary`
 
 Parameters:
 - `clientId` - a client id like `f0215074`
@@ -98,7 +98,7 @@ Number of deals grouped by miner IDs.
 }
 ```
 
-### `GET /allocator/:id/deals/eligible/summary`
+### `GET /allocator/:allocatorId/deals/eligible/summary`
 
 Parameters:
 - `allocatorId` - an allocator id like `f03015751`
