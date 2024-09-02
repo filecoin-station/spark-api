@@ -45,10 +45,7 @@ FROM base
 COPY --from=build /app /app
 
 # Set to `publish` or `api`
-# This argument controls the value passed to npm start --workspace parameter
-ENV SERVICE=""
+# This argument controls the value used by npm to choose which workspace (subdir) to start
+ENV NPM_CONFIG_WORKSPACE=""
 
-# FIXME: don't invoke the service via shell
-# See https://github.com/filecoin-station/spark-api/issues/404
-SHELL ["/bin/bash", "-c"]
-CMD npm start --workspace ${SERVICE}
+CMD [ "npm", "start" ]

@@ -12,7 +12,7 @@ processes = []
   SENTRY_ENVIRONMENT = "production"
   DOMAIN = "api.filspark.com"
   REQUEST_LOGGING = "false"
-  SERVICE="api"
+  NPM_CONFIG_WORKSPACE="api"
 
 [experimental]
   auto_rollback = true
