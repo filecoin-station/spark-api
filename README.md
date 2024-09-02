@@ -58,6 +58,66 @@ Response:
 OK
 ```
 
+### `GET /miner/:minerId/deals/eligible/summary`
+
+Parameters:
+- `minerId` - a miner id like `f0814049`
+
+Response:
+
+Number of deals grouped by client IDs.
+
+```json
+{
+  "minerId": "f0814049",
+  "dealCount": 13878,
+  "clients": [
+    { "clientId": "f02516933", "dealCount": 6880 },
+    { "clientId": "f02833886", "dealCount": 3126 }
+  ]
+}
+```
+
+### `GET /client/:clientId/deals/eligible/summary`
+
+Parameters:
+- `clientId` - a client id like `f0215074`
+
+Response:
+
+Number of deals grouped by miner IDs.
+
+```json
+{
+  "clientId": "f0215074",
+  "dealCount": 38977,
+  "providers": [
+    { "minerId": "f01975316", "dealCount": 6810 },
+    { "minerId": "f01975326", "dealCount": 6810 }
+  ]
+}
+```
+
+### `GET /allocator/:allocatorId/deals/eligible/summary`
+
+Parameters:
+- `allocatorId` - an allocator id like `f03015751`
+
+Response:
+
+Number of deals grouped by client IDs.
+
+```json
+{
+  "allocatorId": "f03015751",
+  "dealCount": 4088,
+  "clients": [
+    { "clientId": "f03144229", "dealCount": 2488 },
+    { "clientId": "f03150656", "dealCount": 1600 }
+  ]
+}
+```
+
 ## Development
 
 ### Database
