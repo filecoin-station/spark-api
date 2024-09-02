@@ -662,6 +662,15 @@ describe('Routes', () => {
         ('bafyexpired', 'f0230', 'f0800', '2020-01-01')
         ON CONFLICT DO NOTHING
       `)
+
+      await client.query(`
+        INSERT INTO allocator_clients (allocator_id, client_id)
+        VALUES
+        ('f0500', 'f0800'),
+        ('f0500', 'f0810'),
+        ('f0520', 'f0820')
+        ON CONFLICT DO NOTHING
+      `)
     })
 
     describe('GET /miner/{id}/deals/eligible/summary', () => {
@@ -720,6 +729,35 @@ describe('Routes', () => {
           clientId: 'f0000',
           dealCount: 0,
           providers: []
+        })
+      })
+    })
+
+    describe('GET /allocator/{id}/deals/eligible/summary', () => {
+      it('returns deal counts grouped by client id', async () => {
+        const res = await fetch(`${spark}/allocator/f0500/deals/eligible/summary`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        const body = await res.json()
+        assert.deepStrictEqual(body, {
+          allocatorId: 'f0500',
+          dealCount: 6,
+          clients: [
+            { clientId: 'f0800', dealCount: 4 },
+            { clientId: 'f0810', dealCount: 2 }
+          ]
+        })
+      })
+
+      it('returns an empty array for miners with no deals in our DB', async () => {
+        const res = await fetch(`${spark}/allocator/f0000/deals/eligible/summary`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        const body = await res.json()
+        assert.deepStrictEqual(body, {
+          allocatorId: 'f0000',
+          dealCount: 0,
+          clients: []
         })
       })
     })

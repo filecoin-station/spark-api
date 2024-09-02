@@ -110,6 +110,32 @@ Number of deals grouped by miner IDs.
 }
 ```
 
+### `GET /allocator/:id/deals/eligible/summary`
+
+Parameters:
+- `allocatorId` - an allocator id like `f03015751`
+
+Response:
+
+Number of deals grouped by miner IDs.
+
+```json
+{
+  "allocatorId": "f03015751",
+  "dealCount": 4088,
+  "clients": [
+    {
+      "clientId": "f03144229",
+      "dealCount": 2488
+    },
+    {
+      "clientId": "f03150656",
+      "dealCount": 1600
+    }
+  ]
+}
+```
+
 ## Development
 
 ### Database
