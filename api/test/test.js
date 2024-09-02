@@ -750,7 +750,7 @@ describe('Routes', () => {
       })
 
       it('returns an empty array for miners with no deals in our DB', async () => {
-      const res = await fetch(`${spark}/allocator/f0000/deals/eligible/summary`)
+        const res = await fetch(`${spark}/allocator/f0000/deals/eligible/summary`)
         await assertResponseStatus(res, 200)
         assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
         const body = await res.json()
