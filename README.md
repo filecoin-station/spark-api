@@ -72,14 +72,8 @@ Number of deals grouped by client IDs.
   "minerId": "f0814049",
   "dealCount": 13878,
   "clients": [
-    {
-      "clientId": "f02516933",
-      "dealCount": 6880
-    },
-    {
-      "clientId": "f02833886",
-      "dealCount": 3126
-    }
+    { "clientId": "f02516933", "dealCount": 6880 },
+    { "clientId": "f02833886", "dealCount": 3126 }
   ]
 }
 ```
@@ -98,14 +92,8 @@ Number of deals grouped by miner IDs.
   "clientId": "f0215074",
   "dealCount": 38977,
   "providers": [
-    {
-      "minerId": "f01975316",
-      "dealCount": 6810
-    },
-    {
-      "minerId": "f01975326",
-      "dealCount": 6810
-    }
+    { "minerId": "f01975316", "dealCount": 6810 },
+    { "minerId": "f01975326", "dealCount": 6810 }
   ]
 }
 ```
@@ -117,21 +105,15 @@ Parameters:
 
 Response:
 
-Number of deals grouped by miner IDs.
+Number of deals grouped by client IDs.
 
 ```json
 {
   "allocatorId": "f03015751",
   "dealCount": 4088,
   "clients": [
-    {
-      "clientId": "f03144229",
-      "dealCount": 2488
-    },
-    {
-      "clientId": "f03150656",
-      "dealCount": 1600
-    }
+    { "clientId": "f03144229", "dealCount": 2488 },
+    { "clientId": "f03150656", "dealCount": 1600 }
   ]
 }
 ```
