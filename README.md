@@ -58,7 +58,7 @@ Response:
 OK
 ```
 
-### `GET /retrievable-deals/miner/:minerId`
+### `GET /miner/:id/deals/eligible/summary`
 
 Parameters:
 - `minerId` - a miner id like `f0814049`
@@ -68,46 +68,46 @@ Response:
 Number of deals grouped by client IDs.
 
 ```json
-[
-  {
-    "clientId": "f02516933",
-    "dealCount": 6880
-  },
-  {
-    "clientId": "f02833886",
-    "dealCount": 3126
-  },
-  {
-    "clientId": "f02519404",
-    "dealCount": 3114
-  },
-  {
-    "clientId": "f0215074",
-    "dealCount": 758
-  }
-]
+{
+  "minerId": "f0814049",
+  "dealCount": 13878,
+  "clients": [
+    {
+      "clientId": "f02516933",
+      "dealCount": 6880
+    },
+    {
+      "clientId": "f02833886",
+      "dealCount": 3126
+    }
+  ]
+}
 ```
 
-### `GET /retrievable-deals/client/:clientId`
+### `GET /client/:id/deals/eligible/summary`
 
 Parameters:
 - `clientId` - a client id like `f0215074`
 
 Response:
 
-Number of deals grouped by client IDs.
+Number of deals grouped by miner IDs.
 
 ```json
-[
-  {
-    "minerId": "f0406478",
-    "dealCount": 4592
-  },
-  {
-    "minerId": "f0814049",
-    "dealCount": 758
-  }
-]
+{
+  "clientId": "f0215074",
+  "dealCount": 38977,
+  "providers": [
+    {
+      "minerId": "f01975316",
+      "dealCount": 6810
+    },
+    {
+      "minerId": "f01975326",
+      "dealCount": 6810
+    }
+  ]
+}
 ```
 
 ## Development

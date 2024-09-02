@@ -28,10 +28,10 @@ const handler = async (req, res, client, domain) => {
     await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
     await getRoundDetails(req, res, client, segs[1])
-  } else if (segs[0] === 'miner' && segs[2] === 'retrievable-deals' && segs[3] === 'summary' && req.method === 'GET') {
-    await getRetrievableDealsForMiner(req, res, client, segs[1])
-  } else if (segs[0] === 'client' && segs[2] === 'retrievable-deals' && segs[3] === 'summary' && req.method === 'GET') {
-    await getRetrievableDealsForClient(req, res, client, segs[1])
+  } else if (segs[0] === 'miner' && segs[1] && segs[2] === 'deals' && segs[3] === 'eligible' && segs[4] === 'summary' && req.method === 'GET') {
+    await getSummaryOfEligibleDealsForMiner(req, res, client, segs[1])
+  } else if (segs[0] === 'client' && segs[1] && segs[2] === 'deals' && segs[3] === 'eligible' && segs[4] === 'summary' && req.method === 'GET') {
+    await getSummaryOfEligibleDealsForClient(req, res, client, segs[1])
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
   } else {
@@ -308,7 +308,8 @@ const redirect = (res, location) => {
   res.end()
 }
 
-const getRetrievableDealsForMiner = async (_req, res, client, minerId) => {
+const getSummaryOfEligibleDealsForMiner = async (_req, res, client, minerId) => {
+  /** @type {{rows: {client_id: string; deal_count: number}[]}} */
   const { rows } = await client.query(`
     SELECT client_id, COUNT(cid)::INTEGER as deal_count FROM retrievable_deals
     WHERE miner_id = $1 AND expires_at > now()
@@ -317,10 +318,13 @@ const getRetrievableDealsForMiner = async (_req, res, client, minerId) => {
     `, [
     minerId
   ])
+
   // Cache the response for 6 hours
   res.setHeader('cache-control', `max-age=${6 * 3600}`)
+
   const body = {
     minerId,
+    dealCount: rows.reduce((sum, row) => sum + row.deal_count, 0),
     clients:
       rows.map(
         // eslint-disable-next-line camelcase
@@ -331,19 +335,23 @@ const getRetrievableDealsForMiner = async (_req, res, client, minerId) => {
   json(res, body)
 }
 
-const getRetrievableDealsForClient = async (_req, res, client, clientId) => {
+const getSummaryOfEligibleDealsForClient = async (_req, res, client, clientId) => {
+  /** @type {{rows: {miner_id: string; deal_count: number}[]}} */
   const { rows } = await client.query(`
-    SELECT miner_id, COUNT(cid)::INTEGER as deal_count FROM retrievable_deals
-    WHERE client_id = $1 AND expires_at > now()
-    GROUP BY miner_id
-    ORDER BY deal_count DESC, miner_id ASC
-    `, [
+  SELECT miner_id, COUNT(cid)::INTEGER as deal_count FROM retrievable_deals
+  WHERE client_id = $1 AND expires_at > now()
+  GROUP BY miner_id
+  ORDER BY deal_count DESC, miner_id ASC
+  `, [
     clientId
   ])
+
   // Cache the response for 6 hours
   res.setHeader('cache-control', `max-age=${6 * 3600}`)
+
   const body = {
     clientId,
+    dealCount: rows.reduce((sum, row) => sum + row.deal_count, 0),
     providers: rows.map(
     // eslint-disable-next-line camelcase
       ({ miner_id, deal_count }) => ({ minerId: miner_id, dealCount: deal_count })
