@@ -4,7 +4,7 @@ primary_region = "cdg"
 [env]
   SENTRY_ENVIRONMENT="production"
   MAX_MEASUREMENTS_PER_ROUND="100000"
-  SERVICE="publish"
+  NPM_CONFIG_WORKSPACE="publish"
 
 [deploy]
   strategy = "rolling"
