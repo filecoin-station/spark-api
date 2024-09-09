@@ -1,6 +1,7 @@
 /* global File */
 
 import pRetry from 'p-retry'
+import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 export const publish = async ({
   client: pgPool,
@@ -91,9 +92,10 @@ export const publish = async ({
     await pgClient.query(`
       UPDATE spark_rounds
       SET measurement_count = COALESCE(measurement_count, 0) + $1
-      WHERE meridian_round = $2
+      WHERE meridian_address = $2 AND meridian_round = $3
     `, [
       measurements.length,
+      SparkImpactEvaluator.ADDRESS,
       roundIndex
     ])
 
