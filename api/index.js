@@ -71,7 +71,7 @@ const createMeasurement = async (req, res, client) => {
   validate(measurement, 'protocol', { type: 'string', required: false })
   validate(measurement, 'participantAddress', { type: 'ethereum address', required: true })
   validate(measurement, 'timeout', { type: 'boolean', required: false })
-  validate(measurement, 'startAt', { type: 'date', required: true })
+  validate(measurement, 'startAt', { type: 'date', required: false })
   validate(measurement, 'statusCode', { type: 'number', required: false })
   validate(measurement, 'firstByteAt', { type: 'date', required: false })
   validate(measurement, 'endAt', { type: 'date', required: false })

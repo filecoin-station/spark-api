@@ -262,6 +262,7 @@ describe('Routes', () => {
       const measurement = {
         ...VALID_MEASUREMENT,
         statusCode: undefined,
+        startAt: null,
         firstByteAt: null,
         endAt: null
       }
@@ -283,6 +284,7 @@ describe('Routes', () => {
       ])
 
       assert.strictEqual(measurementRow.status_code, null)
+      assert.strictEqual(measurementRow.start_at, null)
       assert.strictEqual(measurementRow.first_byte_at, null)
       assert.strictEqual(measurementRow.end_at, null)
     })
