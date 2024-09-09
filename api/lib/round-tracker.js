@@ -255,12 +255,12 @@ export async function maybeCreateSparkRound (pgClient, {
       $3,
       $4,
       COALESCE(
-        (SELECT max_tasks_per_node FROM spark_rounds WHERE meridian_round = $3 - 1),
+        (SELECT max_tasks_per_node FROM spark_rounds WHERE meridian_round = $3 - 1::bigint),
         $5
       )
         * $6
         / COALESCE(
-            (SELECT measurement_count FROM spark_rounds WHERE meridian_round = $3 - 1),
+            (SELECT measurement_count FROM spark_rounds WHERE meridian_round = $3 - 1::bigint),
             $6
           )
     )
