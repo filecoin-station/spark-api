@@ -284,12 +284,20 @@ export async function maybeCreateSparkRound (pgClient, {
 
 async function defineTasksForRound (pgClient, sparkRoundNumber) {
   await pgClient.query(`
-    INSERT INTO retrieval_tasks (round_id, cid, miner_id)
-    SELECT $1 as round_id, cid, miner_id
-    FROM retrievable_deals
-    WHERE expires_at > now()
-    ORDER BY random()
-    LIMIT $2;
+    INSERT INTO retrieval_tasks (round_id, cid, miner_id, clients)
+    WITH selected AS (
+      SELECT cid, miner_id
+      FROM retrievable_deals
+      WHERE expires_at > now()
+      ORDER BY random()
+      LIMIT $2
+    )
+    SELECT $1 as round_id, selected.cid, selected.miner_id, array_agg(client_id) as clients
+    FROM selected
+    LEFT JOIN retrievable_deals
+    ON selected.cid = retrievable_deals.cid AND selected.miner_id = retrievable_deals.miner_id
+    WHERE retrievable_deals.expires_at > now()
+    GROUP BY selected.cid, selected.miner_id;
   `, [
     sparkRoundNumber,
     TASKS_PER_ROUND

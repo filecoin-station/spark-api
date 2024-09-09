@@ -7,10 +7,10 @@
   },
   "dependencies": {
     "@filecoin-station/spark-impact-evaluator": "^1.1.1",
-    "@glif/filecoin-address": "^3.0.7",
-    "@influxdata/influxdb-client": "^1.34.0",
+    "@glif/filecoin-address": "^3.0.12",
+    "@influxdata/influxdb-client": "^1.35.0",
     "@ipld/car": "^5.3.2",
-    "@sentry/node": "^8.22.0",
+    "@sentry/node": "^8.28.0",
     "@ucanto/core": "^10.0.1",
     "@ucanto/principal": "^9.0.1",
     "@web3-storage/access": "^20.0.0",
@@ -21,9 +21,9 @@
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.8",
-    "mocha": "^10.7.0",
+    "mocha": "^10.7.3",
     "multiformats": "^13.2.2",
-    "postgrator": "^7.2.0",
+    "postgrator": "^7.3.0",
     "standard": "^17.1.0"
   },
   "standard": {

@@ -28,6 +28,12 @@ const handler = async (req, res, client, domain) => {
     await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
     await getRoundDetails(req, res, client, segs[1])
+  } else if (segs[0] === 'miner' && segs[1] && segs[2] === 'deals' && segs[3] === 'eligible' && segs[4] === 'summary' && req.method === 'GET') {
+    await getSummaryOfEligibleDealsForMiner(req, res, client, segs[1])
+  } else if (segs[0] === 'client' && segs[1] && segs[2] === 'deals' && segs[3] === 'eligible' && segs[4] === 'summary' && req.method === 'GET') {
+    await getSummaryOfEligibleDealsForClient(req, res, client, segs[1])
+  } else if (segs[0] === 'allocator' && segs[1] && segs[2] === 'deals' && segs[3] === 'eligible' && segs[4] === 'summary' && req.method === 'GET') {
+    await getSummaryOfEligibleDealsForAllocator(req, res, client, segs[1])
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
   } else {
@@ -65,7 +71,7 @@ const createMeasurement = async (req, res, client) => {
   validate(measurement, 'protocol', { type: 'string', required: false })
   validate(measurement, 'participantAddress', { type: 'ethereum address', required: true })
   validate(measurement, 'timeout', { type: 'boolean', required: false })
-  validate(measurement, 'startAt', { type: 'date', required: true })
+  validate(measurement, 'startAt', { type: 'date', required: false })
   validate(measurement, 'statusCode', { type: 'number', required: false })
   validate(measurement, 'firstByteAt', { type: 'date', required: false })
   validate(measurement, 'endAt', { type: 'date', required: false })
@@ -252,6 +258,7 @@ const getMeridianRoundDetails = async (_req, res, client, meridianAddress, merid
     retrievalTasks: tasks.map(t => ({
       cid: t.cid,
       minerId: t.miner_id,
+      clients: t.clients,
       // We are preserving these fields to make older rounds still verifiable
       providerAddress: fixNullToUndefined(t.provider_address),
       protocol: fixNullToUndefined(t.protocol)
@@ -301,6 +308,85 @@ const redirect = (res, location) => {
   res.statusCode = 301
   res.setHeader('location', location)
   res.end()
+}
+
+const getSummaryOfEligibleDealsForMiner = async (_req, res, client, minerId) => {
+  /** @type {{rows: {client_id: string; deal_count: number}[]}} */
+  const { rows } = await client.query(`
+    SELECT client_id, COUNT(cid)::INTEGER as deal_count FROM retrievable_deals
+    WHERE miner_id = $1 AND expires_at > now()
+    GROUP BY client_id
+    ORDER BY deal_count DESC, client_id ASC
+    `, [
+    minerId
+  ])
+
+  // Cache the response for 6 hours
+  res.setHeader('cache-control', `max-age=${6 * 3600}`)
+
+  const body = {
+    minerId,
+    dealCount: rows.reduce((sum, row) => sum + row.deal_count, 0),
+    clients:
+      rows.map(
+        // eslint-disable-next-line camelcase
+        ({ client_id, deal_count }) => ({ clientId: client_id, dealCount: deal_count })
+      )
+  }
+
+  json(res, body)
+}
+
+const getSummaryOfEligibleDealsForClient = async (_req, res, client, clientId) => {
+  /** @type {{rows: {miner_id: string; deal_count: number}[]}} */
+  const { rows } = await client.query(`
+  SELECT miner_id, COUNT(cid)::INTEGER as deal_count FROM retrievable_deals
+  WHERE client_id = $1 AND expires_at > now()
+  GROUP BY miner_id
+  ORDER BY deal_count DESC, miner_id ASC
+  `, [
+    clientId
+  ])
+
+  // Cache the response for 6 hours
+  res.setHeader('cache-control', `max-age=${6 * 3600}`)
+
+  const body = {
+    clientId,
+    dealCount: rows.reduce((sum, row) => sum + row.deal_count, 0),
+    providers: rows.map(
+    // eslint-disable-next-line camelcase
+      ({ miner_id, deal_count }) => ({ minerId: miner_id, dealCount: deal_count })
+    )
+  }
+  json(res, body)
+}
+
+const getSummaryOfEligibleDealsForAllocator = async (_req, res, client, allocatorId) => {
+  /** @type {{rows: {client_id: string; deal_count: number}[]}} */
+  const { rows } = await client.query(`
+    SELECT ac.client_id, COUNT(cid)::INTEGER as deal_count
+    FROM allocator_clients ac
+    LEFT JOIN retrievable_deals rd ON ac.client_id = rd.client_id
+    WHERE ac.allocator_id = $1 AND expires_at > now()
+    GROUP BY ac.client_id
+    ORDER BY deal_count DESC, ac.client_id ASC
+    `, [
+    allocatorId
+  ])
+
+  // Cache the response for 6 hours
+  res.setHeader('cache-control', `max-age=${6 * 3600}`)
+
+  const body = {
+    allocatorId,
+    dealCount: rows.reduce((sum, row) => sum + row.deal_count, 0),
+    clients: rows.map(
+      // eslint-disable-next-line camelcase
+      ({ client_id, deal_count }) => ({ clientId: client_id, dealCount: deal_count })
+    )
+  }
+  json(res, body)
 }
 
 export const inspectRequest = async (req, res) => {
