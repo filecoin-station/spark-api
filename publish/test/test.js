@@ -86,6 +86,7 @@ describe('unit', () => {
       [1],
       undefined,
       [[]],
+      [0, 1],
       undefined
     ])
     assert.strictEqual(clientStatements.pop(), 'VACUUM measurements')
