@@ -240,7 +240,7 @@ export async function maybeCreateSparkRound (pgClient, {
   roundStartEpoch
 }) {
   // Alrorightm for finding a new round's max_tasks_per_node:
-  // - If this is the first round, use BASELINE_MAX_TASKS_PER_NODE
+  // - If this is the first round or the previous round had no measurements, use BASELINE_MAX_TASKS_PER_NODE
   // - Otherwise:
   //
   //   round_n-1.max_tasks_pernode * (MAX_TASKS_EXECUTED_PER_ROUND / round_n-1.measurement_count)

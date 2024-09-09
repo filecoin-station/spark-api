@@ -90,7 +90,7 @@ export const publish = async ({
 
     await pgClient.query(`
       UPDATE spark_rounds
-      SET measurement_count = measurement_count + $1
+      SET measurement_count = COALESCE(measurement_count, 0) + $1
       WHERE meridian_round = $2
     `, [
       measurements.length,
