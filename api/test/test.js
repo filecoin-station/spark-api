@@ -59,8 +59,7 @@ describe('Routes', () => {
       sparkRoundNumber: currentSparkRoundNumber,
       meridianContractAddress: '0x1a',
       meridianRoundIndex: 123n,
-      roundStartEpoch: 321n,
-      useDynamicTaskCount: false
+      roundStartEpoch: 321n
     })
     const handler = await createHandler({
       client,
@@ -457,8 +456,7 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xOLD',
         meridianRoundIndex: 10n,
-        roundStartEpoch: 321n,
-        useDynamicTaskCount: false
+        roundStartEpoch: 321n
       })
       assert.strictEqual(num, 1n)
 
@@ -467,8 +465,7 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 120n,
-        roundStartEpoch: 621n,
-        useDynamicTaskCount: false
+        roundStartEpoch: 621n
       })
       assert.strictEqual(num, 2n)
 
@@ -477,8 +474,7 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 121n,
-        roundStartEpoch: 921n,
-        useDynamicTaskCount: false
+        roundStartEpoch: 921n
       })
       assert.strictEqual(num, 3n)
     })
@@ -535,8 +531,7 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n,
-        useDynamicTaskCount: false
+        roundStartEpoch: 321n
       })
     })
 
@@ -580,8 +575,7 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n,
-        useDynamicTaskCount: false
+        roundStartEpoch: 321n
       })
     })
 

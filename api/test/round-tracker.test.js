@@ -53,8 +53,7 @@ describe('Round Tracker', () => {
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 120n,
         roundStartEpoch: 321n,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
       let sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
@@ -70,8 +69,7 @@ describe('Round Tracker', () => {
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 121n,
         roundStartEpoch: 321n,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
       assert.strictEqual(sparkRoundNumber, 2n)
       sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
@@ -90,8 +88,7 @@ describe('Round Tracker', () => {
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 120n,
         roundStartEpoch: 321n,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
 
@@ -100,8 +97,7 @@ describe('Round Tracker', () => {
         meridianContractAddress: '0x1b',
         meridianRoundIndex: 10n,
         roundStartEpoch: 321n,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
       assert.strictEqual(sparkRoundNumber, 2n)
 
@@ -118,8 +114,7 @@ describe('Round Tracker', () => {
         meridianContractAddress: '0x1b',
         meridianRoundIndex: 11n,
         roundStartEpoch: 321n,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
       assert.strictEqual(sparkRoundNumber, 3n)
 
@@ -141,8 +136,7 @@ describe('Round Tracker', () => {
         meridianContractAddress,
         meridianRoundIndex,
         roundStartEpoch,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
       let sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
@@ -155,8 +149,7 @@ describe('Round Tracker', () => {
         meridianContractAddress,
         meridianRoundIndex,
         roundStartEpoch,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
       sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
@@ -171,8 +164,7 @@ describe('Round Tracker', () => {
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 1n,
         roundStartEpoch: 321n,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
 
       const { rows: tasks } = await pgClient.query('SELECT * FROM retrieval_tasks ORDER BY id')
@@ -196,15 +188,13 @@ describe('Round Tracker', () => {
         meridianContractAddress,
         meridianRoundIndex,
         roundStartEpoch,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
       const secondRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress,
         meridianRoundIndex,
         roundStartEpoch,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
       assert.strictEqual(firstRoundNumber, secondRoundNumber)
 
@@ -224,8 +214,7 @@ describe('Round Tracker', () => {
         meridianContractAddress,
         meridianRoundIndex,
         roundStartEpoch,
-        pgClient,
-        useDynamicTaskCount: false
+        pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
       const sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows

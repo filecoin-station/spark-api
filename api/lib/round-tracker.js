@@ -173,8 +173,7 @@ export async function mapCurrentMeridianRoundToSparkRound ({
   meridianContractAddress,
   meridianRoundIndex,
   roundStartEpoch,
-  pgClient,
-  useDynamicTaskCount = true
+  pgClient
 }) {
   let sparkRoundNumber
 
@@ -228,8 +227,7 @@ export async function mapCurrentMeridianRoundToSparkRound ({
     sparkRoundNumber,
     meridianContractAddress,
     meridianRoundIndex,
-    roundStartEpoch,
-    useDynamicTaskCount
+    roundStartEpoch
   })
 
   return sparkRoundNumber
@@ -239,43 +237,38 @@ export async function maybeCreateSparkRound (pgClient, {
   sparkRoundNumber,
   meridianContractAddress,
   meridianRoundIndex,
-  roundStartEpoch,
-  useDynamicTaskCount = true
+  roundStartEpoch
 }) {
   const { rowCount } = await pgClient.query(`
     INSERT INTO spark_rounds
     (id, created_at, meridian_address, meridian_round, start_epoch, max_tasks_per_node)
-    VALUES ($1, now(), $2, $3, $4, $5)
+    VALUES (
+      $1,
+      now(),
+      $2,
+      $3,
+      $4,
+      COALESCE(
+        (SELECT max_tasks_per_node FROM spark_rounds WHERE meridian_round = $3 - 1),
+        $5
+      )
+        * $6
+        / COALESCE(
+            (SELECT measurement_count FROM spark_rounds WHERE meridian_round = $3 - 1),
+            $6
+          )
+    )
     ON CONFLICT DO NOTHING
   `, [
     sparkRoundNumber,
     meridianContractAddress,
     meridianRoundIndex,
     roundStartEpoch,
-    BASELINE_MAX_TASKS_PER_NODE
+    BASELINE_MAX_TASKS_PER_NODE,
+    MAX_TASKS_EXECUTED_PER_ROUND
   ])
 
   if (rowCount) {
-    if (useDynamicTaskCount) {
-      try {
-        const res = await fetch('https://stats.filspark.com/stations/daily')
-        const [{ station_id_count: stationIdCount }] = await res.json()
-        if (stationIdCount === 0) {
-          throw new Error('No active stations found')
-        }
-        await pgClient.query(`
-          UPDATE spark_rounds
-          SET max_tasks_per_node = $1
-          WHERE id = $2  
-        `, [
-          Math.floor(MAX_TASKS_EXECUTED_PER_ROUND / stationIdCount),
-          sparkRoundNumber
-        ])
-      } catch (err) {
-        console.error(err)
-      }
-    }
-
     // We created a new SPARK round. Let's define retrieval tasks for this new round.
     // This is a short- to medium-term solution until we move to fully decentralized tasking
     await defineTasksForRound(pgClient, sparkRoundNumber)

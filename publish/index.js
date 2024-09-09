@@ -88,6 +88,18 @@ export const publish = async ({
       cid.toString(), new Date()
     ])
 
+    await pgClient.query(`
+      UPDATE spark_rounds
+      SET measurement_count = $1
+      WHERE meridian_round = $2
+      ON CONFLICT (measurement_count) DO UPDATE
+      SET measurement_count =
+        spark_round.measurement_count + EXCLUDED.measurement_count
+    `, [
+      measurements.length,
+      roundIndex
+    ])
+
     await pgClient.query('COMMIT')
   } catch (err) {
     await pgClient.query('ROLLBACK')
