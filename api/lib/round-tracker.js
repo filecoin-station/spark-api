@@ -294,8 +294,8 @@ export async function maybeCreateSparkRound (pgClient, {
       point.intField('current_round_measurement_count_target', TASKS_EXECUTED_PER_ROUND)
       point.intField('current_round_task_count', taskCount)
       point.intField('current_round_node_max_task_count', rows[0].max_tasks_per_node)
-      point.intField('previous_round_measurement_count', previousRound.measurement_count)
-      point.intField('previous_round_node_max_task_count', previousRound.max_tasks_per_node)
+      point.intField('previous_round_measurement_count', previousRound?.measurement_count ?? 0)
+      point.intField('previous_round_node_max_task_count', previousRound?.max_tasks_per_node ?? 0)
     })
   }
 }
