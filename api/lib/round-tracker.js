@@ -264,15 +264,11 @@ export async function maybeCreateSparkRound (pgClient, {
       $2,
       $3,
       $4,
-      COALESCE(
-        $5 /* previousRound.max_tasks_per_node */,
-        $6 /* BASELINE_TASKS_PER_NODE */
+      (
+        $5 /* previousRound.max_tasks_per_node || BASELINE_TASKS_PER_NODE */,
+        * $6 /* TASKS_EXECUTED_PER_ROUND */
+        / $7 /* previousRound.measurement_count || TASKS_EXECUTED_PER_ROUND */
       )
-        * $7 /* TASKS_EXECUTED_PER_ROUND */
-        / COALESCE(
-            $8 /* previousRound.measurement_count */,
-            $7 /* TASKS_EXECUTED_PER_ROUND */
-          )
     )
     ON CONFLICT DO NOTHING
     RETURNING max_tasks_per_node
@@ -281,10 +277,9 @@ export async function maybeCreateSparkRound (pgClient, {
     meridianContractAddress,
     meridianRoundIndex,
     roundStartEpoch,
-    previousRound.max_tasks_per_node,
-    BASELINE_TASKS_PER_NODE,
+    previousRound?.max_tasks_per_node ?? BASELINE_TASKS_PER_NODE,
     TASKS_EXECUTED_PER_ROUND,
-    previousRound.measurement_count
+    previousRound?.measurement_count ?? TASKS_EXECUTED_PER_ROUND
   ])
 
   if (rowCount) {
