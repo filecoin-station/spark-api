@@ -10,6 +10,7 @@ import {
   BASELINE_TASKS_PER_NODE
 } from '../lib/round-tracker.js'
 import { delegatedFromEthAddress } from '@glif/filecoin-address'
+import { createTelemetryRecorderStub } from '../../test-helpers/platform-test-helpers.js'
 
 const { DATABASE_URL } = process.env
 const participantAddress = '0x000000000000000000000000000000000000dEaD'
