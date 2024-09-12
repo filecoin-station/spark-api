@@ -1,7 +1,7 @@
 import assert from 'node:assert'
 import pg from 'pg'
 import {
-  TASKS_PER_ROUND,
+  BASELINE_TASKS_PER_ROUND,
   getRoundStartEpoch,
   mapCurrentMeridianRoundToSparkRound,
   startRoundTracker
@@ -168,7 +168,7 @@ describe('Round Tracker', () => {
       })
 
       const { rows: tasks } = await pgClient.query('SELECT * FROM retrieval_tasks ORDER BY id')
-      assert.strictEqual(tasks.length, TASKS_PER_ROUND)
+      assert.strictEqual(tasks.length, BASELINE_TASKS_PER_ROUND)
       for (const [ix, t] of tasks.entries()) {
         assert.strictEqual(BigInt(t.round_id), sparkRoundNumber)
         assert.strictEqual(typeof t.cid, 'string', `task#${ix} cid`)
@@ -199,7 +199,7 @@ describe('Round Tracker', () => {
       assert.strictEqual(firstRoundNumber, secondRoundNumber)
 
       const { rows: tasks } = await pgClient.query('SELECT * FROM retrieval_tasks ORDER BY id')
-      assert.strictEqual(tasks.length, TASKS_PER_ROUND)
+      assert.strictEqual(tasks.length, BASELINE_TASKS_PER_ROUND)
       for (const t of tasks) {
         assert.strictEqual(BigInt(t.round_id), firstRoundNumber)
       }
