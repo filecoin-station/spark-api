@@ -12,7 +12,7 @@ export const TASKS_EXECUTED_PER_ROUND = 500_000
 export const BASELINE_TASKS_PER_ROUND = 1000
 export const BASELINE_TASKS_PER_NODE = 15
 
-const NODE_TASKS_TO_ROUND_TASKS_RATIO = BASELINE_TASKS_PER_ROUND / BASELINE_TASKS_PER_NODE
+export const NODE_TASKS_TO_ROUND_TASKS_RATIO = BASELINE_TASKS_PER_ROUND / BASELINE_TASKS_PER_NODE
 
 /** @typedef {Awaited<ReturnType<import('./ie-contract.js').createMeridianContract>>} MeridianContract */
 
