@@ -75,13 +75,13 @@ describe('Round Tracker', () => {
           {
             _point: 'round',
             current_round_measurement_count_target: TASKS_EXECUTED_PER_ROUND,
-            current_round_task_count:  Math.floor(
+            current_round_task_count: Math.floor(
               BASELINE_TASKS_PER_ROUND * NODE_TASKS_TO_ROUND_TASKS_RATIO
             ),
             current_round_node_max_task_count: BASELINE_TASKS_PER_ROUND,
             previous_round_measurement_count: '0',
             previous_round_node_max_task_count: '0'
-          },
+          }
         ]
       )
 
