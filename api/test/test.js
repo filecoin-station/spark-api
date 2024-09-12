@@ -56,13 +56,12 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
-    const { recordTelemetry } = createTelemetryRecorderStub()
     await maybeCreateSparkRound(client, {
       sparkRoundNumber: currentSparkRoundNumber,
       meridianContractAddress: '0x1a',
       meridianRoundIndex: 123n,
       roundStartEpoch: 321n,
-      recordTelemetry
+      recordTelemetry: createTelemetryRecorderStub().recordTelemetry
     })
     const handler = await createHandler({
       client,
@@ -453,13 +452,15 @@ describe('Routes', () => {
     before(async () => {
       await client.query('DELETE FROM meridian_contract_versions')
       await client.query('DELETE FROM spark_rounds')
+      const { recordTelemetry } = createTelemetryRecorderStub()
 
       // round 1 managed by old contract version
       let num = await mapCurrentMeridianRoundToSparkRound({
         pgClient: client,
         meridianContractAddress: '0xOLD',
         meridianRoundIndex: 10n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        recordTelemetry
       })
       assert.strictEqual(num, 1n)
 
@@ -468,7 +469,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 120n,
-        roundStartEpoch: 621n
+        roundStartEpoch: 621n,
+        recordTelemetry
       })
       assert.strictEqual(num, 2n)
 
@@ -477,7 +479,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 121n,
-        roundStartEpoch: 921n
+        roundStartEpoch: 921n,
+        recordTelemetry
       })
       assert.strictEqual(num, 3n)
     })
@@ -534,7 +537,8 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        recordTelemetry: createTelemetryRecorderStub().recordTelemetry
       })
     })
 
@@ -578,7 +582,8 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        recordTelemetry: createTelemetryRecorderStub().recordTelemetry
       })
     })
 
