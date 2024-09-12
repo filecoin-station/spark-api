@@ -235,12 +235,13 @@ export async function maybeCreateSparkRound (pgClient, {
   meridianRoundIndex,
   roundStartEpoch
 }) {
-  // Alrorightm for finding a new round's max_tasks_per_node:
-  // - If this is the first round or the previous round had no measurements, use BASELINE_TASKS_PER_NODE
-  // - Otherwise:
-  //
-  //   round_n-1.max_tasks_pernode * (TASKS_EXECUTED_PER_ROUND / round_n-1.measurement_count)
-  //
+  //   maxTasksPerNode(round(n)) =
+  //     BASELINE_TASKS_PER_NODE
+  //       if n=0
+  //     BASELINE_TASKS_PER_NODE
+  //       if measurementCount(round(n-1)) = 0
+  //     maxTasksPerNode(round(n-1)) * (TASKS_EXECUTED_PER_ROUND / measurementCount(round(n-1)))
+  //       otherwise
   const { rows, rowCount } = await pgClient.query(`
     INSERT INTO spark_rounds
     (id, created_at, meridian_address, meridian_round, start_epoch, max_tasks_per_node)
@@ -252,12 +253,12 @@ export async function maybeCreateSparkRound (pgClient, {
       $4,
       COALESCE(
         (SELECT max_tasks_per_node FROM spark_rounds WHERE meridian_round = $3 - 1::bigint),
-        $5
+        $5 /* BASELINE_TASKS_PER_NODE */
       )
-        * $6
+        * $6 /* TASKS_EXECUTED_PER_ROUND */
         / COALESCE(
             (SELECT measurement_count FROM spark_rounds WHERE meridian_round = $3 - 1::bigint),
-            $6
+            $6 /* TASKS_EXECUTED_PER_ROUND */
           )
     )
     ON CONFLICT DO NOTHING
