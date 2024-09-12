@@ -42,7 +42,7 @@ export async function startRoundTracker ({ pgPool, signal, recordTelemetry }) {
       )
     }
 
-    updateSparkRound(pgPool, contract, newRoundIndex, blockNumber, recordTelemetry).catch(err => {
+    updateSparkRound(pgPool, contract, newRoundIndex, recordTelemetry, blockNumber).catch(err => {
       console.error('Cannot handle RoundStart:', err)
       Sentry.captureException(err)
     })
@@ -62,10 +62,10 @@ export async function startRoundTracker ({ pgPool, signal, recordTelemetry }) {
  * @param {import('pg').Pool} pgPool
  * @param {MeridianContract} contract
  * @param {bigint} newRoundIndex
- * @param {number} [roundStartEpoch]
  * @param {import('../../common/typings.js').RecordTelemetryFn} recordTelemetry
+ * @param {number} [roundStartEpoch]
  */
-async function updateSparkRound (pgPool, contract, newRoundIndex, roundStartEpoch, recordTelemetry) {
+async function updateSparkRound (pgPool, contract, newRoundIndex, recordTelemetry, roundStartEpoch) {
   const meridianRoundIndex = BigInt(newRoundIndex)
   const meridianContractAddress = await contract.getAddress()
 

@@ -188,7 +188,7 @@ describe('Round Tracker', () => {
           )}i`,
           current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
           previous_round_measurement_count: '0i',
-          previous_round_node_max_task_count: '0i'
+          previous_round_node_max_task_count: '15i'
         }
       )
     })
