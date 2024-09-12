@@ -144,6 +144,12 @@ docker run -d --name spark-db \
   postgres
 ```
 
+When working on multiple Spark-related services, we recommend to use the following commands to create or reset the Postgres instance:
+
+```bash
+docker rm -f meridian-db && docker run --name meridian-db -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_USER=$USER -e POSTGRES_DB=$USER -p 5432:5432 -d postgres && sleep 1; psql postgres://localhost:5432/ -c "CREATE DATABASE spark_evaluate" && psql postgres://localhost:5432/ -c "CREATE DATABASE spark_stats" && psql postgres://localhost:5432/ -c "CREATE DATABASE spark"
+```
+
 ### `api`
 
 Start the API service:
