@@ -2,6 +2,7 @@ import assert from 'node:assert'
 import pg from 'pg'
 import {
   BASELINE_TASKS_PER_ROUND,
+  BASELINE_TASKS_PER_NODE,
   TASKS_EXECUTED_PER_ROUND,
   NODE_TASKS_TO_ROUND_TASKS_RATIO,
   getRoundStartEpoch,
