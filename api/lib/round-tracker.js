@@ -301,7 +301,7 @@ async function defineTasksForRound (pgClient, sparkRoundNumber, maxTasksPerNode)
     GROUP BY selected.cid, selected.miner_id;
   `, [
     sparkRoundNumber,
-    maxTasksPerNode * NODE_TASKS_TO_ROUND_TASKS_RATIO
+    Math.floor(maxTasksPerNode * NODE_TASKS_TO_ROUND_TASKS_RATIO)
   ])
 }
 
