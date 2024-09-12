@@ -284,7 +284,7 @@ export async function maybeCreateSparkRound (pgClient, {
     previousRound.max_tasks_per_node,
     BASELINE_TASKS_PER_NODE,
     TASKS_EXECUTED_PER_ROUND,
-    previousRound.measurement_count,
+    previousRound.measurement_count
   ])
 
   if (rowCount) {
