@@ -19,6 +19,7 @@ const NODE_TASKS_TO_ROUND_TASKS_RATIO = BASELINE_TASKS_PER_ROUND / BASELINE_TASK
 /**
  * @param {object} args
  * @param {import('pg').Pool} args.pgPool
+ * @param {import('../../common/typings.js').RecordTelemetryFn} recordTelemetry
  * @param {AbortSignal} [args.signal]
  * @returns {
  *  sparkRoundNumber: bigint;
@@ -27,7 +28,7 @@ const NODE_TASKS_TO_ROUND_TASKS_RATIO = BASELINE_TASKS_PER_ROUND / BASELINE_TASK
  *  roundStartEpoch: bigint;
  * }
  */
-export async function startRoundTracker ({ pgPool, signal }) {
+export async function startRoundTracker ({ pgPool, signal, recordTelemetry }) {
   const contract = await createMeridianContract()
 
   const onRoundStart = (newRoundIndex, ...args) => {
@@ -41,7 +42,7 @@ export async function startRoundTracker ({ pgPool, signal }) {
       )
     }
 
-    updateSparkRound(pgPool, contract, newRoundIndex, blockNumber).catch(err => {
+    updateSparkRound(pgPool, contract, newRoundIndex, blockNumber, recordTelemetry).catch(err => {
       console.error('Cannot handle RoundStart:', err)
       Sentry.captureException(err)
     })
@@ -53,7 +54,7 @@ export async function startRoundTracker ({ pgPool, signal }) {
     })
   }
 
-  const currentRound = await updateSparkRound(pgPool, contract, await contract.currentRoundIndex())
+  const currentRound = await updateSparkRound(pgPool, contract, await contract.currentRoundIndex(), recordTelemetry)
   return currentRound
 }
 
@@ -62,8 +63,9 @@ export async function startRoundTracker ({ pgPool, signal }) {
  * @param {MeridianContract} contract
  * @param {bigint} newRoundIndex
  * @param {number} [roundStartEpoch]
+ * @param {import('../../common/typings.js').RecordTelemetryFn} recordTelemetry
  */
-async function updateSparkRound (pgPool, contract, newRoundIndex, roundStartEpoch) {
+async function updateSparkRound (pgPool, contract, newRoundIndex, roundStartEpoch, recordTelemetry) {
   const meridianRoundIndex = BigInt(newRoundIndex)
   const meridianContractAddress = await contract.getAddress()
 
@@ -78,7 +80,8 @@ async function updateSparkRound (pgPool, contract, newRoundIndex, roundStartEpoc
       meridianContractAddress,
       meridianRoundIndex,
       roundStartEpoch,
-      pgClient
+      pgClient,
+      recordTelemetry
     })
     await pgClient.query('COMMIT')
     console.log('SPARK round started: %s (epoch: %s)', sparkRoundNumber, roundStartEpoch)
@@ -169,7 +172,8 @@ export async function mapCurrentMeridianRoundToSparkRound ({
   meridianContractAddress,
   meridianRoundIndex,
   roundStartEpoch,
-  pgClient
+  pgClient,
+  recordTelemetry
 }) {
   let sparkRoundNumber
 
@@ -223,7 +227,8 @@ export async function mapCurrentMeridianRoundToSparkRound ({
     sparkRoundNumber,
     meridianContractAddress,
     meridianRoundIndex,
-    roundStartEpoch
+    roundStartEpoch,
+    recordTelemetry
   })
 
   return sparkRoundNumber
@@ -233,7 +238,8 @@ export async function maybeCreateSparkRound (pgClient, {
   sparkRoundNumber,
   meridianContractAddress,
   meridianRoundIndex,
-  roundStartEpoch
+  roundStartEpoch,
+  recordTelemetry
 }) {
   //   maxTasksPerNode(round(n)) =
   //     BASELINE_TASKS_PER_NODE
@@ -242,6 +248,13 @@ export async function maybeCreateSparkRound (pgClient, {
   //       if measurementCount(round(n-1)) = 0
   //     maxTasksPerNode(round(n-1)) * (TASKS_EXECUTED_PER_ROUND / measurementCount(round(n-1)))
   //       otherwise
+  const { rows: [previousRound] } = await pgClient.query(`
+    SELECT measurement_count, max_tasks_per_node
+    FROM spark_rounds
+    WHERE id = $1 - 1::bigint
+  `, [
+    sparkRoundNumber
+  ])
   const { rows, rowCount } = await pgClient.query(`
     INSERT INTO spark_rounds
     (id, created_at, meridian_address, meridian_round, start_epoch, max_tasks_per_node)
@@ -252,13 +265,13 @@ export async function maybeCreateSparkRound (pgClient, {
       $3,
       $4,
       COALESCE(
-        (SELECT max_tasks_per_node FROM spark_rounds WHERE id = $1 - 1::bigint),
-        $5 /* BASELINE_TASKS_PER_NODE */
+        $5 /* previousRound.max_tasks_per_node */,
+        $6 /* BASELINE_TASKS_PER_NODE */
       )
-        * $6 /* TASKS_EXECUTED_PER_ROUND */
+        * $7 /* TASKS_EXECUTED_PER_ROUND */
         / COALESCE(
-            (SELECT measurement_count FROM spark_rounds WHERE id = $1 - 1::bigint),
-            $6 /* TASKS_EXECUTED_PER_ROUND */
+            $8 /* previousRound.measurement_count */,
+            $7 /* TASKS_EXECUTED_PER_ROUND */
           )
     )
     ON CONFLICT DO NOTHING
@@ -268,22 +281,34 @@ export async function maybeCreateSparkRound (pgClient, {
     meridianContractAddress,
     meridianRoundIndex,
     roundStartEpoch,
+    previousRound.max_tasks_per_node,
     BASELINE_TASKS_PER_NODE,
-    TASKS_EXECUTED_PER_ROUND
+    TASKS_EXECUTED_PER_ROUND,
+    previousRound.measurement_count,
   ])
 
   if (rowCount) {
     // We created a new SPARK round. Let's define retrieval tasks for this new round.
     // This is a short- to medium-term solution until we move to fully decentralized tasking
-    await defineTasksForRound(
+    const taskCount = await defineTasksForRound(
       pgClient,
       sparkRoundNumber,
       rows[0].max_tasks_per_node
     )
+    recordTelemetry('round', point => {
+      point.intField('current_round_measurement_count_target', TASKS_EXECUTED_PER_ROUND)
+      point.intField('current_round_task_count', taskCount)
+      point.intField('current_round_node_max_task_count', rows[0].max_tasks_per_node)
+      point.intField('previous_round_measurement_count', previousRound.measurement_count)
+      point.intField('previous_round_node_max_task_count', previousRound.max_tasks_per_node)
+    })
   }
 }
 
 async function defineTasksForRound (pgClient, sparkRoundNumber, maxTasksPerNode) {
+  const taskCount = Math.floor(
+    maxTasksPerNode * NODE_TASKS_TO_ROUND_TASKS_RATIO
+  )
   await pgClient.query(`
     INSERT INTO retrieval_tasks (round_id, cid, miner_id, clients)
     WITH selected AS (
@@ -301,8 +326,9 @@ async function defineTasksForRound (pgClient, sparkRoundNumber, maxTasksPerNode)
     GROUP BY selected.cid, selected.miner_id;
   `, [
     sparkRoundNumber,
-    Math.floor(maxTasksPerNode * NODE_TASKS_TO_ROUND_TASKS_RATIO)
+    taskCount
   ])
+  return taskCount
 }
 
 /**
