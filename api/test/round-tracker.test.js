@@ -149,7 +149,8 @@ describe('Round Tracker', () => {
         meridianContractAddress: '0x1b',
         meridianRoundIndex: 10n,
         roundStartEpoch: 321n,
-        pgClient
+        pgClient,
+        recordTelemetry
       })
       assert.strictEqual(sparkRoundNumber, 2n)
 
@@ -176,6 +177,21 @@ describe('Round Tracker', () => {
 
       // first round number was not changed
       assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1b'), '2')
+      assert.deepStrictEqual(
+        telemetry.map(p => ({ _point: p.name, ...p.fields }))[1],
+        [
+          {
+            _point: 'round',
+            current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
+            current_round_task_count: `${Math.floor(
+              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+            )}i`,
+            current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
+            previous_round_measurement_count: '0i',
+            previous_round_node_max_task_count: '0i'
+          }
+        ]
+      )
     })
 
     it('handles duplicate RoundStarted event', async () => {
@@ -218,8 +234,7 @@ describe('Round Tracker', () => {
         meridianContractAddress,
         meridianRoundIndex,
         roundStartEpoch,
-        pgClient /*,
-        recordTelemetry */
+        pgClient
       })
       assert.strictEqual(sparkRoundNumber, 1n)
       sparkRounds = (await pgClient.query('SELECT * FROM spark_rounds ORDER BY id')).rows
@@ -227,19 +242,6 @@ describe('Round Tracker', () => {
       assertApproximately(sparkRounds[0].created_at, now, 30_000)
       assert.strictEqual(sparkRounds[0].meridian_address, '0x1a')
       assert.strictEqual(sparkRounds[0].meridian_round, '1')
-      // assert.deepStrictEqual(
-      //   telemetry.map(p => ({ _point: p.name, ...p.fields }))[1],
-      //   {
-      //     _point: 'round',
-      //     current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
-      //     current_round_task_count: `${Math.floor(
-      //       BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
-      //     )}i`,
-      //     current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
-      //     previous_round_measurement_count: '0i',
-      //     previous_round_node_max_task_count: '0i'
-      //   }
-      // )
     })
 
     it('creates tasks when a new round starts', async () => {
