@@ -2,23 +2,17 @@ import assert from 'node:assert'
 import * as Sentry from '@sentry/node'
 import { createMeridianContract } from './ie-contract.js'
 
-// The number of tasks per round is proportionate to the SPARK round length - longer rounds require
-// more tasks per round.
-//
-// See https://www.notion.so/pl-strflt/SPARK-tasking-v2-604e26d57f6b4892946525bcb3a77104?pvs=4#ded1cd98c2664a2289453d38e2715643
-// for more details, this constant represents TC (tasks per committee).
-//
-// We will need to tweak this value based on measurements; that's why I put it here as a constant.
-export const TASKS_PER_ROUND = 1000
-
 // Tweak this to control the network's overall task count.
-export const MAX_TASKS_EXECUTED_PER_ROUND = 500_000
+export const TASKS_EXECUTED_PER_ROUND = 500_000
 
-// Baseline value for how many tasks each SPARK checker node is expected to complete every round (at most).
-// The actual value will be set dynamically based on MAX_TASKS_EXECUTED_PER_ROUND and the number of active nodes.
-export const BASELINE_MAX_TASKS_PER_NODE = 15
+// Baseline values for how many tasks should be completed every round, and how
+// many tasks each SPARK checker node is expected to complete (every round, at
+// most). The actual value will be set dynamically based on
+// TASKS_EXECUTED_PER_ROUND and the number of tasks executed in the last round.
+export const BASELINE_TASKS_PER_ROUND = 1000
+export const BASELINE_TASKS_PER_NODE = 15
 
-const NODE_TASKS_TO_ROUND_TASKS_RATIO = BASELINE_MAX_TASKS_PER_NODE / TASKS_PER_ROUND
+const NODE_TASKS_TO_ROUND_TASKS_RATIO = BASELINE_TASKS_PER_ROUND / BASELINE_TASKS_PER_NODE
 
 /** @typedef {Awaited<ReturnType<import('./ie-contract.js').createMeridianContract>>} MeridianContract */
 
@@ -242,12 +236,12 @@ export async function maybeCreateSparkRound (pgClient, {
   roundStartEpoch
 }) {
   // Alrorightm for finding a new round's max_tasks_per_node:
-  // - If this is the first round or the previous round had no measurements, use BASELINE_MAX_TASKS_PER_NODE
+  // - If this is the first round or the previous round had no measurements, use BASELINE_TASKS_PER_NODE
   // - Otherwise:
   //
-  //   round_n-1.max_tasks_pernode * (MAX_TASKS_EXECUTED_PER_ROUND / round_n-1.measurement_count)
+  //   round_n-1.max_tasks_pernode * (TASKS_EXECUTED_PER_ROUND / round_n-1.measurement_count)
   //
-  const { rowCount } = await pgClient.query(`
+  const { rows, rowCount } = await pgClient.query(`
     INSERT INTO spark_rounds
     (id, created_at, meridian_address, meridian_round, start_epoch, max_tasks_per_node)
     VALUES (
@@ -267,23 +261,28 @@ export async function maybeCreateSparkRound (pgClient, {
           )
     )
     ON CONFLICT DO NOTHING
+    RETURNING max_tasks_per_node
   `, [
     sparkRoundNumber,
     meridianContractAddress,
     meridianRoundIndex,
     roundStartEpoch,
-    BASELINE_MAX_TASKS_PER_NODE,
-    MAX_TASKS_EXECUTED_PER_ROUND
+    BASELINE_TASKS_PER_NODE,
+    TASKS_EXECUTED_PER_ROUND
   ])
 
   if (rowCount) {
     // We created a new SPARK round. Let's define retrieval tasks for this new round.
     // This is a short- to medium-term solution until we move to fully decentralized tasking
-    await defineTasksForRound(pgClient, sparkRoundNumber)
+    await defineTasksForRound(
+      pgClient,
+      sparkRoundNumber,
+      rows[0].max_tasks_per_node
+    )
   }
 }
 
-async function defineTasksForRound (pgClient, sparkRoundNumber) {
+async function defineTasksForRound (pgClient, sparkRoundNumber, maxTasksPerNode) {
   await pgClient.query(`
     INSERT INTO retrieval_tasks (round_id, cid, miner_id, clients)
     WITH selected AS (
@@ -301,7 +300,7 @@ async function defineTasksForRound (pgClient, sparkRoundNumber) {
     GROUP BY selected.cid, selected.miner_id;
   `, [
     sparkRoundNumber,
-    TASKS_PER_ROUND
+    maxTasksPerNode * NODE_TASKS_TO_ROUND_TASKS_RATIO
   ])
 }
 
