@@ -55,11 +55,13 @@ describe('Routes', () => {
   before(async () => {
     client = new pg.Client({ connectionString: DATABASE_URL })
     await client.connect()
+    const { recordTelemetry } = createTelemetryRecorderStub()
     await maybeCreateSparkRound(client, {
       sparkRoundNumber: currentSparkRoundNumber,
       meridianContractAddress: '0x1a',
       meridianRoundIndex: 123n,
-      roundStartEpoch: 321n
+      roundStartEpoch: 321n,
+      recordTelemetry
     })
     const handler = await createHandler({
       client,

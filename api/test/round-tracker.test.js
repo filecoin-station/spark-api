@@ -180,18 +180,16 @@ describe('Round Tracker', () => {
       assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1b'), '2')
       assert.deepStrictEqual(
         telemetry.map(p => ({ _point: p.name, ...p.fields }))[1],
-        [
-          {
-            _point: 'round',
-            current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
-            current_round_task_count: `${Math.floor(
-              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
-            )}i`,
-            current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
-            previous_round_measurement_count: '0i',
-            previous_round_node_max_task_count: '0i'
-          }
-        ]
+        {
+          _point: 'round',
+          current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
+          current_round_task_count: `${Math.floor(
+            BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+          )}i`,
+          current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
+          previous_round_measurement_count: '0i',
+          previous_round_node_max_task_count: '0i'
+        }
       )
     })
 
@@ -374,8 +372,28 @@ describe('Round Tracker', () => {
   describe('startRoundTracker', () => {
     it('detects the current round', async function () {
       this.timeout(TIMEOUT_WHEN_QUERYING_CHAIN)
-      const { sparkRoundNumber } = await startRoundTracker({ pgPool, signal: testFinished.signal })
+      const { recordTelemetry, telemetry } = createTelemetryRecorderStub()
+      const { sparkRoundNumber } = await startRoundTracker({
+        pgPool,
+        signal: testFinished.signal,
+        recordTelemetry
+      })
       assert.strictEqual(typeof sparkRoundNumber, 'bigint')
+      assert.deepStrictEqual(
+        telemetry.map(p => ({ _point: p.name, ...p.fields })),
+        [
+          {
+            _point: 'round',
+            current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
+            current_round_task_count: `${Math.floor(
+              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+            )}i`,
+            current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
+            previous_round_measurement_count: '0i',
+            previous_round_node_max_task_count: '0i'
+          }
+        ]
+      )
     })
   })
 })
