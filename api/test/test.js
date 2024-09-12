@@ -7,7 +7,7 @@ import {
   TASKS_PER_ROUND,
   maybeCreateSparkRound,
   mapCurrentMeridianRoundToSparkRound,
-  BASELINE_MAX_TASKS_PER_NODE
+  BASELINE_TASKS_PER_NODE
 } from '../lib/round-tracker.js'
 import { delegatedFromEthAddress } from '@glif/filecoin-address'
 
@@ -486,7 +486,7 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(details, {
         roundId: '2',
-        maxTasksPerNode: BASELINE_MAX_TASKS_PER_NODE,
+        maxTasksPerNode: BASELINE_TASKS_PER_NODE,
         startEpoch: '621'
       })
       assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
@@ -506,7 +506,7 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(details, {
         roundId: '1',
-        maxTasksPerNode: BASELINE_MAX_TASKS_PER_NODE,
+        maxTasksPerNode: BASELINE_TASKS_PER_NODE,
         startEpoch: '321'
       })
       assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
