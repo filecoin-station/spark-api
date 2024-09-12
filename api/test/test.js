@@ -4,7 +4,7 @@ import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
 import pg from 'pg'
 import {
-  TASKS_PER_ROUND,
+  BASELINE_TASKS_PER_ROUND,
   maybeCreateSparkRound,
   mapCurrentMeridianRoundToSparkRound,
   BASELINE_TASKS_PER_NODE
@@ -489,7 +489,7 @@ describe('Routes', () => {
         maxTasksPerNode: BASELINE_TASKS_PER_NODE,
         startEpoch: '621'
       })
-      assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
+      assert.strictEqual(retrievalTasks.length, BASELINE_TASKS_PER_ROUND)
 
       for (const task of retrievalTasks) {
         assert.equal(typeof task.cid, 'string', 'all tasks have "cid"')
@@ -509,7 +509,7 @@ describe('Routes', () => {
         maxTasksPerNode: BASELINE_TASKS_PER_NODE,
         startEpoch: '321'
       })
-      assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
+      assert.strictEqual(retrievalTasks.length, BASELINE_TASKS_PER_ROUND)
     })
 
     it('returns 404 for unknown round index', async () => {
