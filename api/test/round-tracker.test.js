@@ -100,18 +100,34 @@ describe('Round Tracker', () => {
 
       // first round number was not changed
       assert.strictEqual(await getFirstRoundForContractAddress(pgClient, '0x1a'), '1')
-      assert.deepStrictEqual(telemetry, [])
     })
 
     it('handles deployment of a new smart contract', async () => {
       // First contract version `0x1a`
+      const { recordTelemetry, telemetry } = createTelemetryRecorderStub()
       let sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 120n,
         roundStartEpoch: 321n,
-        pgClient
+        pgClient,
+        recordTelemetry
       })
       assert.strictEqual(sparkRoundNumber, 1n)
+      assert.deepStrictEqual(
+        telemetry.map(p => ({ _point: p.name, ...p.fields })),
+        [
+          {
+            _point: 'round',
+            current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
+            current_round_task_count: `${Math.floor(
+              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+            )}i`,
+            current_round_node_max_task_count: BASELINE_TASKS_PER_NODE,
+            previous_round_measurement_count: '0i',
+            previous_round_node_max_task_count: '0i'
+          }
+        ]
+      )
 
       // New contract version `0x1b`
       sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
