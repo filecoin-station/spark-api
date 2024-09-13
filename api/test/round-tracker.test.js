@@ -435,6 +435,60 @@ describe('Round Tracker', () => {
           ]
         )
       })
+      it('scales the task count to reach desired tasks executed', async () => {
+        const prevSparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+          meridianContractAddress: '0x1a',
+          meridianRoundIndex: 120n,
+          roundStartEpoch: 321n,
+          pgClient,
+          recordTelemetry: createTelemetryRecorderStub().recordTelemetry
+        })
+        await pgClient.query(
+          'UPDATE spark_rounds SET measurement_count = $1 WHERE id = $2',
+          [TASKS_EXECUTED_PER_ROUND / 2, prevSparkRoundNumber]
+        )
+        // It should double the node task count as the previous round only
+        // produces half of the desired measurements
+        const { recordTelemetry, telemetry } = createTelemetryRecorderStub()
+        const sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+          meridianContractAddress: '0x1a',
+          meridianRoundIndex: 121n,
+          roundStartEpoch: 321n,
+          pgClient,
+          recordTelemetry
+        })
+        const { rows: [sparkRound] } = await pgClient.query(
+          'SELECT * FROM spark_rounds WHERE id = $1',
+          [sparkRoundNumber]
+        )
+        assert.strictEqual(sparkRound.max_tasks_per_node, BASELINE_TASKS_PER_NODE * 2)
+        const { rows: retrievalTasks } = await pgClient.query(
+          'SELECT * FROM retrieval_tasks WHERE round_id = $1',
+          [sparkRoundNumber]
+        )
+        assert.strictEqual(retrievalTasks.length, BASELINE_TASKS_PER_ROUND * 2)
+        const { rows: [prevSparkRound] } = await pgClient.query(
+          'SELECT * FROM spark_rounds WHERE id = $1',
+          [prevSparkRoundNumber]
+        )
+        const { rows: prevRoundRetrievalTasks } = await pgClient.query(
+          'SELECT * FROM retrieval_tasks WHERE round_id = $1',
+          [prevSparkRoundNumber]
+        )
+        assert.deepStrictEqual(
+          telemetry.map(p => ({ _point: p.name, ...p.fields })),
+          [
+            {
+              _point: 'round',
+              current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
+              current_round_task_count: `${prevRoundRetrievalTasks.length * 2}i`,
+              current_round_node_max_task_count: `${prevSparkRound.max_tasks_per_node * 2}i`,
+              previous_round_measurement_count: `${TASKS_EXECUTED_PER_ROUND / 2}i`,
+              previous_round_node_max_task_count: '15i'
+            }
+          ]
+        )
+      })
     })
   })
 
