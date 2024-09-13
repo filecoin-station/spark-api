@@ -24,6 +24,7 @@ jobs:
           - compare-versions
           - '@flydotio/dockerfile'
           - postgrator
+          - standard
     steps:
       - name: Dependabot metadata
         id: metadata
