@@ -22,7 +22,7 @@
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.8",
     "mocha": "^10.7.3",
-    "multiformats": "^13.2.2",
+    "multiformats": "^13.2.3",
     "postgrator": "^7.3.0",
     "standard": "^17.1.0"
   },
