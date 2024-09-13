@@ -14,7 +14,7 @@
   "devDependencies": {
     "light-my-request": "^6.0.0",
     "mocha": "^10.7.3",
-    "standard": "^17.1.0",
+    "standard": "^17.1.1",
     "varint": "^6.0.0"
   },
   "dependencies": {
@@ -26,7 +26,7 @@
     "ethers": "^6.13.2",
     "http-assert": "^1.5.0",
     "http-responders": "^2.0.2",
-    "multiformats": "^13.2.2",
+    "multiformats": "^13.2.3",
     "pg": "^8.12.0",
     "postgrator": "^7.3.0",
     "raw-body": "^3.0.0"
