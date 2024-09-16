@@ -24,7 +24,7 @@
     "mocha": "^10.7.3",
     "multiformats": "^13.3.0",
     "postgrator": "^7.3.0",
-    "standard": "^17.1.1"
+    "standard": "^17.1.2"
   },
   "standard": {
     "env": [
