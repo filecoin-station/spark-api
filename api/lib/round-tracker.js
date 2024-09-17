@@ -12,7 +12,7 @@ export const TASKS_EXECUTED_PER_ROUND = 500_000
 export const BASELINE_TASKS_PER_ROUND = 1000
 export const BASELINE_TASKS_PER_NODE = 15
 
-export const NODE_TASKS_TO_ROUND_TASKS_RATIO = BASELINE_TASKS_PER_ROUND / BASELINE_TASKS_PER_NODE
+export const ROUND_TASKS_TO_NODE_TASKS_RATIO = BASELINE_TASKS_PER_ROUND / BASELINE_TASKS_PER_NODE
 
 /** @typedef {Awaited<ReturnType<import('./ie-contract.js').createMeridianContract>>} MeridianContract */
 
@@ -286,7 +286,7 @@ export async function maybeCreateSparkRound (pgClient, {
     // We created a new SPARK round. Let's define retrieval tasks for this new round.
     // This is a short- to medium-term solution until we move to fully decentralized tasking
     const taskCount = Math.floor(
-      maxTasksPerNode * NODE_TASKS_TO_ROUND_TASKS_RATIO
+      maxTasksPerNode * ROUND_TASKS_TO_NODE_TASKS_RATIO
     )
     await defineTasksForRound(pgClient, sparkRoundNumber, taskCount)
     recordTelemetry('round', point => {

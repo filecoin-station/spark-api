@@ -4,7 +4,7 @@ import {
   BASELINE_TASKS_PER_ROUND,
   BASELINE_TASKS_PER_NODE,
   TASKS_EXECUTED_PER_ROUND,
-  NODE_TASKS_TO_ROUND_TASKS_RATIO,
+  ROUND_TASKS_TO_NODE_TASKS_RATIO,
   getRoundStartEpoch,
   mapCurrentMeridianRoundToSparkRound,
   startRoundTracker
@@ -77,7 +77,7 @@ describe('Round Tracker', () => {
             _point: 'round',
             current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
             current_round_task_count: `${Math.floor(
-              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+              BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
             )}i`,
             current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
             previous_round_measurement_count: '0i',
@@ -108,7 +108,7 @@ describe('Round Tracker', () => {
           _point: 'round',
           current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
           current_round_task_count: `${Math.floor(
-            BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+            BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
           )}i`,
           current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
           previous_round_measurement_count: '0i',
@@ -135,7 +135,7 @@ describe('Round Tracker', () => {
             _point: 'round',
             current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
             current_round_task_count: `${Math.floor(
-              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+              BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
             )}i`,
             current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
             previous_round_measurement_count: '0i',
@@ -184,7 +184,7 @@ describe('Round Tracker', () => {
           _point: 'round',
           current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
           current_round_task_count: `${Math.floor(
-            BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+            BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
           )}i`,
           current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
           previous_round_measurement_count: '0i',
@@ -220,7 +220,7 @@ describe('Round Tracker', () => {
             _point: 'round',
             current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
             current_round_task_count: `${Math.floor(
-              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+              BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
             )}i`,
             current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
             previous_round_measurement_count: '0i',
@@ -270,7 +270,7 @@ describe('Round Tracker', () => {
             _point: 'round',
             current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
             current_round_task_count: `${Math.floor(
-              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+              BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
             )}i`,
             current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
             previous_round_measurement_count: '0i',
@@ -314,7 +314,7 @@ describe('Round Tracker', () => {
             _point: 'round',
             current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
             current_round_task_count: `${Math.floor(
-              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+              BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
             )}i`,
             current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
             previous_round_measurement_count: '0i',
@@ -348,7 +348,7 @@ describe('Round Tracker', () => {
             _point: 'round',
             current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
             current_round_task_count: `${Math.floor(
-              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+              BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
             )}i`,
             current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
             previous_round_measurement_count: '0i',
@@ -384,7 +384,7 @@ describe('Round Tracker', () => {
               _point: 'round',
               current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
               current_round_task_count: `${Math.floor(
-                BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+                BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
               )}i`,
               current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
               previous_round_measurement_count: '0i',
@@ -426,7 +426,7 @@ describe('Round Tracker', () => {
               _point: 'round',
               current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
               current_round_task_count: `${Math.floor(
-                BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+                BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
               )}i`,
               current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
               previous_round_measurement_count: '0i',
@@ -519,7 +519,7 @@ describe('Round Tracker', () => {
             _point: 'round',
             current_round_measurement_count_target: `${TASKS_EXECUTED_PER_ROUND}i`,
             current_round_task_count: `${Math.floor(
-              BASELINE_TASKS_PER_NODE * NODE_TASKS_TO_ROUND_TASKS_RATIO
+              BASELINE_TASKS_PER_NODE * ROUND_TASKS_TO_NODE_TASKS_RATIO
             )}i`,
             current_round_node_max_task_count: `${BASELINE_TASKS_PER_NODE}i`,
             previous_round_measurement_count: '0i',
