@@ -285,11 +285,10 @@ export async function maybeCreateSparkRound (pgClient, {
   if (rowCount) {
     // We created a new SPARK round. Let's define retrieval tasks for this new round.
     // This is a short- to medium-term solution until we move to fully decentralized tasking
-    const taskCount = await defineTasksForRound(
-      pgClient,
-      sparkRoundNumber,
-      rows[0].max_tasks_per_node
+    const taskCount = Math.floor(
+      maxTasksPerNode * NODE_TASKS_TO_ROUND_TASKS_RATIO
     )
+    await defineTasksForRound(pgClient, sparkRoundNumber, taskCount)
     recordTelemetry('round', point => {
       point.intField('current_round_measurement_count_target', TASKS_EXECUTED_PER_ROUND)
       point.intField('current_round_task_count', taskCount)
@@ -300,10 +299,7 @@ export async function maybeCreateSparkRound (pgClient, {
   }
 }
 
-async function defineTasksForRound (pgClient, sparkRoundNumber, maxTasksPerNode) {
-  const taskCount = Math.floor(
-    maxTasksPerNode * NODE_TASKS_TO_ROUND_TASKS_RATIO
-  )
+async function defineTasksForRound (pgClient, sparkRoundNumber, taskCount) {
   await pgClient.query(`
     INSERT INTO retrieval_tasks (round_id, cid, miner_id, clients)
     WITH selected AS (
@@ -323,7 +319,6 @@ async function defineTasksForRound (pgClient, sparkRoundNumber, maxTasksPerNode)
     sparkRoundNumber,
     taskCount
   ])
-  return taskCount
 }
 
 /**
