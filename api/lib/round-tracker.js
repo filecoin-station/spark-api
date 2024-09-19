@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/node'
 import { createMeridianContract } from './ie-contract.js'
 
 // Tweak this to control the network's overall task count.
-export const TASKS_EXECUTED_PER_ROUND = 500_000
+export const TASKS_EXECUTED_PER_ROUND = 250_000
 
 // Baseline values for how many tasks should be completed every round, and how
 // many tasks each SPARK checker node is expected to complete (every round, at
