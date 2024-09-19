@@ -175,6 +175,7 @@ describe('integration', () => {
     }
 
     // TODO: Figure out how to use anvil here
+    const commitmentRoundIndex = 99
     const ieContractMeasurementCIDs = []
     const ieContract = {
       async addMeasurements (_cid) {
@@ -195,7 +196,7 @@ describe('integration', () => {
           return {
             args: [
               null,
-              1
+              commitmentRoundIndex
             ]
           }
         }
@@ -240,7 +241,15 @@ describe('integration', () => {
     assert.strictEqual(published.participant_address, '0x000000000000000000000000000000000000dEaD')
 
     const { rows: commitments } = await client.query('SELECT * FROM commitments')
-    assert.deepStrictEqual(commitments.map(c => c.cid), [cid])
+    // eslint-disable-next-line camelcase
+    assert.deepStrictEqual(commitments.map(({ published_at, ...cols }) => cols), [
+      {
+        cid,
+        measurement_count: '2',
+        meridian_address: SparkImpactEvaluator.ADDRESS,
+        meridian_round: String(commitmentRoundIndex)
+      }
+    ])
     assertApproximately(commitments[0].published_at, new Date(), 1_000 /* milliseconds */)
 
     // Check that published measurements were deleted and measurements added later were preserved
