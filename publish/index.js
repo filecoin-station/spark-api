@@ -83,10 +83,19 @@ export const publish = async ({
       measurements.map(m => m.id)
     ])
 
-    // Record the commitment for future queries
-    // TODO: store also ieContract.address and roundIndex
-    await pgClient.query('INSERT INTO commitments (cid, published_at) VALUES ($1, $2)', [
-      cid.toString(), new Date()
+    await pgClient.query(`
+      INSERT INTO commitments (
+        cid,
+        published_at,
+        measurement_count,
+        meridian_address,
+        meridian_round
+      ) VALUES ($1, now(), $2, $3, $4)
+    `, [
+      cid.toString(),
+      measurements.length,
+      SparkImpactEvaluator.ADDRESS,
+      roundIndex
     ])
 
     await pgClient.query(`
