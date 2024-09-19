@@ -2,6 +2,7 @@ import { publish } from '../index.js'
 import assert from 'node:assert'
 import { CID } from 'multiformats/cid'
 import pg from 'pg'
+import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 import {
   assertApproximately,
@@ -86,6 +87,7 @@ describe('unit', () => {
       [1],
       undefined,
       [[]],
+      [0, SparkImpactEvaluator.ADDRESS, 1],
       undefined
     ])
     assert.strictEqual(clientStatements.pop(), 'VACUUM measurements')

@@ -4,12 +4,13 @@ import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
 import pg from 'pg'
 import {
-  TASKS_PER_ROUND,
+  BASELINE_TASKS_PER_ROUND,
   maybeCreateSparkRound,
   mapCurrentMeridianRoundToSparkRound,
-  MAX_TASKS_PER_NODE
+  BASELINE_TASKS_PER_NODE
 } from '../lib/round-tracker.js'
 import { delegatedFromEthAddress } from '@glif/filecoin-address'
+import { createTelemetryRecorderStub } from '../../test-helpers/platform-test-helpers.js'
 
 const { DATABASE_URL } = process.env
 const participantAddress = '0x000000000000000000000000000000000000dEaD'
@@ -59,7 +60,8 @@ describe('Routes', () => {
       sparkRoundNumber: currentSparkRoundNumber,
       meridianContractAddress: '0x1a',
       meridianRoundIndex: 123n,
-      roundStartEpoch: 321n
+      roundStartEpoch: 321n,
+      recordTelemetry: createTelemetryRecorderStub().recordTelemetry
     })
     const handler = await createHandler({
       client,
@@ -450,13 +452,15 @@ describe('Routes', () => {
     before(async () => {
       await client.query('DELETE FROM meridian_contract_versions')
       await client.query('DELETE FROM spark_rounds')
+      const { recordTelemetry } = createTelemetryRecorderStub()
 
       // round 1 managed by old contract version
       let num = await mapCurrentMeridianRoundToSparkRound({
         pgClient: client,
         meridianContractAddress: '0xOLD',
         meridianRoundIndex: 10n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        recordTelemetry
       })
       assert.strictEqual(num, 1n)
 
@@ -465,7 +469,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 120n,
-        roundStartEpoch: 621n
+        roundStartEpoch: 621n,
+        recordTelemetry
       })
       assert.strictEqual(num, 2n)
 
@@ -474,7 +479,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 121n,
-        roundStartEpoch: 921n
+        roundStartEpoch: 921n,
+        recordTelemetry
       })
       assert.strictEqual(num, 3n)
     })
@@ -486,10 +492,10 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(details, {
         roundId: '2',
-        maxTasksPerNode: MAX_TASKS_PER_NODE,
+        maxTasksPerNode: BASELINE_TASKS_PER_NODE,
         startEpoch: '621'
       })
-      assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
+      assert.strictEqual(retrievalTasks.length, BASELINE_TASKS_PER_ROUND)
 
       for (const task of retrievalTasks) {
         assert.equal(typeof task.cid, 'string', 'all tasks have "cid"')
@@ -506,10 +512,10 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(details, {
         roundId: '1',
-        maxTasksPerNode: MAX_TASKS_PER_NODE,
+        maxTasksPerNode: BASELINE_TASKS_PER_NODE,
         startEpoch: '321'
       })
-      assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
+      assert.strictEqual(retrievalTasks.length, BASELINE_TASKS_PER_ROUND)
     })
 
     it('returns 404 for unknown round index', async () => {
@@ -531,7 +537,8 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        recordTelemetry: createTelemetryRecorderStub().recordTelemetry
       })
     })
 
@@ -575,7 +582,8 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        recordTelemetry: createTelemetryRecorderStub().recordTelemetry
       })
     })
 

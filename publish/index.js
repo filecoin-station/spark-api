@@ -1,6 +1,7 @@
 /* global File */
 
 import pRetry from 'p-retry'
+import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 export const publish = async ({
   client: pgPool,
@@ -86,6 +87,16 @@ export const publish = async ({
     // TODO: store also ieContract.address and roundIndex
     await pgClient.query('INSERT INTO commitments (cid, published_at) VALUES ($1, $2)', [
       cid.toString(), new Date()
+    ])
+
+    await pgClient.query(`
+      UPDATE spark_rounds
+      SET measurement_count = COALESCE(measurement_count, 0) + $1
+      WHERE meridian_address = $2 AND meridian_round = $3
+    `, [
+      measurements.length,
+      SparkImpactEvaluator.ADDRESS,
+      roundIndex
     ])
 
     await pgClient.query('COMMIT')

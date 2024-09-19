@@ -6,6 +6,7 @@ import pg from 'pg'
 import { startRoundTracker } from '../lib/round-tracker.js'
 import { migrate } from '../../migrations/index.js'
 import { clearNetworkInfoStationIdsSeen } from '../lib/network-info-logger.js'
+import { recordNetworkInfoTelemetry } from '../../common/telemetry.js'
 
 const {
   PORT = 8080,
@@ -41,7 +42,10 @@ console.log('Initializing round tracker...')
 const start = Date.now()
 
 try {
-  const currentRound = await startRoundTracker({ pgPool: client })
+  const currentRound = await startRoundTracker({
+    pgPool: client,
+    recordTelemetry: recordNetworkInfoTelemetry
+  })
   console.log(
     'Initialized round tracker in %sms. SPARK round number at service startup: %s',
     Date.now() - start,
