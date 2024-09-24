@@ -142,6 +142,7 @@ const commitMeasurements = async ({ cid, ieContract, logger }) => {
   const tx = await ieContract.addMeasurements(cid.toString())
   logger.log('Waiting for the transaction receipt:', tx.hash)
   const receipt = await tx.wait()
+  assert(receipt.logs.length > 0, 'No logs found in the receipt')
   const log = ieContract.interface.parseLog(receipt.logs[0])
   const roundIndex = log.args[1]
   const ieAddMeasurementsDuration = new Date() - start
