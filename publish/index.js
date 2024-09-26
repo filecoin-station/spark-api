@@ -145,6 +145,7 @@ const commitMeasurements = async ({ cid, ieContract, logger }) => {
   if (receipt.logs.length === 0) {
     const err = new Error('No logs found in the receipt')
     err.receipt = receipt
+    err.tx = tx
     throw err
   }
   const log = ieContract.interface.parseLog(receipt.logs[0])
