@@ -12,6 +12,7 @@ import { GLIF_TOKEN, rpcUrls } from '../../common/ie-contract-config.js'
 import assert from 'node:assert'
 import { recordPublishTelemetry, publishWriteClient } from '../../common/telemetry.js'
 import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
+import { createStuckTransactionsCanceller } from '../lib/cancel-stuck-transactions.js'
 
 const {
   DATABASE_URL,
@@ -54,6 +55,7 @@ const ieContract = new ethers.Contract(
   SparkImpactEvaluator.ABI,
   provider
 ).connect(signer)
+const stuckTransactionsCanceller = createStuckTransactionsCanceller({ pgClient: client, signer })
 
 try {
   await publish({
@@ -61,6 +63,7 @@ try {
     web3Storage,
     ieContract,
     recordTelemetry: recordPublishTelemetry,
+    stuckTransactionsCanceller,
     maxMeasurements: MAX_MEASUREMENTS_PER_ROUND
   })
 } finally {
