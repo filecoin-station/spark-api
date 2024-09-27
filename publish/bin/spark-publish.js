@@ -7,8 +7,11 @@ import { ethers } from 'ethers'
 import { spawn } from 'node:child_process'
 import { once } from 'events'
 import { fileURLToPath } from 'node:url'
+import pg from 'pg'
+import { createStuckTransactionsCanceller, startCancelStuckTransactions } from '../lib/cancel-stuck-transactions.js'
 
 const {
+  DATABASE_URL,
   WALLET_SEED,
   MIN_ROUND_LENGTH_SECONDS = 60,
   MAX_MEASUREMENTS_PER_ROUND = 1000,
@@ -24,6 +27,8 @@ assert(W3UP_PROOF, 'W3UP_PROOF required')
 const minRoundLength = Number(MIN_ROUND_LENGTH_SECONDS) * 1000
 
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED)
+const client = new pg.Pool({ connectionString: DATABASE_URL })
+const stuckTransactionsCanceller = createStuckTransactionsCanceller({ pgClient: client, signer })
 
 console.log(
   'Wallet address:',
@@ -31,33 +36,38 @@ console.log(
   newDelegatedEthAddress(signer.address, 'f').toString()
 )
 
-while (true) {
-  const lastStart = new Date()
-  const ps = spawn(
-    'node',
-    [
-      '--unhandled-rejections=strict',
-      fileURLToPath(new URL('publish-batch.js', import.meta.url))
-    ],
-    {
-      env: {
-        ...process.env,
-        MIN_ROUND_LENGTH_SECONDS,
-        MAX_MEASUREMENTS_PER_ROUND,
-        WALLET_SEED,
-        W3UP_PRIVATE_KEY,
-        W3UP_PROOF
+await Promise.all([
+  (async () => {
+    while (true) {
+      const lastStart = new Date()
+      const ps = spawn(
+        'node',
+        [
+          '--unhandled-rejections=strict',
+          fileURLToPath(new URL('publish-batch.js', import.meta.url))
+        ],
+        {
+          env: {
+            ...process.env,
+            MIN_ROUND_LENGTH_SECONDS,
+            MAX_MEASUREMENTS_PER_ROUND,
+            WALLET_SEED,
+            W3UP_PRIVATE_KEY,
+            W3UP_PROOF
+          }
+        }
+      )
+      ps.stdout.pipe(process.stdout)
+      ps.stderr.pipe(process.stderr)
+      const [code] = await once(ps, 'exit')
+      if (code !== 0) {
+        console.error(`Bad exit code: ${code}`)
+        Sentry.captureMessage(`Bad exit code: ${code}`)
       }
+      const dt = new Date() - lastStart
+      console.log(`Done. This iteration took ${dt}ms.`)
+      if (dt < minRoundLength) await timers.setTimeout(minRoundLength - dt)
     }
-  )
-  ps.stdout.pipe(process.stdout)
-  ps.stderr.pipe(process.stderr)
-  const [code] = await once(ps, 'exit')
-  if (code !== 0) {
-    console.error(`Bad exit code: ${code}`)
-    Sentry.captureMessage(`Bad exit code: ${code}`)
-  }
-  const dt = new Date() - lastStart
-  console.log(`Done. This iteration took ${dt}ms.`)
-  if (dt < minRoundLength) await timers.setTimeout(minRoundLength - dt)
-}
+  })(),
+  startCancelStuckTransactions(stuckTransactionsCanceller)
+])

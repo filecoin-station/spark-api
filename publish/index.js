@@ -8,6 +8,7 @@ export const publish = async ({
   web3Storage,
   ieContract,
   recordTelemetry,
+  stuckTransactionsCanceller,
   maxMeasurements = 1000,
   logger = console
 }) => {
@@ -64,7 +65,7 @@ export const publish = async ({
 
   // Call contract with CID
   const { roundIndex, ieAddMeasurementsDuration } = await pRetry(
-    () => commitMeasurements({ cid, ieContract, logger }),
+    () => commitMeasurements({ cid, ieContract, logger, stuckTransactionsCanceller }),
     {
       onFailedAttempt: err => console.error(err),
       retries: 5
@@ -136,12 +137,14 @@ export const publish = async ({
   })
 }
 
-const commitMeasurements = async ({ cid, ieContract, logger }) => {
+const commitMeasurements = async ({ cid, ieContract, logger, stuckTransactionsCanceller }) => {
   logger.log('Invoking ie.addMeasurements()...')
   const start = new Date()
   const tx = await ieContract.addMeasurements(cid.toString())
+  await stuckTransactionsCanceller.addPending(tx)
   logger.log('Waiting for the transaction receipt:', tx.hash)
   const receipt = await tx.wait()
+  stuckTransactionsCanceller.removeConfirmed(tx)
   if (receipt.logs.length === 0) {
     const err = new Error('No logs found in the receipt')
     err.receipt = receipt
