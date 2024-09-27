@@ -9,6 +9,7 @@ import { once } from 'events'
 import { fileURLToPath } from 'node:url'
 import pg from 'pg'
 import { createStuckTransactionsCanceller, startCancelStuckTransactions } from '../lib/cancel-stuck-transactions.js'
+import { GLIF_TOKEN, rpcUrls } from '../../common/ie-contract-config.js'
 
 const {
   DATABASE_URL,
@@ -26,7 +27,12 @@ assert(W3UP_PROOF, 'W3UP_PROOF required')
 
 const minRoundLength = Number(MIN_ROUND_LENGTH_SECONDS) * 1000
 
-const signer = ethers.Wallet.fromPhrase(WALLET_SEED)
+const provider = new ethers.FallbackProvider(rpcUrls.map(rpcUrl => {
+  const fetchRequest = new ethers.FetchRequest(rpcUrl)
+  fetchRequest.setHeader('Authorization', `Bearer ${GLIF_TOKEN}`)
+  return new ethers.JsonRpcProvider(fetchRequest)
+}))
+const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 const client = new pg.Pool({ connectionString: DATABASE_URL })
 const stuckTransactionsCanceller = createStuckTransactionsCanceller({ pgClient: client, signer })
 
