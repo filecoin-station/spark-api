@@ -12,12 +12,12 @@ export class PendingTransactionsStore {
     this.#pgClient = pgClient
   }
 
-  async set ({ hash, timestamp, from, maxPriorityFeePerGas, nonce }) {
+  async set ({ hash, timestamp, from, maxPriorityFeePerGas, gasLimit, nonce }) {
     await this.#pgClient.query(`
-      INSERT INTO transactions_pending (hash, timestamp, from_address, max_priority_fee_per_gas, nonce)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO transactions_pending (hash, timestamp, from_address, max_priority_fee_per_gas, gas_limit, nonce)
+      VALUES ($1, $2, $3, $4, $5, $6)
       `,
-    [hash, timestamp, from, maxPriorityFeePerGas, nonce]
+    [hash, timestamp, from, maxPriorityFeePerGas, gasLimit, nonce]
     )
   }
 
@@ -28,12 +28,14 @@ export class PendingTransactionsStore {
         timestamp,
         from_address as "from",
         max_priority_fee_per_gas as "maxPriorityFeePerGas",
+        gas_limit as "gasLimit",
         nonce
       FROM transactions_pending
     `)
     return rows.map(row => ({
       ...row,
-      maxPriorityFeePerGas: BigInt(row.maxPriorityFeePerGas)
+      maxPriorityFeePerGas: BigInt(row.maxPriorityFeePerGas),
+      gasLimit: BigInt(row.gasLimit)
     }))
   }
 
