@@ -14,7 +14,7 @@ export class PendingTransactionsStore {
 
   async set ({ hash, timestamp, from, maxPriorityFeePerGas, gasLimit, nonce }) {
     await this.#pgClient.query(`
-      INSERT INTO transactions_pending (hash, timestamp, from_address, max_priority_fee_per_gas, gasLimit, nonce)
+      INSERT INTO transactions_pending (hash, timestamp, from_address, max_priority_fee_per_gas, gas_limit, nonce)
       VALUES ($1, $2, $3, $4, $5, $6)
       `,
     [hash, timestamp, from, maxPriorityFeePerGas, gasLimit, nonce]
