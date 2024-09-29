@@ -26,6 +26,7 @@ describe('PendingTransactionsStore', () => {
       timestamp: new Date(),
       from: 'from',
       maxPriorityFeePerGas: 10n,
+      gasLimit: 1n,
       nonce: 123
     }
     await store.set(transaction)
