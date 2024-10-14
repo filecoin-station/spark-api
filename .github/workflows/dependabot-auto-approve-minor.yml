@@ -25,6 +25,7 @@ jobs:
           - '@flydotio/dockerfile'
           - postgrator
           - standard
+          - cancel-stuck-transactions
     steps:
       - name: Dependabot metadata
         id: metadata
