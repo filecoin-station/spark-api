@@ -23,7 +23,7 @@
     "@influxdata/influxdb-client": "^1.35.0",
     "@sentry/node": "^8.34.0",
     "compare-versions": "^6.1.1",
-    "ethers": "^6.13.3",
+    "ethers": "^6.13.4",
     "http-assert": "^1.5.0",
     "http-responders": "^2.0.2",
     "multiformats": "^13.3.0",
