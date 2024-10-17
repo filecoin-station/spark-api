@@ -1,7 +1,7 @@
 import assert from 'node:assert'
 
 const {
-  RPC_URLS = 'https://api.node.glif.io/rpc/v0,https://api.chain.love/rpc/v1,https://filecoin.chainup.net/rpc/v1,https://rpc.ankr.com/filecoin',
+  RPC_URLS = 'https://api.node.glif.io/rpc/v0,https://api.chain.love/rpc/v1,https://filecoin.chainup.net/rpc/v1',
   GLIF_TOKEN
 } = process.env
 
