@@ -489,6 +489,34 @@ describe('Round Tracker', () => {
           ]
         )
       })
+
+      it('sets maxTasksPerNode to at least 1', async () => {
+        const prevSparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+          meridianContractAddress: '0x1a',
+          meridianRoundIndex: 120n,
+          roundStartEpoch: 321n,
+          pgClient,
+          recordTelemetry: createTelemetryRecorderStub().recordTelemetry
+        })
+        await pgClient.query(
+          'UPDATE spark_rounds SET measurement_count = $1 WHERE id = $2',
+          [TASKS_EXECUTED_PER_ROUND * 1000, prevSparkRoundNumber]
+        )
+        // It should calculate the task count as 0 and then choose 1 instead
+        const { recordTelemetry } = createTelemetryRecorderStub()
+        const sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+          meridianContractAddress: '0x1a',
+          meridianRoundIndex: 121n,
+          roundStartEpoch: 321n,
+          pgClient,
+          recordTelemetry
+        })
+        const { rows: [sparkRound] } = await pgClient.query(
+          'SELECT * FROM spark_rounds WHERE id = $1',
+          [sparkRoundNumber]
+        )
+        assert.strictEqual(sparkRound.max_tasks_per_node, 1)
+      })
     })
   })
 
