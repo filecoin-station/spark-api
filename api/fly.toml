@@ -13,8 +13,8 @@ processes = []
   DOMAIN = "api.filspark.com"
   REQUEST_LOGGING = "false"
   NPM_CONFIG_WORKSPACE="api"
-  # 1024MB available memory - 200MB for anything else
-  NODE_OPTIONS="--max-old-space-size=824"
+  # 2048MB available memory - 200MB for anything else
+  NODE_OPTIONS="--max-old-space-size=1848"
 
 [experimental]
   auto_rollback = true
