@@ -266,8 +266,10 @@ export async function maybeCreateSparkRound (pgClient, {
       $4,
       (
         $5::int /* previousRound.max_tasks_per_node || BASELINE_TASKS_PER_NODE */
-        * $6::int /* TASKS_EXECUTED_PER_ROUND */
-        / $7::int /* previousRound.measurement_count || TASKS_EXECUTED_PER_ROUND */
+        * (
+          $6::int /* TASKS_EXECUTED_PER_ROUND */
+          / $7::int /* previousRound.measurement_count || TASKS_EXECUTED_PER_ROUND */
+        )
       )
     )
     ON CONFLICT DO NOTHING
