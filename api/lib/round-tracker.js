@@ -11,6 +11,7 @@ export const TASKS_EXECUTED_PER_ROUND = 250_000
 // TASKS_EXECUTED_PER_ROUND and the number of tasks executed in the last round.
 export const BASELINE_TASKS_PER_ROUND = 1000
 export const BASELINE_TASKS_PER_NODE = 15
+export const MAX_TASKS_PER_NODE_LIMIT = 100
 
 export const ROUND_TASKS_TO_NODE_TASKS_RATIO = BASELINE_TASKS_PER_ROUND / BASELINE_TASKS_PER_NODE
 
@@ -246,7 +247,10 @@ export async function maybeCreateSparkRound (pgClient, {
   //       if n=0
   //     BASELINE_TASKS_PER_NODE
   //       if measurementCount(round(n-1)) = 0
-  //     maxTasksPerNode(round(n-1)) * (TASKS_EXECUTED_PER_ROUND / measurementCount(round(n-1)))
+  //     min(
+  //       maxTasksPerNode(round(n-1)) * (TASKS_EXECUTED_PER_ROUND / measurementCount(round(n-1))),
+  //       MAX_TASKS_PER_NODE_LIMIT
+  //     )
   //       otherwise
   const { rows: [previousRound] } = await pgClient.query(`
     SELECT measurement_count, max_tasks_per_node
@@ -264,12 +268,13 @@ export async function maybeCreateSparkRound (pgClient, {
       $2,
       $3,
       $4,
-      (
-        $5::int /* previousRound.max_tasks_per_node || BASELINE_TASKS_PER_NODE */
-        * (
-          $6::int /* TASKS_EXECUTED_PER_ROUND */
-          / $7::int /* previousRound.measurement_count || TASKS_EXECUTED_PER_ROUND */
-        )
+      LEAST(
+        $5,
+        $6::int /* previousRound.max_tasks_per_node || BASELINE_TASKS_PER_NODE */
+          * (
+            $7::int /* TASKS_EXECUTED_PER_ROUND */
+            / $8::int /* previousRound.measurement_count || TASKS_EXECUTED_PER_ROUND */
+          )
       )
     )
     ON CONFLICT DO NOTHING
@@ -279,6 +284,7 @@ export async function maybeCreateSparkRound (pgClient, {
     meridianContractAddress,
     meridianRoundIndex,
     roundStartEpoch,
+    MAX_TASKS_PER_NODE_LIMIT,
     previousRound?.max_tasks_per_node || BASELINE_TASKS_PER_NODE,
     TASKS_EXECUTED_PER_ROUND,
     previousRound?.measurement_count || TASKS_EXECUTED_PER_ROUND
