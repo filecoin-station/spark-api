@@ -271,11 +271,9 @@ export async function maybeCreateSparkRound (pgClient, {
       GREATEST(1,
         LEAST(
           $5,
-          $6::int /* previousRound.max_tasks_per_node || BASELINE_TASKS_PER_NODE */
-            * (
-              $7::int /* TASKS_EXECUTED_PER_ROUND */
-              / $8::int /* previousRound.measurement_count || TASKS_EXECUTED_PER_ROUND */
-            )
+          $6::bigint /* previousRound.max_tasks_per_node || BASELINE_TASKS_PER_NODE */
+          * $7::bigint /* TASKS_EXECUTED_PER_ROUND */
+          / $8::bigint /* previousRound.measurement_count || TASKS_EXECUTED_PER_ROUND */
         )
       )
     )
