@@ -467,9 +467,11 @@ describe('Round Tracker', () => {
             [sparkRoundNumber]
           )
           const expectedRetrievalTasksCount = Math.floor(
-            Number(BigInt(BASELINE_TASKS_PER_NODE) *
-            BigInt(TASKS_EXECUTED_PER_ROUND) /
-            BigInt(TASKS_EXECUTED_PER_ROUND * measurementsFactor)) *
+            Number(
+              BigInt(BASELINE_TASKS_PER_NODE) *
+              BigInt(TASKS_EXECUTED_PER_ROUND) /
+              BigInt(TASKS_EXECUTED_PER_ROUND * measurementsFactor)
+            ) *
             ROUND_TASKS_TO_NODE_TASKS_RATIO
           )
           assert.strictEqual(retrievalTasks.length, expectedRetrievalTasksCount)
