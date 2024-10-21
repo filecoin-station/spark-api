@@ -530,7 +530,7 @@ describe('Round Tracker', () => {
           'UPDATE spark_rounds SET measurement_count = $1 WHERE id = $2',
           [1, prevSparkRoundNumber]
         )
-        // It should calculate the task count as 0 and then choose 1 instead
+        // It should calculate the task count as a very high number and then choose MAX_TASKS_PER_NODE_LIMIT instead
         const { recordTelemetry } = createTelemetryRecorderStub()
         const sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
           meridianContractAddress: '0x1a',
