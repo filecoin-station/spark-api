@@ -7,7 +7,8 @@ import {
   ROUND_TASKS_TO_NODE_TASKS_RATIO,
   getRoundStartEpoch,
   mapCurrentMeridianRoundToSparkRound,
-  startRoundTracker
+  startRoundTracker,
+  MAX_TASKS_PER_NODE_LIMIT
 } from '../lib/round-tracker.js'
 import { migrate } from '../../migrations/index.js'
 import { assertApproximately } from '../../test-helpers/assert.js'
@@ -516,6 +517,33 @@ describe('Round Tracker', () => {
           [sparkRoundNumber]
         )
         assert.strictEqual(sparkRound.max_tasks_per_node, 1)
+      })
+      it('has an upper limit for maxTasksPerNode', async () => {
+        const prevSparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+          meridianContractAddress: '0x1a',
+          meridianRoundIndex: 120n,
+          roundStartEpoch: 321n,
+          pgClient,
+          recordTelemetry: createTelemetryRecorderStub().recordTelemetry
+        })
+        await pgClient.query(
+          'UPDATE spark_rounds SET measurement_count = $1 WHERE id = $2',
+          [1, prevSparkRoundNumber]
+        )
+        // It should calculate the task count as a very high number and then choose MAX_TASKS_PER_NODE_LIMIT instead
+        const { recordTelemetry } = createTelemetryRecorderStub()
+        const sparkRoundNumber = await mapCurrentMeridianRoundToSparkRound({
+          meridianContractAddress: '0x1a',
+          meridianRoundIndex: 121n,
+          roundStartEpoch: 321n,
+          pgClient,
+          recordTelemetry
+        })
+        const { rows: [sparkRound] } = await pgClient.query(
+          'SELECT * FROM spark_rounds WHERE id = $1',
+          [sparkRoundNumber]
+        )
+        assert.strictEqual(sparkRound.max_tasks_per_node, MAX_TASKS_PER_NODE_LIMIT)
       })
     })
   })
