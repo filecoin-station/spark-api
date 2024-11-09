@@ -691,9 +691,9 @@ describe('Routes', () => {
         const body = await res.json()
         assert.deepStrictEqual(body, {
           minerId: 'f0230',
-          dealCount: 4,
+          dealCount: 5,
           clients: [
-            { clientId: 'f0800', dealCount: 2 },
+            { clientId: 'f0800', dealCount: 3 },
             { clientId: 'f0810', dealCount: 1 },
             { clientId: 'f0820', dealCount: 1 }
           ]
@@ -721,9 +721,9 @@ describe('Routes', () => {
         const body = await res.json()
         assert.deepStrictEqual(body, {
           clientId: 'f0800',
-          dealCount: 4,
+          dealCount: 5,
           providers: [
-            { minerId: 'f0230', dealCount: 2 },
+            { minerId: 'f0230', dealCount: 3 },
             { minerId: 'f0210', dealCount: 1 },
             { minerId: 'f0220', dealCount: 1 }
           ]
@@ -751,9 +751,9 @@ describe('Routes', () => {
         const body = await res.json()
         assert.deepStrictEqual(body, {
           allocatorId: 'f0500',
-          dealCount: 6,
+          dealCount: 7,
           clients: [
-            { clientId: 'f0800', dealCount: 4 },
+            { clientId: 'f0800', dealCount: 5 },
             { clientId: 'f0810', dealCount: 2 }
           ]
         })

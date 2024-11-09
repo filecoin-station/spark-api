@@ -30,6 +30,9 @@ describe('Round Tracker', () => {
     pgPool = new pg.Pool({ connectionString: DATABASE_URL })
     pgClient = await pgPool.connect()
     await migrate(pgClient)
+    await pgClient.query(`
+      UPDATE retrievable_deals SET expires_at = NOW() + INTERVAL '1 year'
+    `)
   })
 
   after(async () => {
