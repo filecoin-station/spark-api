@@ -47,7 +47,9 @@ await web3Storage.setCurrentSpace(space.did())
 const provider = new ethers.FallbackProvider(rpcUrls.map(rpcUrl => {
   const fetchRequest = new ethers.FetchRequest(rpcUrl)
   fetchRequest.setHeader('Authorization', `Bearer ${GLIF_TOKEN}`)
-  return new ethers.JsonRpcProvider(fetchRequest)
+  return new ethers.JsonRpcProvider(fetchRequest, null, {
+    batchMaxCount: 10
+  })
 }))
 const signer = ethers.Wallet.fromPhrase(WALLET_SEED, provider)
 const ieContract = new ethers.Contract(
