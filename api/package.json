@@ -28,7 +28,7 @@
     "http-responders": "^2.0.2",
     "multiformats": "^13.3.1",
     "pg": "^8.13.1",
-    "postgrator": "^7.3.0",
+    "postgrator": "^8.0.0",
     "raw-body": "^3.0.0"
   },
   "standard": {
