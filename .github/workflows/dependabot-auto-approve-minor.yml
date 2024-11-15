@@ -26,6 +26,7 @@ jobs:
           - postgrator
           - standard
           - cancel-stuck-transactions
+          - p-retry
     steps:
       - name: Dependabot metadata
         id: metadata
