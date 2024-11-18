@@ -27,6 +27,7 @@ jobs:
           - standard
           - cancel-stuck-transactions
           - p-retry
+          - cross-spawn
     steps:
       - name: Dependabot metadata
         id: metadata
