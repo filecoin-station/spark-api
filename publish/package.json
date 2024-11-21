@@ -6,7 +6,7 @@
     "test": "mocha"
   },
   "dependencies": {
-    "@filecoin-station/spark-impact-evaluator": "^1.1.1",
+    "@filecoin-station/spark-impact-evaluator": "^1.2.4",
     "@glif/filecoin-address": "^3.0.12",
     "@influxdata/influxdb-client": "^1.35.0",
     "@ipld/car": "^5.3.3",
