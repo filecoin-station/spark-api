@@ -32,6 +32,7 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm test
+      - run: npm test
 
   build-publish:
     runs-on: ubuntu-latest
