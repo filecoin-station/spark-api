@@ -9,7 +9,7 @@
     "@filecoin-station/spark-impact-evaluator": "^1.2.4",
     "@glif/filecoin-address": "^3.0.12",
     "@influxdata/influxdb-client": "^1.35.0",
-    "@ipld/car": "^5.3.3",
+    "@ipld/car": "^5.4.0",
     "@sentry/node": "^8.47.0",
     "@ucanto/core": "^10.0.1",
     "@ucanto/principal": "^9.0.1",
