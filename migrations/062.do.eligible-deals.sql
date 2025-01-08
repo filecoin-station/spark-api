@@ -13,4 +13,3 @@ CREATE TABLE eligible_deals (
 
 CREATE INDEX eligible_deals_miner_id ON eligible_deals (miner_id);
 CREATE INDEX eligible_deals_client_id ON eligible_deals (client_id);
-
