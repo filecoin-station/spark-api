@@ -1,3 +1,4 @@
+# After the seed migration `063.do.eligible-deals-seed.sql`, this table's content will be managed by https://github.com/filecoin-station/fil-deal-ingester
 CREATE TABLE eligible_deals (
   miner_id TEXT NOT NULL,
   client_id TEXT NOT NULL,
