@@ -660,16 +660,17 @@ describe('Routes', () => {
   describe('summary of eligible deals', () => {
     before(async () => {
       await client.query(`
-        INSERT INTO retrievable_deals (cid, miner_id, client_id, expires_at)
+        INSERT INTO eligible_deals
+        (payload_cid, miner_id, client_id, piece_cid, piece_size, expires_at)
         VALUES
-        ('bafyone', 'f0210', 'f0800', '2100-01-01'),
-        ('bafyone', 'f0220', 'f0800', '2100-01-01'),
-        ('bafytwo', 'f0220', 'f0810', '2100-01-01'),
-        ('bafyone', 'f0230', 'f0800', '2100-01-01'),
-        ('bafytwo', 'f0230', 'f0800', '2100-01-01'),
-        ('bafythree', 'f0230', 'f0810', '2100-01-01'),
-        ('bafyfour', 'f0230', 'f0820', '2100-01-01'),
-        ('bafyexpired', 'f0230', 'f0800', '2020-01-01')
+        ('bafyone', 'f0210', 'f0800', 'bagaone', 256, '2100-01-01'),
+        ('bafyone', 'f0220', 'f0800', 'bagaone', 256,  '2100-01-01'),
+        ('bafytwo', 'f0220', 'f0810', 'bagatwo', 256, '2100-01-01'),
+        ('bafyone', 'f0230', 'f0800', 'bagaone', 256, '2100-01-01'),
+        ('bafytwo', 'f0230', 'f0800', 'bagatwo', 256, '2100-01-01'),
+        ('bafythree', 'f0230', 'f0810', 'bagathree', 256, '2100-01-01'),
+        ('bafyfour', 'f0230', 'f0820', 'bagafour', 256, '2100-01-01'),
+        ('bafyexpired', 'f0230', 'f0800', 'bagaexpired', 256, '2020-01-01')
         ON CONFLICT DO NOTHING
       `)
 

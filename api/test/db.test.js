@@ -21,16 +21,20 @@ describe('spark-api database', () => {
 
   it('allows multiple storage deals for the same CID', async () => {
     const DUMMY_CID = 'bafyone'
-    await client.query('DELETE FROM retrievable_deals WHERE cid = $1', [DUMMY_CID])
+    await client.query('DELETE FROM eligible_deals WHERE payload_cid = $1', [DUMMY_CID])
 
     await client.query(`
-      INSERT INTO retrievable_deals (cid, miner_id, client_id, expires_at)
-      VALUES ($1, $2, 'f099', $3), ($1, $4, 'f099', $3)
+      INSERT INTO eligible_deals
+        (miner_id, client_id, piece_cid, piece_size, payload_cid, expires_at)
+      VALUES
+        ($1, 'f099', $3, 256, $4, $5),
+        ($2, 'f099', $3, 256, $4, $5)
     `, [
-      DUMMY_CID,
       'f010',
-      new Date(),
-      'f020'
+      'f020',
+      'baga12345',
+      DUMMY_CID,
+      new Date()
     ])
   })
 })

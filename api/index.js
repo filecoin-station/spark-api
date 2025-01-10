@@ -313,7 +313,7 @@ const redirect = (res, location) => {
 const getSummaryOfEligibleDealsForMiner = async (_req, res, client, minerId) => {
   /** @type {{rows: {client_id: string; deal_count: number}[]}} */
   const { rows } = await client.query(`
-    SELECT client_id, COUNT(cid)::INTEGER as deal_count FROM retrievable_deals
+    SELECT client_id, COUNT(payload_cid)::INTEGER as deal_count FROM eligible_deals
     WHERE miner_id = $1 AND expires_at > now()
     GROUP BY client_id
     ORDER BY deal_count DESC, client_id ASC
@@ -340,7 +340,7 @@ const getSummaryOfEligibleDealsForMiner = async (_req, res, client, minerId) => 
 const getSummaryOfEligibleDealsForClient = async (_req, res, client, clientId) => {
   /** @type {{rows: {miner_id: string; deal_count: number}[]}} */
   const { rows } = await client.query(`
-  SELECT miner_id, COUNT(cid)::INTEGER as deal_count FROM retrievable_deals
+  SELECT miner_id, COUNT(payload_cid)::INTEGER as deal_count FROM eligible_deals
   WHERE client_id = $1 AND expires_at > now()
   GROUP BY miner_id
   ORDER BY deal_count DESC, miner_id ASC
@@ -365,9 +365,9 @@ const getSummaryOfEligibleDealsForClient = async (_req, res, client, clientId) =
 const getSummaryOfEligibleDealsForAllocator = async (_req, res, client, allocatorId) => {
   /** @type {{rows: {client_id: string; deal_count: number}[]}} */
   const { rows } = await client.query(`
-    SELECT ac.client_id, COUNT(cid)::INTEGER as deal_count
+    SELECT ac.client_id, COUNT(payload_cid)::INTEGER as deal_count
     FROM allocator_clients ac
-    LEFT JOIN retrievable_deals rd ON ac.client_id = rd.client_id
+    LEFT JOIN eligible_deals rd ON ac.client_id = rd.client_id
     WHERE ac.allocator_id = $1 AND expires_at > now()
     GROUP BY ac.client_id
     ORDER BY deal_count DESC, ac.client_id ASC

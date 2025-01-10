@@ -31,7 +31,7 @@ describe('Round Tracker', () => {
     pgClient = await pgPool.connect()
     await migrate(pgClient)
     await pgClient.query(`
-      UPDATE retrievable_deals SET expires_at = NOW() + INTERVAL '1 year'
+      UPDATE eligible_deals SET expires_at = NOW() + INTERVAL '1 year'
     `)
   })
 
