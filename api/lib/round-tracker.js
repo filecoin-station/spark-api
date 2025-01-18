@@ -337,9 +337,9 @@ async function defineTasksForRound (pgClient, sparkRoundNumber, taskCount) {
 export async function getRoundStartEpoch (contract, roundIndex) {
   assert.strictEqual(typeof roundIndex, 'bigint', `roundIndex must be a bigint, received: ${typeof roundIndex}`)
 
-  // Look at the last 250 blocks (~2 hours) to handle the case when we have an outage and
+  // Look at more blocks than should be necessary to handle the case when we have an outage and
   // the rounds are not advanced frequently enough.
-  const recentRoundStartEvents = (await contract.queryFilter('RoundStart', -250))
+  const recentRoundStartEvents = (await contract.queryFilter('RoundStart', -500))
     .map(({ blockNumber, args }) => ({ blockNumber, roundIndex: args[0] }))
 
   const roundStart = recentRoundStartEvents.find(e => e.roundIndex === roundIndex)
