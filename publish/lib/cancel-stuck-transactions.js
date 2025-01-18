@@ -59,7 +59,8 @@ export const startCancelStuckTransactions = async stuckTransactionsCanceller => 
   while (true) {
     try {
       const res = await stuckTransactionsCanceller.cancelOlderThan(
-        2 * ROUND_LENGTH_MS
+        2 * ROUND_LENGTH_MS,
+        { concurrency: 1 }
       )
       if (res !== undefined) {
         for (const { status, reason } of res) {
