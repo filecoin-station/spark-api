@@ -15,7 +15,7 @@
     "@ucanto/principal": "^9.0.1",
     "@web3-storage/access": "^20.0.0",
     "@web3-storage/w3up-client": "^16.5.2",
-    "cancel-stuck-transactions": "^4.1.3",
+    "cancel-stuck-transactions": "^4.1.4",
     "ethers": "^6.13.5",
     "p-retry": "^6.2.1",
     "pg": "^8.13.1"
