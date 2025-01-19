@@ -331,7 +331,7 @@ async function defineTasksForRound (pgClient, sparkRoundNumber, taskCount) {
 
 // Exponentially look at more blocks to handle the case when we have an outage
 // and the rounds are not advanced frequently enough, while keeping the happy
-// patch performant.
+// path performant.
 export async function getRoundStartEpochWithBackoff (
   contract,
   roundIndex,
