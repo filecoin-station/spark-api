@@ -71,7 +71,7 @@ async function updateSparkRound (pgPool, contract, newRoundIndex, recordTelemetr
   const meridianContractAddress = await contract.getAddress()
 
   if (roundStartEpoch === undefined) {
-    roundStartEpoch = await getRoundStartEpoch(contract, meridianRoundIndex)
+    roundStartEpoch = await getRoundStartEpochWithBackoff(contract, meridianRoundIndex)
   }
 
   const pgClient = await pgPool.connect()
@@ -329,17 +329,46 @@ async function defineTasksForRound (pgClient, sparkRoundNumber, taskCount) {
   ])
 }
 
+// Exponentially look at more blocks to handle the case when we have an outage
+// and the rounds are not advanced frequently enough, while keeping the happy
+// path performant.
+export async function getRoundStartEpochWithBackoff (
+  contract,
+  roundIndex,
+  maxAttempts = 5
+) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await getRoundStartEpoch(
+        contract,
+        roundIndex,
+        50 * (2 ** attempt)
+      )
+    } catch (err) {
+      if (attempt < maxAttempts) {
+        console.warn('Failed to get round start epoch, retrying...', {
+          err,
+          attempt,
+          maxAttempts,
+          roundIndex
+        })
+      } else {
+        throw err
+      }
+    }
+  }
+}
+
 /**
  * @param {MeridianContract} contract
  * @param {bigint} roundIndex
  * @returns {Promise<number>} Filecoin Epoch (ETH block number) when the SPARK round started
  */
-export async function getRoundStartEpoch (contract, roundIndex) {
+export async function getRoundStartEpoch (contract, roundIndex, blocks) {
   assert.strictEqual(typeof roundIndex, 'bigint', `roundIndex must be a bigint, received: ${typeof roundIndex}`)
+  assert.strictEqual(typeof blocks, 'number', `blocks must be a number, received: ${typeof blocks}`)
 
-  // Look at more blocks than should be necessary to handle the case when we have an outage and
-  // the rounds are not advanced frequently enough.
-  const recentRoundStartEvents = (await contract.queryFilter('RoundStart', -500))
+  const recentRoundStartEvents = (await contract.queryFilter('RoundStart', -blocks))
     .map(({ blockNumber, args }) => ({ blockNumber, roundIndex: args[0] }))
 
   const roundStart = recentRoundStartEvents.find(e => e.roundIndex === roundIndex)

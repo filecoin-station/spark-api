@@ -6,6 +6,7 @@ import {
   TASKS_EXECUTED_PER_ROUND,
   ROUND_TASKS_TO_NODE_TASKS_RATIO,
   getRoundStartEpoch,
+  getRoundStartEpochWithBackoff,
   mapCurrentMeridianRoundToSparkRound,
   startRoundTracker,
   MAX_TASKS_PER_NODE_LIMIT
@@ -562,11 +563,21 @@ describe('Round Tracker', () => {
   })
 
   describe('getRoundStartEpoch', () => {
-    it('returns a block number', async function () {
+    it('returns a block number, safely query many blocks', async function () {
       this.timeout(TIMEOUT_WHEN_QUERYING_CHAIN)
       const contract = await createMeridianContract()
       const roundIndex = await contract.currentRoundIndex()
-      const startEpoch = await getRoundStartEpoch(contract, roundIndex)
+      const startEpoch = await getRoundStartEpoch(contract, roundIndex, 500)
+      assert.strictEqual(typeof startEpoch, 'number')
+    })
+  })
+
+  describe('getRoundStartEpochWithBackoff', () => {
+    it('returns a block number, starting with query few blocks', async function () {
+      this.timeout(TIMEOUT_WHEN_QUERYING_CHAIN)
+      const contract = await createMeridianContract()
+      const roundIndex = await contract.currentRoundIndex()
+      const startEpoch = await getRoundStartEpochWithBackoff(contract, roundIndex)
       assert.strictEqual(typeof startEpoch, 'number')
     })
   })
