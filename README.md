@@ -16,6 +16,7 @@ Body:
   sparkVersion: String,
   zinniaVersion: String
 }
+```
 
 Response:
 
