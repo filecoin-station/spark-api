@@ -342,7 +342,7 @@ export async function getRoundStartEpochWithBackoff (
       return await getRoundStartEpoch(
         contract,
         roundIndex,
-        50 * Math.pow(2, attempt)
+        50 * (2 ** attempt)
       )
     } catch (err) {
       if (attempt < maxAttempts) {
