@@ -773,4 +773,88 @@ describe('Routes', () => {
       })
     })
   })
+
+  describe('POST /ingest-eligible-deals', () => {
+    beforeEach(async () => {
+      await client.query(
+        'DELETE FROM eligible_deals WHERE miner_id = $1',
+        ['f000']
+      )
+    })
+
+    it('ingests new deals', async () => {
+      const deals = [{
+        minerId: 'f000',
+        clientId: 'f001',
+        pieceCid: 'bagaone',
+        pieceSize: '34359738368',
+        payloadCid: 'bafyone',
+        expiresAt: '2100-01-01'
+      }]
+
+      const res = await fetch(`${spark}/ingest-eligible-deals`, {
+        method: 'POST',
+        body: JSON.stringify(deals)
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(body, { ingested: 1, skipped: 0 })
+
+      const { rows } = await client.query(
+        'SELECT * FROM eligible_deals WHERE miner_id = $1',
+        ['f000']
+      )
+      assert.deepStrictEqual(rows, [{
+        miner_id: 'f000',
+        client_id: 'f001',
+        piece_cid: 'bagaone',
+        piece_size: '34359738368',
+        payload_cid: 'bafyone',
+        expires_at: new Date('2100-01-01'),
+        sourced_from_f05_state: false
+      }])
+    })
+
+    it('skips deals that were already ingested from f05 state', async () => {
+      const { rows: [f05Deal] } = await client.query(
+        'SELECT * FROM eligible_deals WHERE sourced_from_f05_state = TRUE LIMIT 1'
+      )
+
+      const res = await fetch(`${spark}/ingest-eligible-deals`, {
+        method: 'POST',
+        body: JSON.stringify([{
+          minerId: f05Deal.miner_id,
+          clientId: f05Deal.client_id,
+          pieceCid: f05Deal.piece_cid,
+          pieceSize: f05Deal.piece_size,
+          payloadCid: f05Deal.payload_cid,
+          expiresAt: f05Deal.expires_at.toISOString()
+        }])
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(body, { ingested: 0, skipped: 1 })
+
+      const { rows } = await client.query(`
+        SELECT * FROM eligible_deals WHERE
+          miner_id = $1
+          AND client_id = $2
+          AND piece_cid = $3
+          AND piece_size = $4
+      `, [
+        f05Deal.miner_id,
+        f05Deal.client_id,
+        f05Deal.piece_cid,
+        f05Deal.piece_size
+      ])
+
+      assert.deepStrictEqual(rows, [f05Deal])
+    })
+
+    it.skip('rejects unauthorized requests', async () => {
+      // TODO
+    })
+  })
 })
