@@ -28,7 +28,7 @@ jobs:
           - cancel-stuck-transactions
           - p-retry
           - cross-spawn
-          - '@ucanto/core'
+          - '@ucanto/'
     steps:
       - name: Dependabot metadata
         id: metadata
