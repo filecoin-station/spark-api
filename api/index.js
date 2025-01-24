@@ -36,7 +36,7 @@ const handler = async (req, res, client, domain) => {
     await getSummaryOfEligibleDealsForAllocator(req, res, client, segs[1])
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
-  } else if (segs[0] === 'ingest-eligible-deals' && req.method === 'POST') {
+  } else if (segs[0] === 'eligible-deals-batch' && req.method === 'POST') {
     await ingestEligibleDeals(req, res, client)
   } else {
     notFound(res)

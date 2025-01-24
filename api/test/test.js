@@ -774,7 +774,7 @@ describe('Routes', () => {
     })
   })
 
-  describe('POST /ingest-eligible-deals', () => {
+  describe('POST /eligible-deals-batch', () => {
     beforeEach(async () => {
       await client.query(
         'DELETE FROM eligible_deals WHERE miner_id = $1',
@@ -797,7 +797,7 @@ describe('Routes', () => {
         expiresAt: '2100-01-01'
       }]
 
-      const res = await fetch(`${spark}/ingest-eligible-deals`, {
+      const res = await fetch(`${spark}/eligible-deals-batch`, {
         method: 'POST',
         body: JSON.stringify(deals)
       })
@@ -826,7 +826,7 @@ describe('Routes', () => {
         'SELECT * FROM eligible_deals WHERE sourced_from_f05_state = TRUE LIMIT 1'
       )
 
-      const res = await fetch(`${spark}/ingest-eligible-deals`, {
+      const res = await fetch(`${spark}/eligible-deals-batch`, {
         method: 'POST',
         body: JSON.stringify([{
           minerId: f05Deal.miner_id,
