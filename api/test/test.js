@@ -783,9 +783,14 @@ describe('Routes', () => {
     })
 
     it('ingests new deals', async () => {
+      // A miner ID value not found in real data
+      const TEST_MINER_ID = 'f000'
+      // A client ID value not found in real data
+      const TEST_CLIENT_ID = 'f001'
+
       const deals = [{
-        minerId: 'f000',
-        clientId: 'f001',
+        minerId: TEST_MINER_ID,
+        clientId: TEST_CLIENT_ID,
         pieceCid: 'bagaone',
         pieceSize: '34359738368',
         payloadCid: 'bafyone',
@@ -806,8 +811,8 @@ describe('Routes', () => {
         ['f000']
       )
       assert.deepStrictEqual(rows, [{
-        miner_id: 'f000',
-        client_id: 'f001',
+        miner_id: TEST_MINER_ID,
+        client_id: TEST_CLIENT_ID,
         piece_cid: 'bagaone',
         piece_size: '34359738368',
         payload_cid: 'bafyone',
