@@ -9,7 +9,17 @@ import { recordNetworkInfoTelemetry } from '../common/telemetry.js'
 import { satisfies } from 'compare-versions'
 import { ethAddressFromDelegated } from '@glif/filecoin-address'
 
-const handler = async (req, res, client, domain) => {
+/** @import {IncomingMessage, ServerResponse} from 'node:http' */
+/** @import pg from 'pg' */
+
+/*
+ * @param {IncomingMessage} req
+ * @param {ServerResponse} res
+ * @param {pg.Client} client
+ * @param {string} domain
+ * @param {string} dealIngestionAccessToken
+ */
+const handler = async (req, res, client, domain, dealIngestionAccessToken) => {
   if (req.headers.host.split(':')[0] !== domain) {
     return redirect(res, `https://${domain}${req.url}`)
   }
@@ -37,7 +47,7 @@ const handler = async (req, res, client, domain) => {
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
   } else if (segs[0] === 'eligible-deals-batch' && req.method === 'POST') {
-    await ingestEligibleDeals(req, res, client)
+    await ingestEligibleDeals(req, res, client, dealIngestionAccessToken)
   } else {
     notFound(res)
   }
@@ -401,7 +411,19 @@ export const inspectRequest = async (req, res) => {
   })
 }
 
-export const ingestEligibleDeals = async (req, res, client) => {
+/**
+ * @param {IncomingMessage} req
+ * @param {ServerResponse} res
+ * @param {pg.Client} client
+ * @param {string} dealIngestionAccessToken
+ */
+export const ingestEligibleDeals = async (req, res, client, dealIngestionAccessToken) => {
+  if (req.headers.authorization !== `Bearer ${dealIngestionAccessToken}`) {
+    res.statusCode = 403
+    res.end('Unauthorized')
+    return
+  }
+
   const body = await getRawBody(req, { limit: '100mb' })
   const deals = JSON.parse(body)
   assert(Array.isArray(deals), 400, 'Invalid JSON Body, must be an array')
@@ -449,12 +471,13 @@ export const ingestEligibleDeals = async (req, res, client) => {
 export const createHandler = async ({
   client,
   logger,
+  dealIngestionAccessToken,
   domain
 }) => {
   return (req, res) => {
     const start = new Date()
     logger.request(`${req.method} ${req.url} ...`)
-    handler(req, res, client, domain)
+    handler(req, res, client, domain, dealIngestionAccessToken)
       .catch(err => errorHandler(res, err, logger))
       .then(() => {
         logger.request(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)
