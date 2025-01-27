@@ -18,6 +18,10 @@ const {
   REQUEST_LOGGING = 'true'
 } = process.env
 
+// This token is used by other Spark services to authenticate requests adding new deals
+// to Spark's database of deals eligible for retrieval testing (`POST /eligible-deals-batch`).
+// In production, the value is configured using Fly.io secrets (`fly secrets`).
+// The same token is configured in Fly.io secrets for the deal-observer service too.
 assert(DEAL_INGESTER_TOKEN, 'DEAL_INGESTER_TOKEN is required')
 
 const client = new pg.Pool({
