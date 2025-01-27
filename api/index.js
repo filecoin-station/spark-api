@@ -9,7 +9,17 @@ import { recordNetworkInfoTelemetry } from '../common/telemetry.js'
 import { satisfies } from 'compare-versions'
 import { ethAddressFromDelegated } from '@glif/filecoin-address'
 
-const handler = async (req, res, client, domain) => {
+/** @import {IncomingMessage, ServerResponse} from 'node:http' */
+/** @import pg from 'pg' */
+
+/*
+ * @param {IncomingMessage} req
+ * @param {ServerResponse} res
+ * @param {pg.Client} client
+ * @param {string} domain
+ * @param {string} dealIngestionAccessToken
+ */
+const handler = async (req, res, client, domain, dealIngestionAccessToken) => {
   if (req.headers.host.split(':')[0] !== domain) {
     return redirect(res, `https://${domain}${req.url}`)
   }
@@ -36,6 +46,8 @@ const handler = async (req, res, client, domain) => {
     await getSummaryOfEligibleDealsForAllocator(req, res, client, segs[1])
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
+  } else if (segs[0] === 'eligible-deals-batch' && req.method === 'POST') {
+    await ingestEligibleDeals(req, res, client, dealIngestionAccessToken)
   } else {
     notFound(res)
   }
@@ -399,15 +411,73 @@ export const inspectRequest = async (req, res) => {
   })
 }
 
+/**
+ * @param {IncomingMessage} req
+ * @param {ServerResponse} res
+ * @param {pg.Client} client
+ * @param {string} dealIngestionAccessToken
+ */
+export const ingestEligibleDeals = async (req, res, client, dealIngestionAccessToken) => {
+  if (req.headers.authorization !== `Bearer ${dealIngestionAccessToken}`) {
+    res.statusCode = 403
+    res.end('Unauthorized')
+    return
+  }
+
+  const body = await getRawBody(req, { limit: '100mb' })
+  const deals = JSON.parse(body)
+  assert(Array.isArray(deals), 400, 'Invalid JSON Body, must be an array')
+  for (const d of deals) {
+    validate(d, 'clientId', { type: 'string', required: true })
+    validate(d, 'minerId', { type: 'string', required: true })
+    validate(d, 'pieceCid', { type: 'string', required: true })
+    validate(d, 'pieceSize', { type: 'string', required: true })
+    validate(d, 'payloadCid', { type: 'string', required: true })
+    validate(d, 'expiresAt', { type: 'date', required: true })
+  }
+
+  const { rowCount: ingested } = await client.query(`
+    INSERT INTO eligible_deals (
+      client_id,
+      miner_id,
+      piece_cid,
+      piece_size,
+      payload_cid,
+      expires_at,
+      sourced_from_f05_state
+    ) VALUES (
+      unnest($1::TEXT[]),
+      unnest($2::TEXT[]),
+      unnest($3::TEXT[]),
+      unnest($4::BIGINT[]),
+      unnest($5::TEXT[]),
+      unnest($6::DATE[]),
+      false
+    ) ON CONFLICT DO NOTHING`, [
+    deals.map(d => d.clientId),
+    deals.map(d => d.minerId),
+    deals.map(d => d.pieceCid),
+    deals.map(d => d.pieceSize),
+    deals.map(d => d.payloadCid),
+    deals.map(d => d.expiresAt)
+  ])
+
+  json(res, {
+    ingested,
+    skipped: deals.length - ingested
+  })
+}
+
 export const createHandler = async ({
   client,
   logger,
+  dealIngestionAccessToken,
   domain
 }) => {
   return (req, res) => {
     const start = new Date()
     logger.request(`${req.method} ${req.url} ...`)
-    handler(req, res, client, domain)
+    handler(req, res, client, domain, dealIngestionAccessToken)
       .catch(err => errorHandler(res, err, logger))
       .then(() => {
         logger.request(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)

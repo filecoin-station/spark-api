@@ -1,4 +1,5 @@
 import '../lib/instrument.js'
+import assert from 'node:assert'
 import http from 'node:http'
 import { once } from 'node:events'
 import { createHandler } from '../index.js'
@@ -13,8 +14,15 @@ const {
   HOST = '127.0.0.1',
   DOMAIN = 'localhost',
   DATABASE_URL,
+  DEAL_INGESTER_TOKEN,
   REQUEST_LOGGING = 'true'
 } = process.env
+
+// This token is used by other Spark services to authenticate requests adding new deals
+// to Spark's database of deals eligible for retrieval testing (`POST /eligible-deals-batch`).
+// In production, the value is configured using Fly.io secrets (`fly secrets`).
+// The same token is configured in Fly.io secrets for the deal-observer service too.
+assert(DEAL_INGESTER_TOKEN, 'DEAL_INGESTER_TOKEN is required')
 
 const client = new pg.Pool({
   connectionString: DATABASE_URL,
@@ -68,6 +76,7 @@ const logger = {
 const handler = await createHandler({
   client,
   logger,
+  dealIngestionAccessToken: DEAL_INGESTER_TOKEN,
   domain: DOMAIN
 })
 const server = http.createServer(handler)

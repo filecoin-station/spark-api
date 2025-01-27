@@ -17,6 +17,8 @@ const participantAddress = '0x000000000000000000000000000000000000dEaD'
 const sparkVersion = '1.13.0' // This must be in sync with the minimum supported client version
 const currentSparkRoundNumber = 42n
 
+const VALID_DEAL_INGESTION_TOKEN = 'authorized-token'
+
 const VALID_MEASUREMENT = {
   cid: 'bafytest',
   providerAddress: '/dns4/localhost/tcp/8080',
@@ -70,6 +72,7 @@ describe('Routes', () => {
         error: console.error,
         request () {}
       },
+      dealIngestionAccessToken: VALID_DEAL_INGESTION_TOKEN,
       domain: '127.0.0.1'
     })
     server = http.createServer(handler)
@@ -771,6 +774,114 @@ describe('Routes', () => {
           clients: []
         })
       })
+    })
+  })
+
+  describe('POST /eligible-deals-batch', () => {
+    // A miner ID value not found in real data
+    const TEST_MINER_ID = 'f000'
+    // A client ID value not found in real data
+    const TEST_CLIENT_ID = 'f001'
+
+    const AUTH_HEADERS = { authorization: `Bearer ${VALID_DEAL_INGESTION_TOKEN}` }
+
+    beforeEach(async () => {
+      await client.query(
+        'DELETE FROM eligible_deals WHERE miner_id = $1',
+        ['f000']
+      )
+    })
+
+    it('ingests new deals', async () => {
+      const deals = [{
+        minerId: TEST_MINER_ID,
+        clientId: TEST_CLIENT_ID,
+        pieceCid: 'bagaone',
+        pieceSize: '34359738368',
+        payloadCid: 'bafyone',
+        expiresAt: '2100-01-01'
+      }]
+
+      const res = await fetch(`${spark}/eligible-deals-batch`, {
+        method: 'POST',
+        headers: AUTH_HEADERS,
+        body: JSON.stringify(deals)
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(body, { ingested: 1, skipped: 0 })
+
+      const { rows } = await client.query(
+        'SELECT * FROM eligible_deals WHERE miner_id = $1',
+        ['f000']
+      )
+      assert.deepStrictEqual(rows, [{
+        miner_id: TEST_MINER_ID,
+        client_id: TEST_CLIENT_ID,
+        piece_cid: 'bagaone',
+        piece_size: '34359738368',
+        payload_cid: 'bafyone',
+        expires_at: new Date('2100-01-01'),
+        sourced_from_f05_state: false
+      }])
+    })
+
+    it('skips deals that were already ingested from f05 state', async () => {
+      const { rows: [f05Deal] } = await client.query(
+        'SELECT * FROM eligible_deals WHERE sourced_from_f05_state = TRUE LIMIT 1'
+      )
+
+      const res = await fetch(`${spark}/eligible-deals-batch`, {
+        method: 'POST',
+        headers: AUTH_HEADERS,
+        body: JSON.stringify([{
+          minerId: f05Deal.miner_id,
+          clientId: f05Deal.client_id,
+          pieceCid: f05Deal.piece_cid,
+          pieceSize: f05Deal.piece_size,
+          payloadCid: f05Deal.payload_cid,
+          expiresAt: f05Deal.expires_at.toISOString()
+        }])
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(body, { ingested: 0, skipped: 1 })
+
+      const { rows } = await client.query(`
+        SELECT * FROM eligible_deals WHERE
+          miner_id = $1
+          AND client_id = $2
+          AND piece_cid = $3
+          AND piece_size = $4
+      `, [
+        f05Deal.miner_id,
+        f05Deal.client_id,
+        f05Deal.piece_cid,
+        f05Deal.piece_size
+      ])
+
+      assert.deepStrictEqual(rows, [f05Deal])
+    })
+
+    it('rejects unauthorized requests', async () => {
+      const deals = [{
+        minerId: TEST_MINER_ID,
+        clientId: TEST_CLIENT_ID,
+        pieceCid: 'bagaone',
+        pieceSize: '34359738368',
+        payloadCid: 'bafyone',
+        expiresAt: '2100-01-01'
+      }]
+
+      const res = await fetch(`${spark}/eligible-deals-batch`, {
+        method: 'POST',
+        body: JSON.stringify(deals)
+      })
+      await assertResponseStatus(res, 403)
+      const body = await res.text()
+      assert.strictEqual(body, 'Unauthorized')
     })
   })
 })
