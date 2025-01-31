@@ -31,7 +31,7 @@ const client = new pg.Pool({
   // this values should correlate with service concurrency hard_limit configured in fly.toml
   // and must take into account the connection limit of our PG server, see
   // https://fly.io/docs/postgres/managing/configuration-tuning/
-  max: 100,
+  max: 150,
   // close connections that haven't been used for one second
   idleTimeoutMillis: 1000,
   // automatically close connections older than 60 seconds
