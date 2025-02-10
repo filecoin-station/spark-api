@@ -576,7 +576,7 @@ describe('Round Tracker', () => {
 
         // Create deals from the same client. First two deals are with the same SP, the third is not.
         // All deals have the same payload_cid.
-        // Only these two deals will be available for sampling
+        // Only these deals will be available for sampling
         await pgClient.query(`
           INSERT INTO eligible_deals
           (miner_id, client_id, piece_cid, piece_size, payload_cid, expires_at, sourced_from_f05_state)
