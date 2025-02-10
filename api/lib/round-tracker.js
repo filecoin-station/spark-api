@@ -307,7 +307,7 @@ export async function maybeCreateSparkRound (pgClient, {
   }
 }
 
-async function defineTasksForRound (pgClient, sparkRoundNumber, taskCount) {
+export async function defineTasksForRound (pgClient, sparkRoundNumber, taskCount) {
   await pgClient.query(`
     INSERT INTO retrieval_tasks (round_id, cid, miner_id, clients)
     WITH selected AS (
@@ -317,7 +317,7 @@ async function defineTasksForRound (pgClient, sparkRoundNumber, taskCount) {
       ORDER BY random()
       LIMIT $2
     )
-    SELECT $1 as round_id, selected.payload_cid as cid, selected.miner_id, array_agg(client_id) as clients
+    SELECT $1 as round_id, selected.payload_cid as cid, selected.miner_id, array_agg(DISTINCT client_id) as clients
     FROM selected
     LEFT JOIN eligible_deals
     ON selected.payload_cid = eligible_deals.payload_cid AND selected.miner_id = eligible_deals.miner_id

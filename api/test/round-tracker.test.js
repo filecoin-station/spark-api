@@ -5,6 +5,7 @@ import {
   BASELINE_TASKS_PER_NODE,
   TASKS_EXECUTED_PER_ROUND,
   ROUND_TASKS_TO_NODE_TASKS_RATIO,
+  defineTasksForRound,
   getRoundStartEpoch,
   getRoundStartEpochWithBackoff,
   mapCurrentMeridianRoundToSparkRound,
@@ -558,6 +559,63 @@ describe('Round Tracker', () => {
           [sparkRoundNumber]
         )
         assert.strictEqual(sparkRound.max_tasks_per_node, MAX_TASKS_PER_NODE_LIMIT)
+      })
+    })
+
+    describe('defineTasksForRound', () => {
+      it('merges duplicate clients', async () => {
+        // Delete any eligible deals create by previous test runs
+        await pgClient.query(`
+          DELETE FROM eligible_deals WHERE client_id = 'f0050'
+        `)
+
+        // Mark all existing deals as expired
+        await pgClient.query(`
+          UPDATE eligible_deals SET expires_at = NOW() - INTERVAL '1 day'
+        `)
+
+        // Create deals from the same client. First two deals are with the same SP, the third is not.
+        // All deals have the same payload_cid.
+        // Only these two deals will be available for sampling
+        await pgClient.query(`
+          INSERT INTO eligible_deals
+          (miner_id, client_id, piece_cid, piece_size, payload_cid, expires_at, sourced_from_f05_state)
+          VALUES
+          ('f0010', 'f0050', 'baga1', 1, 'bafkqaaa', NOW() + INTERVAL '1 year', true),
+          ('f0010', 'f0050', 'baga2', 1, 'bafkqaaa', NOW() + INTERVAL '1 year', true),
+          ('f0011', 'f0050', 'baga1', 1, 'bafkqaaa', NOW() + INTERVAL '1 year', true)
+        `)
+
+        // Create a new round and define tasks for the round
+        const roundId = 1
+        await pgClient.query(`
+          INSERT INTO spark_rounds
+          (id, created_at, meridian_address, meridian_round, start_epoch, max_tasks_per_node)
+          VALUES
+          ($1, NOW(), '0x1a', 1, 1, 15)
+        `, [
+          roundId
+        ])
+        await defineTasksForRound(pgClient, roundId, 3)
+
+        const { rows: tasks } = await pgClient.query(
+          'SELECT miner_id, cid, clients FROM retrieval_tasks WHERE round_id = $1',
+          [roundId]
+        )
+
+        assert.deepStrictEqual(tasks, [
+          {
+            cid: 'bafkqaaa',
+            miner_id: 'f0010',
+            // Important: clients are deduplicated
+            clients: ['f0050']
+          },
+          {
+            cid: 'bafkqaaa',
+            miner_id: 'f0011',
+            clients: ['f0050']
+          }
+        ])
       })
     })
   })
