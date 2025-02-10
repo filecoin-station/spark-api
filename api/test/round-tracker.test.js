@@ -564,7 +564,7 @@ describe('Round Tracker', () => {
 
     describe('defineTasksForRound', () => {
       it('merges duplicate clients', async () => {
-        // Delete any eligible deals create by previous test runs
+        // Delete any eligible deals created by previous test runs
         await pgClient.query(`
           DELETE FROM eligible_deals WHERE client_id = 'f0050'
         `)
