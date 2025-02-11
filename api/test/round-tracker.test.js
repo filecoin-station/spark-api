@@ -563,15 +563,24 @@ describe('Round Tracker', () => {
     })
 
     describe('defineTasksForRound', () => {
+      before(async () => {
+        // Mark all existing deals as expired
+        await pgClient.query(`
+          UPDATE eligible_deals SET expires_at = NOW() - INTERVAL '1 day'
+        `)
+      })
+
+      after(async () => {
+        // Revert the change that expired existing deals
+        await pgClient.query(`
+          UPDATE eligible_deals SET expires_at = NOW() + INTERVAL '1 year'
+        `)
+      })
+
       it('merges duplicate clients', async () => {
         // Delete any eligible deals created by previous test runs
         await pgClient.query(`
           DELETE FROM eligible_deals WHERE client_id = 'f0050'
-        `)
-
-        // Mark all existing deals as expired
-        await pgClient.query(`
-          UPDATE eligible_deals SET expires_at = NOW() - INTERVAL '1 day'
         `)
 
         // Create deals from the same client. First two deals are with the same SP, the third is not.
