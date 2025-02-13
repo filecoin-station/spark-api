@@ -85,6 +85,7 @@ const createMeasurement = async (req, res, client) => {
   validate(measurement, 'timeout', { type: 'boolean', required: false })
   validate(measurement, 'startAt', { type: 'date', required: false })
   validate(measurement, 'statusCode', { type: 'number', required: false })
+  validate(measurement, 'headStatusCode', { type: 'number', required: false })
   validate(measurement, 'firstByteAt', { type: 'date', required: false })
   validate(measurement, 'endAt', { type: 'date', required: false })
   validate(measurement, 'byteLength', { type: 'number', required: false })
@@ -112,6 +113,7 @@ const createMeasurement = async (req, res, client) => {
         timeout,
         start_at,
         status_code,
+        head_status_code,
         first_byte_at,
         end_at,
         byte_length,
@@ -125,7 +127,7 @@ const createMeasurement = async (req, res, client) => {
         completed_at_round
       )
       SELECT
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21,
         id as completed_at_round
       FROM spark_rounds
       ORDER BY id DESC
@@ -142,6 +144,7 @@ const createMeasurement = async (req, res, client) => {
     measurement.timeout || false,
     parseOptionalDate(measurement.startAt),
     measurement.statusCode,
+    measurement.headStatusCode,
     parseOptionalDate(measurement.firstByteAt),
     parseOptionalDate(measurement.endAt),
     measurement.byteLength,
@@ -182,6 +185,7 @@ const getMeasurement = async (req, res, client, measurementId) => {
     timeout: resultRow.timeout,
     startAt: resultRow.start_at,
     statusCode: resultRow.status_code,
+    headStatusCode: resultRow.head_status_code,
     firstByteAt: resultRow.first_byte_at,
     endAt: resultRow.end_at,
     byteLength: resultRow.byte_length,
