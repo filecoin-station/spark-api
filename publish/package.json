@@ -10,8 +10,8 @@
     "@glif/filecoin-address": "^3.0.12",
     "@influxdata/influxdb-client": "^1.35.0",
     "@ipld/car": "^5.4.0",
-    "@sentry/node": "^9.0.1",
-    "@ucanto/core": "^10.2.1",
+    "@sentry/node": "^9.1.0",
+    "@ucanto/core": "^10.3.0",
     "@ucanto/principal": "^9.0.2",
     "@web3-storage/access": "^20.0.0",
     "@web3-storage/w3up-client": "^16.5.2",
@@ -21,7 +21,7 @@
     "pg": "^8.13.3"
   },
   "devDependencies": {
-    "@flydotio/dockerfile": "^0.7.5",
+    "@flydotio/dockerfile": "^0.7.8",
     "mocha": "^11.1.0",
     "multiformats": "^13.3.2",
     "postgrator": "^8.0.0",
