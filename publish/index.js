@@ -24,6 +24,7 @@ export const publish = async ({
       timeout,
       start_at,
       status_code,
+      head_status_code,
       first_byte_at,
       end_at,
       byte_length,

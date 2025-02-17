@@ -29,6 +29,7 @@ const VALID_MEASUREMENT = {
   participantAddress,
   startAt: new Date(),
   statusCode: 200,
+  headStatusCode: 200,
   firstByteAt: new Date(),
   endAt: new Date(),
   byteLength: 100,
@@ -167,6 +168,7 @@ describe('Routes', () => {
         measurement.startAt.toJSON()
       )
       assert.strictEqual(measurementRow.status_code, measurement.statusCode)
+      assert.strictEqual(measurementRow.head_status_code, measurement.headStatusCode)
       assert.strictEqual(
         measurementRow.first_byte_at.toJSON(),
         measurement.firstByteAt.toJSON()
