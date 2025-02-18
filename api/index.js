@@ -9,7 +9,17 @@ import { recordNetworkInfoTelemetry } from '../common/telemetry.js'
 import { satisfies } from 'compare-versions'
 import { ethAddressFromDelegated } from '@glif/filecoin-address'
 
-const handler = async (req, res, client, domain) => {
+/** @import {IncomingMessage, ServerResponse} from 'node:http' */
+/** @import pg from 'pg' */
+
+/*
+ * @param {IncomingMessage} req
+ * @param {ServerResponse} res
+ * @param {pg.Client} client
+ * @param {string} domain
+ * @param {string} dealIngestionAccessToken
+ */
+const handler = async (req, res, client, domain, dealIngestionAccessToken) => {
   if (req.headers.host.split(':')[0] !== domain) {
     return redirect(req, res, `https://${domain}${req.url}`, 301)
   }
@@ -28,8 +38,16 @@ const handler = async (req, res, client, domain) => {
     await getMeridianRoundDetails(req, res, client, segs[2], segs[3])
   } else if (segs[0] === 'rounds' && req.method === 'GET') {
     await getRoundDetails(req, res, client, segs[1])
+  } else if (segs[0] === 'miner' && segs[1] && segs[2] === 'deals' && segs[3] === 'eligible' && segs[4] === 'summary' && req.method === 'GET') {
+    await getSummaryOfEligibleDealsForMiner(req, res, client, segs[1])
+  } else if (segs[0] === 'client' && segs[1] && segs[2] === 'deals' && segs[3] === 'eligible' && segs[4] === 'summary' && req.method === 'GET') {
+    await getSummaryOfEligibleDealsForClient(req, res, client, segs[1])
+  } else if (segs[0] === 'allocator' && segs[1] && segs[2] === 'deals' && segs[3] === 'eligible' && segs[4] === 'summary' && req.method === 'GET') {
+    await getSummaryOfEligibleDealsForAllocator(req, res, client, segs[1])
   } else if (segs[0] === 'inspect-request' && req.method === 'GET') {
     await inspectRequest(req, res)
+  } else if (segs[0] === 'eligible-deals-batch' && req.method === 'POST') {
+    await ingestEligibleDeals(req, res, client, dealIngestionAccessToken)
   } else {
     status(res, 404)
   }
@@ -65,8 +83,9 @@ const createMeasurement = async (req, res, client) => {
   validate(measurement, 'protocol', { type: 'string', required: false })
   validate(measurement, 'participantAddress', { type: 'ethereum address', required: true })
   validate(measurement, 'timeout', { type: 'boolean', required: false })
-  validate(measurement, 'startAt', { type: 'date', required: true })
+  validate(measurement, 'startAt', { type: 'date', required: false })
   validate(measurement, 'statusCode', { type: 'number', required: false })
+  validate(measurement, 'headStatusCode', { type: 'number', required: false })
   validate(measurement, 'firstByteAt', { type: 'date', required: false })
   validate(measurement, 'endAt', { type: 'date', required: false })
   validate(measurement, 'byteLength', { type: 'number', required: false })
@@ -94,6 +113,7 @@ const createMeasurement = async (req, res, client) => {
         timeout,
         start_at,
         status_code,
+        head_status_code,
         first_byte_at,
         end_at,
         byte_length,
@@ -107,7 +127,7 @@ const createMeasurement = async (req, res, client) => {
         completed_at_round
       )
       SELECT
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21,
         id as completed_at_round
       FROM spark_rounds
       ORDER BY id DESC
@@ -124,6 +144,7 @@ const createMeasurement = async (req, res, client) => {
     measurement.timeout || false,
     parseOptionalDate(measurement.startAt),
     measurement.statusCode,
+    measurement.headStatusCode,
     parseOptionalDate(measurement.firstByteAt),
     parseOptionalDate(measurement.endAt),
     measurement.byteLength,
@@ -164,6 +185,7 @@ const getMeasurement = async (req, res, client, measurementId) => {
     timeout: resultRow.timeout,
     startAt: resultRow.start_at,
     statusCode: resultRow.status_code,
+    headStatusCode: resultRow.head_status_code,
     firstByteAt: resultRow.first_byte_at,
     endAt: resultRow.end_at,
     byteLength: resultRow.byte_length,
@@ -288,6 +310,96 @@ const errorHandler = (res, err, logger) => {
   }
 }
 
+const notFound = (res) => {
+  res.statusCode = 404
+  res.end('Not Found')
+}
+
+const redirect = (res, location) => {
+  res.statusCode = 301
+  res.setHeader('location', location)
+  res.end()
+}
+
+const getSummaryOfEligibleDealsForMiner = async (_req, res, client, minerId) => {
+  /** @type {{rows: {client_id: string; deal_count: number}[]}} */
+  const { rows } = await client.query(`
+    SELECT client_id, COUNT(payload_cid)::INTEGER as deal_count FROM eligible_deals
+    WHERE miner_id = $1 AND expires_at > now()
+    GROUP BY client_id
+    ORDER BY deal_count DESC, client_id ASC
+    `, [
+    minerId
+  ])
+
+  // Cache the response for 6 hours
+  res.setHeader('cache-control', `max-age=${6 * 3600}`)
+
+  const body = {
+    minerId,
+    dealCount: rows.reduce((sum, row) => sum + row.deal_count, 0),
+    clients:
+      rows.map(
+        // eslint-disable-next-line camelcase
+        ({ client_id, deal_count }) => ({ clientId: client_id, dealCount: deal_count })
+      )
+  }
+
+  json(res, body)
+}
+
+const getSummaryOfEligibleDealsForClient = async (_req, res, client, clientId) => {
+  /** @type {{rows: {miner_id: string; deal_count: number}[]}} */
+  const { rows } = await client.query(`
+  SELECT miner_id, COUNT(payload_cid)::INTEGER as deal_count FROM eligible_deals
+  WHERE client_id = $1 AND expires_at > now()
+  GROUP BY miner_id
+  ORDER BY deal_count DESC, miner_id ASC
+  `, [
+    clientId
+  ])
+
+  // Cache the response for 6 hours
+  res.setHeader('cache-control', `max-age=${6 * 3600}`)
+
+  const body = {
+    clientId,
+    dealCount: rows.reduce((sum, row) => sum + row.deal_count, 0),
+    providers: rows.map(
+    // eslint-disable-next-line camelcase
+      ({ miner_id, deal_count }) => ({ minerId: miner_id, dealCount: deal_count })
+    )
+  }
+  json(res, body)
+}
+
+const getSummaryOfEligibleDealsForAllocator = async (_req, res, client, allocatorId) => {
+  /** @type {{rows: {client_id: string; deal_count: number}[]}} */
+  const { rows } = await client.query(`
+    SELECT ac.client_id, COUNT(payload_cid)::INTEGER as deal_count
+    FROM allocator_clients ac
+    LEFT JOIN eligible_deals rd ON ac.client_id = rd.client_id
+    WHERE ac.allocator_id = $1 AND expires_at > now()
+    GROUP BY ac.client_id
+    ORDER BY deal_count DESC, ac.client_id ASC
+    `, [
+    allocatorId
+  ])
+
+  // Cache the response for 6 hours
+  res.setHeader('cache-control', `max-age=${6 * 3600}`)
+
+  const body = {
+    allocatorId,
+    dealCount: rows.reduce((sum, row) => sum + row.deal_count, 0),
+    clients: rows.map(
+      // eslint-disable-next-line camelcase
+      ({ client_id, deal_count }) => ({ clientId: client_id, dealCount: deal_count })
+    )
+  }
+  json(res, body)
+}
+
 export const inspectRequest = async (req, res) => {
   await json(res, {
     remoteAddress: req.socket.remoteAddress,
@@ -298,15 +410,73 @@ export const inspectRequest = async (req, res) => {
   })
 }
 
+/**
+ * @param {IncomingMessage} req
+ * @param {ServerResponse} res
+ * @param {pg.Client} client
+ * @param {string} dealIngestionAccessToken
+ */
+export const ingestEligibleDeals = async (req, res, client, dealIngestionAccessToken) => {
+  if (req.headers.authorization !== `Bearer ${dealIngestionAccessToken}`) {
+    res.statusCode = 403
+    res.end('Unauthorized')
+    return
+  }
+
+  const body = await getRawBody(req, { limit: '100mb' })
+  const deals = JSON.parse(body)
+  assert(Array.isArray(deals), 400, 'Invalid JSON Body, must be an array')
+  for (const d of deals) {
+    validate(d, 'clientId', { type: 'string', required: true })
+    validate(d, 'minerId', { type: 'string', required: true })
+    validate(d, 'pieceCid', { type: 'string', required: true })
+    validate(d, 'pieceSize', { type: 'string', required: true })
+    validate(d, 'payloadCid', { type: 'string', required: true })
+    validate(d, 'expiresAt', { type: 'date', required: true })
+  }
+
+  const { rowCount: ingested } = await client.query(`
+    INSERT INTO eligible_deals (
+      client_id,
+      miner_id,
+      piece_cid,
+      piece_size,
+      payload_cid,
+      expires_at,
+      sourced_from_f05_state
+    ) VALUES (
+      unnest($1::TEXT[]),
+      unnest($2::TEXT[]),
+      unnest($3::TEXT[]),
+      unnest($4::BIGINT[]),
+      unnest($5::TEXT[]),
+      unnest($6::DATE[]),
+      false
+    ) ON CONFLICT DO NOTHING`, [
+    deals.map(d => d.clientId),
+    deals.map(d => d.minerId),
+    deals.map(d => d.pieceCid),
+    deals.map(d => d.pieceSize),
+    deals.map(d => d.payloadCid),
+    deals.map(d => d.expiresAt)
+  ])
+
+  json(res, {
+    ingested,
+    skipped: deals.length - ingested
+  })
+}
+
 export const createHandler = async ({
   client,
   logger,
+  dealIngestionAccessToken,
   domain
 }) => {
   return (req, res) => {
     const start = new Date()
     logger.request(`${req.method} ${req.url} ...`)
-    handler(req, res, client, domain)
+    handler(req, res, client, domain, dealIngestionAccessToken)
       .catch(err => errorHandler(res, err, logger))
       .then(() => {
         logger.request(`${req.method} ${req.url} ${res.statusCode} (${new Date() - start}ms)`)

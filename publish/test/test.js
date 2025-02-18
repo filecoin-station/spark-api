@@ -2,6 +2,7 @@ import { publish } from '../index.js'
 import assert from 'node:assert'
 import { CID } from 'multiformats/cid'
 import pg from 'pg'
+import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 import {
   assertApproximately,
@@ -54,7 +55,7 @@ describe('unit', () => {
         return {
           async wait () {
             return {
-              logs: []
+              logs: [{}]
             }
           }
         }
@@ -71,6 +72,17 @@ describe('unit', () => {
       }
     }
 
+    const addPendingCalls = []
+    const removeConfirmedCalls = []
+    const stuckTransactionsCanceller = {
+      async addPending (tx) {
+        addPendingCalls.push(tx)
+      },
+      async removeConfirmed (tx) {
+        removeConfirmedCalls.push(tx)
+      }
+    }
+
     const { recordTelemetry } = createTelemetryRecorderStub()
 
     await publish({
@@ -79,18 +91,22 @@ describe('unit', () => {
       ieContract,
       recordTelemetry,
       maxMeasurements: 1,
-      logger
+      logger,
+      stuckTransactionsCanceller
     })
 
     assert.deepStrictEqual(clientQueryParams, [
       [1],
       undefined,
       [[]],
+      [0, SparkImpactEvaluator.ADDRESS, 1],
       undefined
     ])
     assert.strictEqual(clientStatements.pop(), 'VACUUM measurements')
     assert.strictEqual(web3StorageUploadFiles.length, 1)
     assert.deepStrictEqual(ieContractMeasurementCIDs, [cid])
+    assert.strictEqual(addPendingCalls.length, 1)
+    assert.strictEqual(removeConfirmedCalls.length, 1)
   })
 })
 
@@ -173,6 +189,7 @@ describe('integration', () => {
     }
 
     // TODO: Figure out how to use anvil here
+    const commitmentRoundIndex = 99
     const ieContractMeasurementCIDs = []
     const ieContract = {
       async addMeasurements (_cid) {
@@ -183,7 +200,7 @@ describe('integration', () => {
         return {
           async wait () {
             return {
-              logs: []
+              logs: [{}]
             }
           }
         }
@@ -193,10 +210,21 @@ describe('integration', () => {
           return {
             args: [
               null,
-              1
+              commitmentRoundIndex
             ]
           }
         }
+      }
+    }
+
+    const addPendingCalls = []
+    const removeConfirmedCalls = []
+    const stuckTransactionsCanceller = {
+      async addPending (tx) {
+        addPendingCalls.push(tx)
+      },
+      async removeConfirmed (tx) {
+        removeConfirmedCalls.push(tx)
       }
     }
 
@@ -208,7 +236,8 @@ describe('integration', () => {
       ieContract,
       recordTelemetry,
       maxMeasurements: 2,
-      logger
+      logger,
+      stuckTransactionsCanceller
     })
 
     // TODO: Check data has been committed to the contract
@@ -234,11 +263,22 @@ describe('integration', () => {
     assert.strictEqual(published.provider_id, measurementRecorded.providerId)
     // TODO: test other fields
 
+    assert.strictEqual(addPendingCalls.length, 1)
+    assert.strictEqual(removeConfirmedCalls.length, 1)
+
     // We are publishing records with invalid wallet addresses too
     assert.strictEqual(published.participant_address, '0x000000000000000000000000000000000000dEaD')
 
     const { rows: commitments } = await client.query('SELECT * FROM commitments')
-    assert.deepStrictEqual(commitments.map(c => c.cid), [cid])
+    // eslint-disable-next-line camelcase
+    assert.deepStrictEqual(commitments.map(({ published_at, ...cols }) => cols), [
+      {
+        cid,
+        measurement_count: '2',
+        meridian_address: SparkImpactEvaluator.ADDRESS,
+        meridian_round: String(commitmentRoundIndex)
+      }
+    ])
     assertApproximately(commitments[0].published_at, new Date(), 1_000 /* milliseconds */)
 
     // Check that published measurements were deleted and measurements added later were preserved

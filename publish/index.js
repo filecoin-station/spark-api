@@ -1,12 +1,14 @@
 /* global File */
 
 import pRetry from 'p-retry'
+import * as SparkImpactEvaluator from '@filecoin-station/spark-impact-evaluator'
 
 export const publish = async ({
   client: pgPool,
   web3Storage,
   ieContract,
   recordTelemetry,
+  stuckTransactionsCanceller,
   maxMeasurements = 1000,
   logger = console
 }) => {
@@ -22,6 +24,7 @@ export const publish = async ({
       timeout,
       start_at,
       status_code,
+      head_status_code,
       first_byte_at,
       end_at,
       byte_length,
@@ -63,7 +66,7 @@ export const publish = async ({
 
   // Call contract with CID
   const { roundIndex, ieAddMeasurementsDuration } = await pRetry(
-    () => commitMeasurements({ cid, ieContract, logger }),
+    () => commitMeasurements({ cid, ieContract, logger, stuckTransactionsCanceller }),
     {
       onFailedAttempt: err => console.error(err),
       retries: 5
@@ -82,10 +85,29 @@ export const publish = async ({
       measurements.map(m => m.id)
     ])
 
-    // Record the commitment for future queries
-    // TODO: store also ieContract.address and roundIndex
-    await pgClient.query('INSERT INTO commitments (cid, published_at) VALUES ($1, $2)', [
-      cid.toString(), new Date()
+    await pgClient.query(`
+      INSERT INTO commitments (
+        cid,
+        published_at,
+        measurement_count,
+        meridian_address,
+        meridian_round
+      ) VALUES ($1, now(), $2, $3, $4)
+    `, [
+      cid.toString(),
+      measurements.length,
+      SparkImpactEvaluator.ADDRESS,
+      roundIndex
+    ])
+
+    await pgClient.query(`
+      UPDATE spark_rounds
+      SET measurement_count = COALESCE(measurement_count, 0) + $1
+      WHERE meridian_address = $2 AND meridian_round = $3
+    `, [
+      measurements.length,
+      SparkImpactEvaluator.ADDRESS,
+      roundIndex
     ])
 
     await pgClient.query('COMMIT')
@@ -116,12 +138,20 @@ export const publish = async ({
   })
 }
 
-const commitMeasurements = async ({ cid, ieContract, logger }) => {
+const commitMeasurements = async ({ cid, ieContract, logger, stuckTransactionsCanceller }) => {
   logger.log('Invoking ie.addMeasurements()...')
   const start = new Date()
   const tx = await ieContract.addMeasurements(cid.toString())
+  await stuckTransactionsCanceller.addPending(tx)
   logger.log('Waiting for the transaction receipt:', tx.hash)
   const receipt = await tx.wait()
+  stuckTransactionsCanceller.removeConfirmed(tx)
+  if (receipt.logs.length === 0) {
+    const err = new Error('No logs found in the receipt')
+    err.receipt = receipt
+    err.tx = tx
+    throw err
+  }
   const log = ieContract.interface.parseLog(receipt.logs[0])
   const roundIndex = log.args[1]
   const ieAddMeasurementsDuration = new Date() - start

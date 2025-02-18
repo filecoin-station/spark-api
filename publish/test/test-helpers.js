@@ -17,6 +17,7 @@ export const insertMeasurement = async (client, measurement) => {
     timeout,
     start_at,
     status_code,
+    head_status_code,
     first_byte_at,
     end_at,
     byte_length,
@@ -30,7 +31,7 @@ export const insertMeasurement = async (client, measurement) => {
     completed_at_round
   )
   VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
   )
 `, [
     measurement.sparkVersion,
@@ -42,6 +43,7 @@ export const insertMeasurement = async (client, measurement) => {
     measurement.timeout,
     measurement.startAt,
     measurement.statusCode,
+    measurement.headStatusCode,
     measurement.firstByteAt,
     measurement.endAt,
     measurement.byteLength,

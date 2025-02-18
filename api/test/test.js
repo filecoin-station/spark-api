@@ -4,17 +4,20 @@ import { once } from 'node:events'
 import assert, { AssertionError } from 'node:assert'
 import pg from 'pg'
 import {
-  TASKS_PER_ROUND,
+  BASELINE_TASKS_PER_ROUND,
   maybeCreateSparkRound,
   mapCurrentMeridianRoundToSparkRound,
-  MAX_TASKS_PER_NODE
+  BASELINE_TASKS_PER_NODE
 } from '../lib/round-tracker.js'
 import { delegatedFromEthAddress } from '@glif/filecoin-address'
+import { createTelemetryRecorderStub } from '../../test-helpers/platform-test-helpers.js'
 
 const { DATABASE_URL } = process.env
 const participantAddress = '0x000000000000000000000000000000000000dEaD'
 const sparkVersion = '1.13.0' // This must be in sync with the minimum supported client version
 const currentSparkRoundNumber = 42n
+
+const VALID_DEAL_INGESTION_TOKEN = 'authorized-token'
 
 const VALID_MEASUREMENT = {
   cid: 'bafytest',
@@ -26,6 +29,7 @@ const VALID_MEASUREMENT = {
   participantAddress,
   startAt: new Date(),
   statusCode: 200,
+  headStatusCode: 200,
   firstByteAt: new Date(),
   endAt: new Date(),
   byteLength: 100,
@@ -59,7 +63,8 @@ describe('Routes', () => {
       sparkRoundNumber: currentSparkRoundNumber,
       meridianContractAddress: '0x1a',
       meridianRoundIndex: 123n,
-      roundStartEpoch: 321n
+      roundStartEpoch: 321n,
+      recordTelemetry: createTelemetryRecorderStub().recordTelemetry
     })
     const handler = await createHandler({
       client,
@@ -68,6 +73,7 @@ describe('Routes', () => {
         error: console.error,
         request () {}
       },
+      dealIngestionAccessToken: VALID_DEAL_INGESTION_TOKEN,
       domain: '127.0.0.1'
     })
     server = http.createServer(handler)
@@ -162,6 +168,7 @@ describe('Routes', () => {
         measurement.startAt.toJSON()
       )
       assert.strictEqual(measurementRow.status_code, measurement.statusCode)
+      assert.strictEqual(measurementRow.head_status_code, measurement.headStatusCode)
       assert.strictEqual(
         measurementRow.first_byte_at.toJSON(),
         measurement.firstByteAt.toJSON()
@@ -262,6 +269,7 @@ describe('Routes', () => {
       const measurement = {
         ...VALID_MEASUREMENT,
         statusCode: undefined,
+        startAt: null,
         firstByteAt: null,
         endAt: null
       }
@@ -283,6 +291,7 @@ describe('Routes', () => {
       ])
 
       assert.strictEqual(measurementRow.status_code, null)
+      assert.strictEqual(measurementRow.start_at, null)
       assert.strictEqual(measurementRow.first_byte_at, null)
       assert.strictEqual(measurementRow.end_at, null)
     })
@@ -448,13 +457,15 @@ describe('Routes', () => {
     before(async () => {
       await client.query('DELETE FROM meridian_contract_versions')
       await client.query('DELETE FROM spark_rounds')
+      const { recordTelemetry } = createTelemetryRecorderStub()
 
       // round 1 managed by old contract version
       let num = await mapCurrentMeridianRoundToSparkRound({
         pgClient: client,
         meridianContractAddress: '0xOLD',
         meridianRoundIndex: 10n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        recordTelemetry
       })
       assert.strictEqual(num, 1n)
 
@@ -463,7 +474,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 120n,
-        roundStartEpoch: 621n
+        roundStartEpoch: 621n,
+        recordTelemetry
       })
       assert.strictEqual(num, 2n)
 
@@ -472,7 +484,8 @@ describe('Routes', () => {
         pgClient: client,
         meridianContractAddress: '0xNEW',
         meridianRoundIndex: 121n,
-        roundStartEpoch: 921n
+        roundStartEpoch: 921n,
+        recordTelemetry
       })
       assert.strictEqual(num, 3n)
     })
@@ -484,10 +497,10 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(details, {
         roundId: '2',
-        maxTasksPerNode: MAX_TASKS_PER_NODE,
+        maxTasksPerNode: BASELINE_TASKS_PER_NODE,
         startEpoch: '621'
       })
-      assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
+      assert.strictEqual(retrievalTasks.length, BASELINE_TASKS_PER_ROUND)
 
       for (const task of retrievalTasks) {
         assert.equal(typeof task.cid, 'string', 'all tasks have "cid"')
@@ -504,10 +517,10 @@ describe('Routes', () => {
 
       assert.deepStrictEqual(details, {
         roundId: '1',
-        maxTasksPerNode: MAX_TASKS_PER_NODE,
+        maxTasksPerNode: BASELINE_TASKS_PER_NODE,
         startEpoch: '321'
       })
-      assert.strictEqual(retrievalTasks.length, TASKS_PER_ROUND)
+      assert.strictEqual(retrievalTasks.length, BASELINE_TASKS_PER_ROUND)
     })
 
     it('returns 404 for unknown round index', async () => {
@@ -529,7 +542,8 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        recordTelemetry: createTelemetryRecorderStub().recordTelemetry
       })
     })
 
@@ -573,7 +587,8 @@ describe('Routes', () => {
         sparkRoundNumber: currentSparkRoundNumber,
         meridianContractAddress: '0x1a',
         meridianRoundIndex: 123n,
-        roundStartEpoch: 321n
+        roundStartEpoch: 321n,
+        recordTelemetry: createTelemetryRecorderStub().recordTelemetry
       })
     })
 
@@ -644,6 +659,231 @@ describe('Routes', () => {
         server.closeAllConnections()
         server.close()
       }
+    })
+  })
+
+  describe('summary of eligible deals', () => {
+    before(async () => {
+      await client.query(`
+        INSERT INTO eligible_deals
+        (payload_cid, miner_id, client_id, piece_cid, piece_size, expires_at)
+        VALUES
+        ('bafyone', 'f0210', 'f0800', 'bagaone', 256, '2100-01-01'),
+        ('bafyone', 'f0220', 'f0800', 'bagaone', 256,  '2100-01-01'),
+        ('bafytwo', 'f0220', 'f0810', 'bagatwo', 256, '2100-01-01'),
+        ('bafyone', 'f0230', 'f0800', 'bagaone', 256, '2100-01-01'),
+        ('bafytwo', 'f0230', 'f0800', 'bagatwo', 256, '2100-01-01'),
+        ('bafythree', 'f0230', 'f0810', 'bagathree', 256, '2100-01-01'),
+        ('bafyfour', 'f0230', 'f0820', 'bagafour', 256, '2100-01-01'),
+        ('bafyexpired', 'f0230', 'f0800', 'bagaexpired', 256, '2020-01-01')
+        ON CONFLICT DO NOTHING
+      `)
+
+      await client.query(`
+        INSERT INTO allocator_clients (allocator_id, client_id)
+        VALUES
+        ('f0500', 'f0800'),
+        ('f0500', 'f0810'),
+        ('f0520', 'f0820')
+        ON CONFLICT DO NOTHING
+      `)
+    })
+
+    describe('GET /miner/{id}/deals/eligible/summary', () => {
+      it('returns deal counts grouped by client id', async () => {
+        const res = await fetch(`${spark}/miner/f0230/deals/eligible/summary`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        // const body = await res.json()
+        // assert.deepStrictEqual(body, {
+        //   minerId: 'f0230',
+        //   dealCount: 5,
+        //   clients: [
+        //     { clientId: 'f0800', dealCount: 3 },
+        //     { clientId: 'f0810', dealCount: 1 },
+        //     { clientId: 'f0820', dealCount: 1 }
+        //   ]
+        // })
+      })
+
+      it('returns an empty array for miners with no deals in our DB', async () => {
+        const res = await fetch(`${spark}/miner/f0000/deals/eligible/summary`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        const body = await res.json()
+        assert.deepStrictEqual(body, {
+          minerId: 'f0000',
+          dealCount: 0,
+          clients: []
+        })
+      })
+    })
+
+    describe('GET /client/{id}/deals/eligible/summary', () => {
+      it('returns deal counts grouped by miner id', async () => {
+        const res = await fetch(`${spark}/client/f0800/deals/eligible/summary`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        // const body = await res.json()
+        // assert.deepStrictEqual(body, {
+        //   clientId: 'f0800',
+        //   dealCount: 5,
+        //   providers: [
+        //     { minerId: 'f0230', dealCount: 3 },
+        //     { minerId: 'f0210', dealCount: 1 },
+        //     { minerId: 'f0220', dealCount: 1 }
+        //   ]
+        // })
+      })
+
+      it('returns an empty array for miners with no deals in our DB', async () => {
+        const res = await fetch(`${spark}/client/f0000/deals/eligible/summary`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        const body = await res.json()
+        assert.deepStrictEqual(body, {
+          clientId: 'f0000',
+          dealCount: 0,
+          providers: []
+        })
+      })
+    })
+
+    describe('GET /allocator/{id}/deals/eligible/summary', () => {
+      it('returns deal counts grouped by client id', async () => {
+        const res = await fetch(`${spark}/allocator/f0500/deals/eligible/summary`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        // const body = await res.json()
+        // assert.deepStrictEqual(body, {
+        //   allocatorId: 'f0500',
+        //   dealCount: 7,
+        //   clients: [
+        //     { clientId: 'f0800', dealCount: 5 },
+        //     { clientId: 'f0810', dealCount: 2 }
+        //   ]
+        // })
+      })
+
+      it('returns an empty array for miners with no deals in our DB', async () => {
+        const res = await fetch(`${spark}/allocator/f0000/deals/eligible/summary`)
+        await assertResponseStatus(res, 200)
+        assert.strictEqual(res.headers.get('cache-control'), 'max-age=21600')
+        const body = await res.json()
+        assert.deepStrictEqual(body, {
+          allocatorId: 'f0000',
+          dealCount: 0,
+          clients: []
+        })
+      })
+    })
+  })
+
+  describe('POST /eligible-deals-batch', () => {
+    // A miner ID value not found in real data
+    const TEST_MINER_ID = 'f000'
+    // A client ID value not found in real data
+    const TEST_CLIENT_ID = 'f001'
+
+    const AUTH_HEADERS = { authorization: `Bearer ${VALID_DEAL_INGESTION_TOKEN}` }
+
+    beforeEach(async () => {
+      await client.query(
+        'DELETE FROM eligible_deals WHERE miner_id = $1',
+        ['f000']
+      )
+    })
+
+    it('ingests new deals', async () => {
+      const deals = [{
+        minerId: TEST_MINER_ID,
+        clientId: TEST_CLIENT_ID,
+        pieceCid: 'bagaone',
+        pieceSize: '34359738368',
+        payloadCid: 'bafyone',
+        expiresAt: '2100-01-01'
+      }]
+
+      const res = await fetch(`${spark}/eligible-deals-batch`, {
+        method: 'POST',
+        headers: AUTH_HEADERS,
+        body: JSON.stringify(deals)
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(body, { ingested: 1, skipped: 0 })
+
+      const { rows } = await client.query(
+        'SELECT * FROM eligible_deals WHERE miner_id = $1',
+        ['f000']
+      )
+      assert.deepStrictEqual(rows, [{
+        miner_id: TEST_MINER_ID,
+        client_id: TEST_CLIENT_ID,
+        piece_cid: 'bagaone',
+        piece_size: '34359738368',
+        payload_cid: 'bafyone',
+        expires_at: new Date('2100-01-01'),
+        sourced_from_f05_state: false
+      }])
+    })
+
+    it('skips deals that were already ingested from f05 state', async () => {
+      const { rows: [f05Deal] } = await client.query(
+        'SELECT * FROM eligible_deals WHERE sourced_from_f05_state = TRUE LIMIT 1'
+      )
+
+      const res = await fetch(`${spark}/eligible-deals-batch`, {
+        method: 'POST',
+        headers: AUTH_HEADERS,
+        body: JSON.stringify([{
+          minerId: f05Deal.miner_id,
+          clientId: f05Deal.client_id,
+          pieceCid: f05Deal.piece_cid,
+          pieceSize: f05Deal.piece_size,
+          payloadCid: f05Deal.payload_cid,
+          expiresAt: f05Deal.expires_at.toISOString()
+        }])
+      })
+      await assertResponseStatus(res, 200)
+      const body = await res.json()
+
+      assert.deepStrictEqual(body, { ingested: 0, skipped: 1 })
+
+      const { rows } = await client.query(`
+        SELECT * FROM eligible_deals WHERE
+          miner_id = $1
+          AND client_id = $2
+          AND piece_cid = $3
+          AND piece_size = $4
+      `, [
+        f05Deal.miner_id,
+        f05Deal.client_id,
+        f05Deal.piece_cid,
+        f05Deal.piece_size
+      ])
+
+      assert.deepStrictEqual(rows, [f05Deal])
+    })
+
+    it('rejects unauthorized requests', async () => {
+      const deals = [{
+        minerId: TEST_MINER_ID,
+        clientId: TEST_CLIENT_ID,
+        pieceCid: 'bagaone',
+        pieceSize: '34359738368',
+        payloadCid: 'bafyone',
+        expiresAt: '2100-01-01'
+      }]
+
+      const res = await fetch(`${spark}/eligible-deals-batch`, {
+        method: 'POST',
+        body: JSON.stringify(deals)
+      })
+      await assertResponseStatus(res, 403)
+      const body = await res.text()
+      assert.strictEqual(body, 'Unauthorized')
     })
   })
 })

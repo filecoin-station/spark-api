@@ -23,6 +23,12 @@ jobs:
           - pg
           - compare-versions
           - '@flydotio/dockerfile'
+          - postgrator
+          - standard
+          - cancel-stuck-transactions
+          - p-retry
+          - cross-spawn
+          - '@ucanto/'
     steps:
       - name: Dependabot metadata
         id: metadata
