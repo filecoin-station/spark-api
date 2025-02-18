@@ -1,4 +1,4 @@
-import { json } from 'http-responders'
+import { json, redirect, status } from 'http-responders'
 import * as Sentry from '@sentry/node'
 import getRawBody from 'raw-body'
 import assert from 'http-assert'
@@ -21,7 +21,7 @@ import { ethAddressFromDelegated } from '@glif/filecoin-address'
  */
 const handler = async (req, res, client, domain, dealIngestionAccessToken) => {
   if (req.headers.host.split(':')[0] !== domain) {
-    return redirect(res, `https://${domain}${req.url}`)
+    return redirect(req, res, `https://${domain}${req.url}`, 301)
   }
   const segs = req.url.split('/').filter(Boolean)
   if (segs[0] === 'retrievals' && req.method === 'POST') {
@@ -49,7 +49,7 @@ const handler = async (req, res, client, domain, dealIngestionAccessToken) => {
   } else if (segs[0] === 'eligible-deals-batch' && req.method === 'POST') {
     await ingestEligibleDeals(req, res, client, dealIngestionAccessToken)
   } else {
-    notFound(res)
+    status(res, 404)
   }
 }
 
@@ -207,17 +207,13 @@ const getRoundDetails = async (req, res, client, roundParam) => {
     const addr = encodeURIComponent(meridianContractAddress)
     const idx = encodeURIComponent(meridianRoundIndex)
     const location = `/rounds/meridian/${addr}/${idx}`
-    res.setHeader('location', location)
 
     // Cache the location of the current round for a short time to ensure clients learn quickly
     // about a new round when it starts. Also, this endpoint is cheap to execute, so we can
     // afford to call it frequently
     res.setHeader('cache-control', 'max-age=1')
 
-    // Temporary redirect, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/302
-    res.statusCode = 302
-    res.end(location)
-
+    redirect(req, res, location)
     return
   }
 
@@ -229,7 +225,7 @@ const getRoundDetails = async (req, res, client, roundParam) => {
 const replyWithDetailsForRoundNumber = async (res, client, roundNumber) => {
   const { rows: [round] } = await client.query('SELECT * FROM spark_rounds WHERE id = $1', [roundNumber])
   if (!round) {
-    return notFound(res)
+    return status(res, 404)
   }
 
   const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [round.id])
@@ -261,7 +257,7 @@ const getMeridianRoundDetails = async (_req, res, client, meridianAddress, merid
     // IMPORTANT: This response must not be cached for too long to handle the case when the client
     // requested details of a future round.
     res.setHeader('cache-control', 'max-age=60')
-    return notFound(res)
+    return status(res, 404)
   }
 
   const { rows: tasks } = await client.query('SELECT * FROM retrieval_tasks WHERE round_id = $1', [round.id])
@@ -306,24 +302,12 @@ const errorHandler = (res, err, logger) => {
     res.end(err.message)
   } else {
     logger.error(err)
-    res.statusCode = 500
-    res.end('Internal Server Error')
+    status(res, 500)
   }
 
   if (res.statusCode >= 500) {
     Sentry.captureException(err)
   }
-}
-
-const notFound = (res) => {
-  res.statusCode = 404
-  res.end('Not Found')
-}
-
-const redirect = (res, location) => {
-  res.statusCode = 301
-  res.setHeader('location', location)
-  res.end()
 }
 
 const getSummaryOfEligibleDealsForMiner = async (_req, res, client, minerId) => {
