@@ -310,17 +310,6 @@ const errorHandler = (res, err, logger) => {
   }
 }
 
-const notFound = (res) => {
-  res.statusCode = 404
-  res.end('Not Found')
-}
-
-const redirect = (res, location) => {
-  res.statusCode = 301
-  res.setHeader('location', location)
-  res.end()
-}
-
 const getSummaryOfEligibleDealsForMiner = async (_req, res, client, minerId) => {
   /** @type {{rows: {client_id: string; deal_count: number}[]}} */
   const { rows } = await client.query(`
